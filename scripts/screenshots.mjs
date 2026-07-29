@@ -33,6 +33,7 @@ await shot('01-coperta');
 // onboarding rapid
 await page.getByRole('button', { name: /Să începem/ }).click();
 await page.locator('#ob-nume').fill('Attrexx');
+await shot('01b-onboarding-pas1');
 await page.getByRole('button', { name: 'Mai departe' }).click();
 await page.locator('#ob-greutate').fill('102');
 await shot('02-onboarding-corp');
@@ -55,8 +56,16 @@ await page.goto(BASE + '#/sala');
 await page.getByText('Full Body A').first().click();
 await page.getByRole('button', { name: /START/ }).click();
 await page.getByRole('button', { name: /Pauză/ }).waitFor();
+// exercițiul curent e banda de alergare → viteza + înclinația vizibile
+await page.getByText('Viteză').waitFor();
+await shot('07-sesiune-banda');
+// economizorul de ecran: 45 s fără atingeri
+console.log('aștept economizorul (47s)…');
+await page.waitForTimeout(47_000);
+await shot('07b-economizor');
+await page.mouse.click(200, 400); // trezire
 await page.getByText('Presă de picioare').nth(1).click().catch(() => {});
-await shot('07-sesiune');
+await shot('07c-sesiune-forta');
 
 await page.goto(BASE + '#/antrenamente');
 await page.getByText('Full Body A').first().waitFor();

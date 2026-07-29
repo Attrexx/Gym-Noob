@@ -2,7 +2,7 @@
   "name": "gym-noob",
   "private": true,
   "version": "1.0.0",
-  "description": "GYM pentru NOOBI — Ghidul complet al începătorului absolut. PWA de antrenament în limba română.",
+  "description": "Gym Noob — Ghidul complet al începătorului absolut. PWA de antrenament în limba română.",
   "type": "module",
   "scripts": {
     "dev": "vite",

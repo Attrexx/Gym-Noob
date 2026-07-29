@@ -32,6 +32,40 @@ export function durataSetSec(repetari: number, tempo?: string): number {
 }
 
 /**
+ * MET pentru banda de alergare din viteză + înclinație — ecuațiile
+ * metabolice ACSM. Mult mai precis decât un MET fix, pentru că userul
+ * schimbă des setările pe bandă.
+ *  - mers  (< 8 km/h):  VO2 = 0,1·S + 1,8·S·G + 3,5
+ *  - alergare (≥ 8):    VO2 = 0,2·S + 0,9·S·G + 3,5
+ * unde S = viteza în m/min, G = panta (fracție). MET = VO2 / 3,5.
+ */
+export function metBanda(vitezaKmh: number, inclinatieProcent: number): number {
+  const S = (Math.max(0, vitezaKmh) * 1000) / 60;
+  const G = Math.max(0, inclinatieProcent) / 100;
+  const vo2 = vitezaKmh >= 8 ? 0.2 * S + 0.9 * S * G + 3.5 : 0.1 * S + 1.8 * S * G + 3.5;
+  return Math.max(1, Math.round((vo2 / 3.5) * 100) / 100);
+}
+
+/** Media ponderată a MET-ului pe segmente (schimbări de viteză/înclinație). */
+export interface SegmentBanda {
+  /** secunda din cronometru la care a intrat în vigoare setarea */
+  startSec: number;
+  viteza: number;
+  inclinatie: number;
+}
+
+export function metMediuBanda(segmente: SegmentBanda[], totalSec: number): number {
+  if (segmente.length === 0 || totalSec <= 0) return metBanda(5, 0);
+  let suma = 0;
+  for (let i = 0; i < segmente.length; i++) {
+    const start = Math.min(segmente[i].startSec, totalSec);
+    const end = i + 1 < segmente.length ? Math.min(segmente[i + 1].startSec, totalSec) : totalSec;
+    if (end > start) suma += metBanda(segmente[i].viteza, segmente[i].inclinatie) * (end - start);
+  }
+  return Math.round((suma / totalSec) * 100) / 100;
+}
+
+/**
  * Formula Keytel — kcal/min din puls, mai precisă decât MET când avem
  * date de la ceas. Valabilă pentru efort aerob (puls 90-150+).
  */

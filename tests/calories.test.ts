@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { durataSetSec, kcalKeytel, kcalMet, kcalSet } from '@/domain/calories';
+import { durataSetSec, kcalKeytel, kcalMet, kcalSet, metBanda, metMediuBanda } from '@/domain/calories';
 
 describe('kcal MET', () => {
   it('formula de bază: MET 8, 100kg, 30 min ≈ 420 kcal', () => {
@@ -21,6 +21,44 @@ describe('durata unui set', () => {
   });
   it('respectă tempo-ul explicit', () => {
     expect(durataSetSec(10, '3-1-2')).toBe(75); // 10*6 + 15
+  });
+});
+
+describe('MET banda de alergare (ACSM)', () => {
+  it('mers 5 km/h pe plat ≈ 3,4 MET', () => {
+    expect(metBanda(5, 0)).toBeGreaterThan(3.1);
+    expect(metBanda(5, 0)).toBeLessThan(3.7);
+  });
+  it('înclinația crește semnificativ efortul', () => {
+    expect(metBanda(5.5, 12)).toBeGreaterThan(metBanda(5.5, 0) * 2);
+  });
+  it('alergare 10 km/h ≈ 10,5 MET (formula de alergare)', () => {
+    expect(metBanda(10, 0)).toBeGreaterThan(9.5);
+    expect(metBanda(10, 0)).toBeLessThan(11.5);
+  });
+  it('media ponderată pe segmente', () => {
+    // 60 s la setarea A, 60 s la setarea B → media aritmetică a MET-urilor
+    const a = metBanda(5, 0);
+    const b = metBanda(8, 5);
+    const mediu = metMediuBanda(
+      [
+        { startSec: 0, viteza: 5, inclinatie: 0 },
+        { startSec: 60, viteza: 8, inclinatie: 5 },
+      ],
+      120,
+    );
+    expect(mediu).toBeCloseTo((a + b) / 2, 1);
+  });
+  it('segmente cu același start (schimbări rapide) nu strică media', () => {
+    const mediu = metMediuBanda(
+      [
+        { startSec: 0, viteza: 5, inclinatie: 0 },
+        { startSec: 0, viteza: 6, inclinatie: 0 },
+        { startSec: 0, viteza: 7, inclinatie: 0 },
+      ],
+      100,
+    );
+    expect(mediu).toBeCloseTo(metBanda(7, 0), 1);
   });
 });
 

@@ -10,6 +10,8 @@ import { Flexu, FlexuSpune } from '@/design/Flexu';
 import { getExercise } from '@/data/catalog/exercises';
 import type { Template, TemplateItem } from '@/data/types';
 import { fmtDurata, useTick } from './useTick';
+import { metBanda, metMediuBanda, type SegmentBanda } from '@/domain/calories';
+import { Screensaver } from './Screensaver';
 import { Metronom, sunete, vibreaza } from '@/services/audio';
 import { spune } from '@/services/tts';
 import { elibereazaEcranul, reactiveazaLaRevenire, tineEcranAprins } from '@/services/wakeLock';
@@ -122,11 +124,14 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
   const sec = secundeActive(s);
   const restRamas = s.restEndsMs ? Math.ceil((s.restEndsMs - Date.now()) / 1000) : null;
 
-  // wake lock pe durata sesiunii
+  // wake lock pe durata sesiunii (recerut și la revenirea în aplicație)
   useEffect(() => {
     void tineEcranAprins();
-    reactiveazaLaRevenire(() => useSession.getState().status !== 'inactiva');
-    return () => elibereazaEcranul();
+    const scoate = reactiveazaLaRevenire(() => useSession.getState().status !== 'inactiva');
+    return () => {
+      scoate();
+      elibereazaEcranul();
+    };
   }, []);
 
   // bipuri la finalul pauzei
@@ -230,6 +235,7 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
 
   return (
     <div className="pagina">
+      <Screensaver activ={setari?.economizor !== false} />
       {/* ── antet cu cronometru și comenzi ── */}
       <Sticker style={{ position: 'sticky', top: 8, zIndex: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -500,10 +506,40 @@ function ExercitiuCurent(props: {
   useTick(1000, cronoActiv);
   const cronoStart = useRef(0);
 
+  // banda de alergare: viteză + înclinație, cu segmente pentru calorii
+  const banda = ex.echipament === 'banda_alergare';
+  const [viteza, setViteza] = useState(item.viteza ?? 5);
+  const [inclinatie, setInclinatie] = useState(item.inclinatie ?? 0);
+  const segmente = useRef<SegmentBanda[]>([]);
+
   useEffect(() => () => metronomRef.current?.stop(), []);
 
   const cronoSec = cronoActiv ? Math.floor((Date.now() - cronoStart.current) / 1000) : crono;
   const gata = s.seturiFacute[props.planIdx] >= item.seturi;
+
+  const schimbaBanda = (v: number, inc: number) => {
+    setViteza(v);
+    setInclinatie(inc);
+    segmente.current.push({ startSec: cronoSec, viteza: v, inclinatie: inc });
+  };
+
+  /** mediile ponderate cu timpul, pentru jurnal */
+  const mediiBanda = (totalSec: number) => {
+    const segs = segmente.current.length ? segmente.current : [{ startSec: 0, viteza, inclinatie }];
+    let sv = 0;
+    let si = 0;
+    for (let i = 0; i < segs.length; i++) {
+      const a = Math.min(segs[i].startSec, totalSec);
+      const b = i + 1 < segs.length ? Math.min(segs[i + 1].startSec, totalSec) : totalSec;
+      if (b > a) {
+        sv += segs[i].viteza * (b - a);
+        si += segs[i].inclinatie * (b - a);
+      }
+    }
+    return totalSec > 0
+      ? { viteza: Math.round((sv / totalSec) * 10) / 10, inclinatie: Math.round((si / totalSec) * 10) / 10 }
+      : { viteza, inclinatie };
+  };
 
   const toggleMetronom = () => {
     if (!metronomRef.current) metronomRef.current = new Metronom();
@@ -579,12 +615,25 @@ function ExercitiuCurent(props: {
             <div style={{ fontFamily: 'var(--font-titlu)', fontSize: '3rem' }}>{fmtDurata(cronoSec)}</div>
             <div className="mic estompat">țintă: {fmtDurata(item.durataSec ?? 300)}</div>
           </div>
+          {banda && (
+            <div style={{ border: '2px dashed var(--linie)', borderRadius: 10, padding: '10px 6px', margin: '0 0 10px' }}>
+              <div style={{ display: 'grid', gap: 10 }}>
+                <Stepper eticheta="Viteză" valoare={viteza} pas={0.5} min={0.5} max={22} unitate="km/h" onChange={(v) => schimbaBanda(v, inclinatie)} />
+                <Stepper eticheta="Înclinație" valoare={inclinatie} pas={1} min={0} max={20} unitate="%" onChange={(v) => schimbaBanda(viteza, v)} />
+              </div>
+              <p className="mic estompat centrat" style={{ margin: '6px 0 0' }}>
+                Schimbă-le din mers, exact cum le schimbi pe bandă — caloriile țin cont de fiecare porțiune.
+                Intensitate acum: <b>{metBanda(viteza, inclinatie).toFixed(1)} MET</b>
+              </p>
+            </div>
+          )}
           <div className="rand">
             {!cronoActiv ? (
               <BigButton
                 varianta="accent"
                 onClick={() => {
                   cronoStart.current = Date.now() - crono * 1000;
+                  if (banda && segmente.current.length === 0) segmente.current.push({ startSec: 0, viteza, inclinatie });
                   setCronoActiv(true);
                 }}
               >
@@ -600,7 +649,7 @@ function ExercitiuCurent(props: {
                 ⏸ Oprește
               </BigButton>
             )}
-            <BigButton varianta="contur" onClick={() => { setCrono(0); setCronoActiv(false); }}>
+            <BigButton varianta="contur" onClick={() => { setCrono(0); setCronoActiv(false); segmente.current = []; }}>
               ↺ Reset
             </BigButton>
           </div>
@@ -625,7 +674,16 @@ function ExercitiuCurent(props: {
             disabled={cronoSec === 0}
             onClick={() => {
               setCronoActiv(false);
-              void props.onSet(props.planIdx, { durataSec: cronoSec, rpe }).then(() => setCrono(0));
+              const extra = banda
+                ? {
+                    met: metMediuBanda(segmente.current.length ? segmente.current : [{ startSec: 0, viteza, inclinatie }], cronoSec),
+                    ...mediiBanda(cronoSec),
+                  }
+                : {};
+              void props.onSet(props.planIdx, { durataSec: cronoSec, rpe, ...extra }).then(() => {
+                setCrono(0);
+                segmente.current = [];
+              });
             }}
           >
             ✔ Am terminat ({fmtDurata(cronoSec)})

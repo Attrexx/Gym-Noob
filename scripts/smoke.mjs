@@ -117,7 +117,7 @@ try {
 
   // ── manifest + service worker în build ──
   const manifest = await (await fetch(BASE + 'manifest.webmanifest')).json();
-  if (manifest.name !== 'GYM pentru NOOBI') throw new Error('manifest greșit');
+  if (manifest.name !== 'Gym Noob') throw new Error('manifest greșit');
   const sw = await fetch(BASE + 'sw.js');
   if (!sw.ok) throw new Error('sw.js lipsește');
   pas('manifest PWA + service worker prezente');

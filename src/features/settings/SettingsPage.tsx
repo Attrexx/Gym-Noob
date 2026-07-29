@@ -63,6 +63,15 @@ export function SettingsPage() {
         />
         <Comutator eticheta="📳 Vibrații" activ={setari.vibratii} onChange={(v) => set({ vibratii: v })} />
         <Comutator eticheta="💡 Sugestii automate de exerciții" activ={setari.sugestiiAutomate} onChange={(v) => set({ sugestiiAutomate: v })} />
+        <Comutator
+          eticheta="🌘 Economizor de ecran în sesiune"
+          activ={setari.economizor !== false}
+          onChange={(v) => set({ economizor: v })}
+        />
+        <p className="mic estompat" style={{ margin: '8px 0 0' }}>
+          Economizorul: după 45 de secunde fără atingeri, ecranul devine negru cu cronometrul estompat — ca pe un
+          ceas. Se trezește la atingere sau la mișcarea telefonului. Ecranul nu se stinge niciodată în sesiune.
+        </p>
       </Sticker>
 
       <SectionTitle supratitlu="despre tine">Profil</SectionTitle>
@@ -128,7 +137,7 @@ export function SettingsPage() {
       </Sticker>
 
       <p className="mic estompat centrat" style={{ marginTop: 20 }}>
-        GYM pentru NOOBI · v1.0 · făcută cu 💪 și fără niciun server
+        Gym Noob · v1.0 · făcută cu 💪 și fără niciun server
       </p>
     </div>
   );

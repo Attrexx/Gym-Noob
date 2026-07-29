@@ -18,7 +18,7 @@ export default defineConfig({
       includeAssets: ['icons/icon.svg', 'icons/maskable-512.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'],
       manifest: {
         id: '/Gym-Noob/',
-        name: 'GYM pentru NOOBI',
+        name: 'Gym Noob',
         short_name: 'Gym Noob',
         description: 'Ghidul complet al începătorului absolut la sală. Antrenamente, jurnale, calorii și statistici — totul în română.',
         lang: 'ro',

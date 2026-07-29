@@ -43,7 +43,20 @@ export interface LiveState {
   pauza: () => Promise<void>;
   reia: () => Promise<void>;
   opreste: (abandon?: boolean) => Promise<{ durataSec: number; kcal: number; apaMl: number; seturi: number } | null>;
-  logSet: (profil: Profile, planIdx: number, date: { repetari?: number; greutate?: number; durataSec?: number; rpe?: number }) => Promise<PrHit[]>;
+  logSet: (
+    profil: Profile,
+    planIdx: number,
+    date: {
+      repetari?: number;
+      greutate?: number;
+      durataSec?: number;
+      rpe?: number;
+      /** MET calculat dinamic (ex. banda: viteză+înclinație) */
+      met?: number;
+      viteza?: number;
+      inclinatie?: number;
+    },
+  ) => Promise<PrHit[]>;
   bea: (ml: number) => Promise<void>;
   sareLa: (idx: number) => void;
   adaugaInPlan: (item: TemplateItem) => void;
@@ -147,10 +160,11 @@ export const useSession = create<LiveState>()(
         if (!ex) return [];
         const secunde = date.durataSec ?? durataSetSec(date.repetari ?? 0, item.tempo);
         const kcal = kcalSet({
-          met: ex.met,
+          met: date.met ?? ex.met,
           greutateKg: profilGreutate(profil),
           secunde,
-          rpe: date.rpe,
+          // MET-ul dinamic (banda) e deja obiectiv — nu-l mai scalăm cu RPE
+          rpe: date.met !== undefined ? undefined : date.rpe,
           sex: profil.sex,
           varsta: varstaDinData(profil.dataNasterii),
           pulsMediu: s.hrNr > 0 ? Math.round(s.hrSuma / s.hrNr) : undefined,
@@ -167,6 +181,8 @@ export const useSession = create<LiveState>()(
           durataSec: date.durataSec,
           rpe: date.rpe,
           tempo: item.tempo,
+          viteza: date.viteza,
+          inclinatie: date.inclinatie,
           kcal: Math.round(kcal * 10) / 10,
           data: new Date().toISOString(),
         };

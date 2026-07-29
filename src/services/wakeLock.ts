@@ -20,8 +20,10 @@ export function elibereazaEcranul() {
 }
 
 /** La revenirea în tab, browserul eliberează lock-ul — îl recerem. */
-export function reactiveazaLaRevenire(cand: () => boolean) {
-  document.addEventListener('visibilitychange', () => {
+export function reactiveazaLaRevenire(cand: () => boolean): () => void {
+  const handler = () => {
     if (document.visibilityState === 'visible' && cand()) void tineEcranAprins();
-  });
+  };
+  document.addEventListener('visibilitychange', handler);
+  return () => document.removeEventListener('visibilitychange', handler);
 }

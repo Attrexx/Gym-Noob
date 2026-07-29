@@ -84,10 +84,10 @@ export function OnboardingPage() {
         <div className="centrat pop">
           <div className="coperta" style={{ padding: '26px 18px', marginTop: 24 }}>
             <div className="supratitlu">Ghidul complet al începătorului absolut</div>
-            <h1 style={{ fontSize: '2.6rem', margin: '6px 0' }}>
+            <h1 style={{ fontSize: '3rem', margin: '6px 0' }}>
               GYM
               <br />
-              pentru NOOBI
+              NOOB
             </h1>
             <div style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
               <Flexu poza="flex" marime={150} />
@@ -115,7 +115,10 @@ export function OnboardingPage() {
 
       {pas === 1 && (
         <div className="pop">
-          <h1>Cine ești?</h1>
+          <div className="coperta">
+            <div className="supratitlu">pasul 1 din 4 · fă cunoștință</div>
+            <h1 style={{ fontSize: '1.6rem', margin: 0 }}>Cine ești?</h1>
+          </div>
           <FlexuSpune poza="explica">Datele astea rămân doar pe telefonul tău — le folosesc pentru calorii și recomandări.</FlexuSpune>
           <Sticker>
             <label htmlFor="ob-nume">Cum îți spunem?</label>
@@ -152,7 +155,10 @@ export function OnboardingPage() {
 
       {pas === 2 && (
         <div className="pop">
-          <h1>Corpul de start</h1>
+          <div className="coperta">
+            <div className="supratitlu">pasul 2 din 4 · punctul de plecare</div>
+            <h1 style={{ fontSize: '1.6rem', margin: 0 }}>Corpul de start</h1>
+          </div>
           <FlexuSpune poza="explica">
             Măsurătorile cu banda (opționale) îmi permit să estimez procentul de grăsime — un indicator mult mai
             util decât cântarul singur.
@@ -209,7 +215,10 @@ export function OnboardingPage() {
 
       {pas === 3 && (
         <div className="pop">
-          <h1>Obiectivul</h1>
+          <div className="coperta">
+            <div className="supratitlu">pasul 3 din 4 · destinația</div>
+            <h1 style={{ fontSize: '1.6rem', margin: 0 }}>Obiectivul</h1>
+          </div>
           <FlexuSpune poza="ganditor">
             Recomand un ritm de <b>0,5 kg pe săptămână</b> — suficient de rapid să se vadă, suficient de blând să
             păstrezi mușchii și să nu suferi de foame.
@@ -243,7 +252,10 @@ export function OnboardingPage() {
 
       {pas === 4 && (
         <div className="pop">
-          <h1>Planul tău</h1>
+          <div className="coperta">
+            <div className="supratitlu">pasul 4 din 4 · gata de treabă</div>
+            <h1 style={{ fontSize: '1.6rem', margin: 0 }}>Planul tău</h1>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
             <StatTile valoare={formatNr(calcule.imc)} eticheta="IMC" sub={bmiCategorie(calcule.imc)} />
             <StatTile valoare={`${calcule.b}`} eticheta="BMR (kcal)" sub="arse doar existând" />

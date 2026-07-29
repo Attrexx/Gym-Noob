@@ -124,6 +124,9 @@ export interface TemplateItem {
   pauzaSec: number;
   /** cadență: secunde coborâre-pauză-ridicare, ex. "3-1-2" */
   tempo?: string;
+  /** banda de alergare: viteza (km/h) și înclinația (%) planificate */
+  viteza?: number;
+  inclinatie?: number;
   notite?: string;
 }
 
@@ -176,6 +179,9 @@ export interface SetLog {
   /** efort perceput 1-10 */
   rpe?: number;
   tempo?: string;
+  /** banda de alergare: setările folosite (medii pe durata setului) */
+  viteza?: number;
+  inclinatie?: number;
   kcal: number;
   data: string; // ISO
 }
@@ -228,6 +234,8 @@ export interface Settings {
   vibratii: boolean;
   /** sugestii automate în sesiune */
   sugestiiAutomate: boolean;
+  /** economizor de ecran (stil ceas) în timpul sesiunii */
+  economizor: boolean;
 }
 
 export const SETARI_IMPLICITE: Omit<Settings, 'id' | 'profileId'> = {
@@ -236,4 +244,5 @@ export const SETARI_IMPLICITE: Omit<Settings, 'id' | 'profileId'> = {
   vocale: false,
   vibratii: true,
   sugestiiAutomate: true,
+  economizor: true,
 };

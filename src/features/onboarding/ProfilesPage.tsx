@@ -19,7 +19,7 @@ export function ProfilesPage() {
   return (
     <div className="pagina">
       <div className="coperta">
-        <div className="supratitlu">GYM pentru NOOBI</div>
+        <div className="supratitlu">Gym Noob</div>
         <h1>Profiluri</h1>
       </div>
       {(profiluri ?? []).map((p) => (

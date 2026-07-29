@@ -207,14 +207,38 @@ function ItemEditor(props: { item: TemplateItem; onChange: (it: TemplateItem) =>
             />
           </>
         ) : (
-          <Stepper
-            eticheta="Durată (minute)"
-            valoare={Math.round((item.durataSec ?? 300) / 60)}
-            min={1}
-            max={90}
-            unitate="min"
-            onChange={(v) => onChange({ ...item, durataSec: v * 60 })}
-          />
+          <>
+            <Stepper
+              eticheta="Durată (minute)"
+              valoare={Math.round((item.durataSec ?? 300) / 60)}
+              min={1}
+              max={90}
+              unitate="min"
+              onChange={(v) => onChange({ ...item, durataSec: v * 60 })}
+            />
+            {ex.echipament === 'banda_alergare' && (
+              <>
+                <Stepper
+                  eticheta="Viteză de pornire"
+                  valoare={item.viteza ?? 5}
+                  pas={0.5}
+                  min={0.5}
+                  max={22}
+                  unitate="km/h"
+                  onChange={(v) => onChange({ ...item, viteza: v })}
+                />
+                <Stepper
+                  eticheta="Înclinație de pornire"
+                  valoare={item.inclinatie ?? 0}
+                  pas={1}
+                  min={0}
+                  max={20}
+                  unitate="%"
+                  onChange={(v) => onChange({ ...item, inclinatie: v })}
+                />
+              </>
+            )}
+          </>
         )}
         <Stepper eticheta="Pauză între seturi" valoare={item.pauzaSec} pas={15} min={0} max={600} unitate="sec" onChange={(v) => onChange({ ...item, pauzaSec: v })} />
         <div>

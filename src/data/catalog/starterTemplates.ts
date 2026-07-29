@@ -14,7 +14,7 @@ export function starterTemplates(profileId: number): Omit<Template, 'id'>[] {
       descriere: 'Tur de acomodare: puțin din toate, greutăți mici, zero rușine. Scopul e să pleci zâmbind, nu distrus.',
       etichete: ['începător', 'full body'],
       items: [
-        { exerciseId: 'mers-inclinat-banda', seturi: 1, durataSec: 600, pauzaSec: 60 },
+        { exerciseId: 'mers-inclinat-banda', seturi: 1, durataSec: 600, pauzaSec: 60, viteza: 5.5, inclinatie: 8 },
         { exerciseId: 'impins-piept-aparat', seturi: 2, repetari: 12, greutate: 20, pauzaSec: 90 },
         { exerciseId: 'tractiuni-helcometru', seturi: 2, repetari: 12, greutate: 25, pauzaSec: 90 },
         { exerciseId: 'presa-picioare', seturi: 2, repetari: 12, greutate: 40, pauzaSec: 90 },
@@ -28,7 +28,7 @@ export function starterTemplates(profileId: number): Omit<Template, 'id'>[] {
       descriere: 'Jumătatea A a programului de 3 zile/săptămână (A-B-A, apoi B-A-B). Împins + picioare dominant.',
       etichete: ['începător', 'full body', 'forță'],
       items: [
-        { exerciseId: 'mers-inclinat-banda', seturi: 1, durataSec: 480, pauzaSec: 60 },
+        { exerciseId: 'mers-inclinat-banda', seturi: 1, durataSec: 480, pauzaSec: 60, viteza: 5.5, inclinatie: 8 },
         { exerciseId: 'presa-picioare', seturi: 3, repetari: 10, greutate: 50, pauzaSec: 120 },
         { exerciseId: 'impins-gantere-banca', seturi: 3, repetari: 10, greutate: 10, pauzaSec: 90, tempo: '2-0-1' },
         { exerciseId: 'ramat-cablu-asezat', seturi: 3, repetari: 12, greutate: 30, pauzaSec: 90 },
@@ -62,7 +62,7 @@ export function starterTemplates(profileId: number): Omit<Template, 'id'>[] {
         { exerciseId: 'crunch-saltea', seturi: 3, repetari: 15, pauzaSec: 45 },
         { exerciseId: 'russian-twist', seturi: 3, repetari: 20, pauzaSec: 45 },
         { exerciseId: 'mountain-climbers', seturi: 3, durataSec: 25, pauzaSec: 60 },
-        { exerciseId: 'mers-inclinat-banda', seturi: 1, durataSec: 600, pauzaSec: 0 },
+        { exerciseId: 'mers-inclinat-banda', seturi: 1, durataSec: 600, pauzaSec: 0, viteza: 5.5, inclinatie: 10 },
       ],
     },
   ];
