@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "deploy": "npm test && npm run build && git add dist && git commit -m \"Publicare: build nou in dist\" && git push"
   },
   "dependencies": {
     "@fontsource/archivo-black": "^5.1.0",

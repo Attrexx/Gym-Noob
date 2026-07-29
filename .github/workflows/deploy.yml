@@ -1,8 +1,12 @@
 name: Deploy PWA to GitHub Pages
 
+# Fluxul de lucru: build-ul se face LOCAL (npm run build), iar dist/ se
+# comite și se împinge. Acțiunea doar publică dist/ pe GitHub Pages —
+# fără build în CI, deploy în ~20 de secunde.
 on:
   push:
     branches: [main, master]
+    paths: ['dist/**', '.github/workflows/deploy.yml']
   workflow_dispatch:
 
 permissions:
@@ -15,27 +19,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v4
+      - name: Verifică build-ul comis
+        run: test -f dist/index.html || { echo "dist/ lipsește — rulează 'npm run build' local și comite dist/"; exit 1; }
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
       - id: deployment
         uses: actions/deploy-pages@v4

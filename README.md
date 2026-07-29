@@ -29,15 +29,21 @@ galbene din anii '90 și cu **Flexu**, mascota care te încurajează, te învaț
 2. Android: „Adaugă pe ecranul de pornire" din meniul ⋮ (sau bannerul de instalare). iPhone: Partajare → „Adaugă pe ecranul principal".
 3. Gata — pornește ca o aplicație normală, cu tot cu date, și fără internet.
 
-## Dezvoltare
+## Dezvoltare locală
+
+Cerințe: [Node.js](https://nodejs.org) 20+ (include npm) și [Git](https://git-scm.com).
 
 ```bash
+git clone https://github.com/Attrexx/Gym-Noob.git
+cd Gym-Noob
 npm install
-npm run dev        # server local
+npm run dev        # server local — deschide adresa afișată (http://localhost:5173/Gym-Noob/)
 npm test           # teste unitare (formulele de calorii, obiective, PR-uri…)
-npm run build      # build de producție + service worker
-npm run smoke      # test end-to-end în Chromium headless
+npm run build      # build de producție + service worker, în dist/
 ```
+
+`npm run smoke` (test end-to-end) și `scripts/gen-icons.mjs` folosesc un Chromium headless —
+setează variabila `CHROMIUM_PATH` către executabilul Chrome/Chromium local dacă vrei să le rulezi.
 
 Stack: Vite + React 18 + TypeScript · Zustand · Dexie (IndexedDB) · Recharts · vite-plugin-pwa.
 Fără backend: totul e local-first, iar stratul de date (`src/data/`) e izolat ca să poată primi
@@ -45,5 +51,12 @@ sincronizare pe server mai târziu fără rescrierea aplicației.
 
 ## Publicare
 
-La fiecare push pe `main`, GitHub Actions rulează testele, face build-ul și publică pe GitHub Pages.
-**Setare unică:** în repo → Settings → Pages → Source: **GitHub Actions**.
+Build-ul se face **local**, iar `dist/` e comis în repo. GitHub Actions doar publică `dist/` pe
+GitHub Pages la fiecare push pe `main` care îl atinge (Settings → Pages → Source: GitHub Actions).
+
+```bash
+npm run deploy     # teste + build + comite dist/ + push  →  site actualizat în ~30s
+```
+
+Atenție: dacă împingi modificări de cod fără să refaci build-ul, site-ul rămâne pe versiunea veche —
+`npm run deploy` e comanda care „urcă" ce vezi local.
