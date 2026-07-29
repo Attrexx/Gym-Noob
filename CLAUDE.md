@@ -13,6 +13,9 @@ Deep context, decisions and roadmap: see `docs/CONTEXT.md`. Read it before large
 - `npm run build` — tsc + vite build + service worker → `dist/`
 - `npm run smoke` — Playwright e2e against the built `dist/` (needs Chromium; set `CHROMIUM_PATH`
   on Windows, e.g. `C:\Program Files\Google\Chrome\Application\chrome.exe`)
+- `npm run capturi` — UI screenshots of the built `dist/` into a fresh versioned folder
+  (`capturi/vNN_YYYY-MM-DD/`, index + per-shot README written automatically). Same `CHROMIUM_PATH`
+  requirement as `smoke`; takes ~2.5 min because it waits out the 45 s screensaver.
 - `npm run deploy` — **the publish button**: test + build + commit `dist/` + push
 
 ## Deployment model (unusual — do not "fix" it)
