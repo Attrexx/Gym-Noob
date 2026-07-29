@@ -459,6 +459,20 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
   );
 }
 
+/** Calculatorul de discuri: bară olimpică de 20 kg, discuri standard. */
+export function discuriPeParte(total: number): string {
+  let ramas = (total - 20) / 2;
+  const discuri = [25, 20, 15, 10, 5, 2.5, 1.25];
+  const folosite: number[] = [];
+  for (const d of discuri) {
+    while (ramas >= d - 0.001) {
+      folosite.push(d);
+      ramas -= d;
+    }
+  }
+  return folosite.length ? folosite.map((d) => formatNr(d)).join(' + ') + ' kg' : 'nimic';
+}
+
 function itemDinExercitiu(exerciseId: string): TemplateItem {
   const ex = getExercise(exerciseId)!;
   return ex.masura === 'timp'
@@ -549,6 +563,11 @@ function ExercitiuCurent(props: {
                 🎵 Tempo {item.tempo} {metronomActiv && fazaTempo ? `— ${fazaTempo}` : ''}
               </BigButton>
             </div>
+          )}
+          {ex.echipament === 'haltera' && greutate > 20 && (
+            <p className="mic estompat centrat" style={{ margin: '0 0 10px' }}>
+              🏋️ {formatNr(greutate)} kg = bara (20 kg) + <b>{discuriPeParte(greutate)}</b> pe fiecare parte
+            </p>
           )}
           <BigButton varianta="accent" mare onClick={() => void props.onSet(props.planIdx, { repetari, greutate, rpe })}>
             ✔ Am terminat setul
