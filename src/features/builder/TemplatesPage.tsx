@@ -2,11 +2,18 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
-import { BigButton, Sticker } from '@/design/components';
+import { BigButton, pluralRo, Sticker } from '@/design/components';
 import { getExercise } from '@/data/catalog/exercises';
+import { getProgram } from '@/data/catalog/programs';
 import { saveTemplate } from '@/data/repo';
 import type { Template } from '@/data/types';
 import { useSession } from '@/state/sessionStore';
+
+/** Numele programului din care provine șablonul, dacă e cazul. */
+function numeleProgramului(t: Template): string | undefined {
+  const eticheta = t.etichete.find((e) => e.startsWith('program:'));
+  return eticheta ? getProgram(eticheta.slice(8))?.nume : undefined;
+}
 
 export function TemplatesPage() {
   const { profil } = useProfile();
@@ -32,6 +39,10 @@ export function TemplatesPage() {
       <BigButton varianta="accent" mare onClick={() => nav('/antrenamente/nou')}>
         + Antrenament nou
       </BigButton>
+      <div style={{ height: 10 }} />
+      <BigButton mare onClick={() => nav('/programe')}>
+        📖 Programe celebre (PPL, 5/3/1, Full Body…)
+      </BigButton>
 
       <div style={{ height: 14 }} />
       {(sabloane ?? []).map((t) => {
@@ -44,8 +55,9 @@ export function TemplatesPage() {
               <div style={{ flex: 1 }}>
                 <b style={{ fontSize: '1.05rem' }}>{t.nume}</b>{' '}
                 {t.predefinit && <span className="eticheta-mica">de la Flexu</span>}
+                {numeleProgramului(t) && <span className="eticheta-mica">{numeleProgramului(t)}</span>}
                 <div className="mic estompat" style={{ marginTop: 2 }}>
-                  {t.items.length} exerciții · ~{minute} min ·{' '}
+                  {pluralRo(t.items.length, 'exercițiu', 'exerciții')} · ~{minute} min ·{' '}
                   {t.items
                     .slice(0, 3)
                     .map((i) => getExercise(i.exerciseId)?.nume ?? i.exerciseId)

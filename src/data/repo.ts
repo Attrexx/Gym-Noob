@@ -3,6 +3,7 @@ import {
   SETARI_IMPLICITE,
   type BodyMetric,
   type Goal,
+  type ProgramDef,
   type Profile,
   type Session,
   type SetLog,
@@ -81,6 +82,43 @@ export async function saveTemplate(t: Template): Promise<number> {
 
 export async function deleteTemplate(id: number) {
   await db.templates.delete(id);
+}
+
+/** Eticheta pusă pe șabloanele venite dintr-un program celebru. */
+export function etichetaProgram(programId: string): string {
+  return `program:${programId}`;
+}
+
+/**
+ * Copiază toate antrenamentele unui program în șabloanele profilului.
+ * Rulat din nou pe același program, înlocuiește copiile anterioare —
+ * altfel lista s-ar umple de duplicate la fiecare apăsare.
+ */
+export async function importaProgram(profileId: number, p: ProgramDef): Promise<number> {
+  const eticheta = etichetaProgram(p.id);
+  return db.transaction('rw', db.templates, async () => {
+    const vechi = await db.templates.where({ profileId }).filter((t) => t.etichete.includes(eticheta)).toArray();
+    await db.templates.bulkDelete(vechi.map((t) => t.id!).filter(Boolean));
+    await db.templates.bulkAdd(
+      p.antrenamente.map((w) => ({
+        profileId,
+        nume: `${w.nume}`,
+        descriere: w.descriere ?? p.subtitlu,
+        etichete: [eticheta, ...p.etichete],
+        items: w.items.map((i) => ({ ...i })),
+        creatLa: now(),
+        modificatLa: now(),
+        predefinit: false,
+      })),
+    );
+    return p.antrenamente.length;
+  });
+}
+
+/** Șabloanele deja importate dintr-un program (ca să știm ce e adăugat). */
+export async function templatesDinProgram(profileId: number, programId: string): Promise<Template[]> {
+  const eticheta = etichetaProgram(programId);
+  return db.templates.where({ profileId }).filter((t) => t.etichete.includes(eticheta)).toArray();
 }
 
 // ── Sesiuni ─────────────────────────────────────────────────────────

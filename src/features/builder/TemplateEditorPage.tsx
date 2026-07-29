@@ -22,6 +22,7 @@ export function TemplateEditorPage() {
 
   const [nume, setNume] = useState('');
   const [descriere, setDescriere] = useState('');
+  const [etichete, setEtichete] = useState<string[]>([]);
   const [items, setItems] = useState<TemplateItem[]>([]);
   const [templateId, setTemplateId] = useState<number | undefined>();
   const [alegeExercitiu, setAlegeExercitiu] = useState(false);
@@ -34,6 +35,7 @@ export function TemplateEditorPage() {
         if (t) {
           setNume(t.nume);
           setDescriere(t.descriere ?? '');
+          setEtichete(t.etichete ?? []);
           setItems(t.items);
           setTemplateId(t.id);
         }
@@ -53,7 +55,7 @@ export function TemplateEditorPage() {
       profileId: profil.id,
       nume: nume.trim(),
       descriere: descriere.trim() || undefined,
-      etichete: [],
+      etichete,
       items,
       creatLa: '',
       modificatLa: '',
@@ -101,9 +103,18 @@ export function TemplateEditorPage() {
             </div>
             <div className="mic" style={{ margin: '4px 0 8px' }}>
               {it.seturi} {it.seturi === 1 ? 'set' : 'seturi'} ×{' '}
-              {ex.masura === 'timp' ? `${Math.round((it.durataSec ?? 0) / 60)} min` : `${it.repetari} rep.`}
+              {ex.masura === 'timp'
+                ? `${Math.round((it.durataSec ?? 0) / 60)} min`
+                : it.repetari
+                  ? `${it.repetari} rep.`
+                  : 'maxim (AMRAP)'}
               {it.greutate ? ` @ ${formatNr(it.greutate)} kg` : ''} · pauză {it.pauzaSec}s
               {it.tempo ? ` · tempo ${it.tempo}` : ''}
+              {it.notite && (
+                <div className="estompat" style={{ marginTop: 2 }}>
+                  ↳ {it.notite}
+                </div>
+              )}
             </div>
             <div className="rand">
               <BigButton onClick={() => setEditIdx(idx)}>Reglează</BigButton>
@@ -195,7 +206,21 @@ function ItemEditor(props: { item: TemplateItem; onChange: (it: TemplateItem) =>
         <Stepper eticheta="Seturi" valoare={item.seturi} min={1} max={10} onChange={(v) => onChange({ ...item, seturi: v })} />
         {ex.masura === 'repetari' ? (
           <>
-            <Stepper eticheta="Repetări" valoare={item.repetari ?? 10} min={1} max={50} onChange={(v) => onChange({ ...item, repetari: v })} />
+            {item.repetari === undefined ? (
+              <div className="rand" style={{ alignItems: 'center' }}>
+                <b>Repetări: maxim (AMRAP)</b>
+                <BigButton varianta="contur" onClick={() => onChange({ ...item, repetari: 10 })}>
+                  Pune un număr
+                </BigButton>
+              </div>
+            ) : (
+              <>
+                <Stepper eticheta="Repetări" valoare={item.repetari} min={1} max={50} onChange={(v) => onChange({ ...item, repetari: v })} />
+                <BigButton varianta="contur" onClick={() => onChange({ ...item, repetari: undefined })}>
+                  Fă-l „cât poți" (AMRAP)
+                </BigButton>
+              </>
+            )}
             <Stepper
               eticheta="Greutate"
               valoare={item.greutate ?? 0}
@@ -253,6 +278,15 @@ function ItemEditor(props: { item: TemplateItem; onChange: (it: TemplateItem) =>
             <option value="3-1-2">3-1-2 (controlat)</option>
             <option value="4-2-1">4-2-1 (lent, intens)</option>
           </select>
+        </div>
+        <div>
+          <label htmlFor="item-notite">Notiță (apare în sală) — opțional</label>
+          <input
+            id="item-notite"
+            value={item.notite ?? ''}
+            onChange={(e) => onChange({ ...item, notite: e.target.value || undefined })}
+            placeholder="ex. 75% din maxim · 8 pe fiecare picior"
+          />
         </div>
         <BigButton varianta="accent" onClick={props.onInchide}>
           Gata

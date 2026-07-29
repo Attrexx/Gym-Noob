@@ -344,8 +344,15 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
                 <b>{gata ? '✅ ' : ''}{ex.nume}</b>
                 <div className="mic estompat">
                   {s.seturiFacute[idx]}/{it.seturi} seturi
-                  {ex.masura === 'repetari' ? ` · ${it.repetari} rep. @ ${formatNr(it.greutate ?? 0)} kg` : ` · ${Math.round((it.durataSec ?? 0) / 60)} min`}
+                  {ex.masura === 'repetari'
+                    ? ` · ${it.repetari ? `${it.repetari} rep.` : 'maxim'} @ ${formatNr(it.greutate ?? 0)} kg`
+                    : ` · ${Math.round((it.durataSec ?? 0) / 60)} min`}
                 </div>
+                {it.notite && (
+                  <div className="mic" style={{ marginTop: 2 }}>
+                    ↳ {it.notite}
+                  </div>
+                )}
               </div>
               {s.seturiFacute[idx] === 0 && (
                 <button
@@ -561,9 +568,23 @@ function ExercitiuCurent(props: {
           cum se face? →
         </a>
       </div>
-      <div className="mic estompat" style={{ marginBottom: 10 }}>
+      <div className="mic estompat" style={{ marginBottom: item.notite ? 4 : 10 }}>
         Setul {Math.min(s.seturiFacute[props.planIdx] + 1, item.seturi)} din {item.seturi} · {ex.echipamentNume}
       </div>
+      {item.notite && (
+        <div
+          className="mic"
+          style={{
+            marginBottom: 10,
+            padding: '6px 8px',
+            border: '2px dashed var(--linie)',
+            borderRadius: 8,
+            fontWeight: 600,
+          }}
+        >
+          📌 {item.notite}
+        </div>
+      )}
 
       {gata ? (
         <FlexuSpune poza="sarbatoreste" marime={64}>

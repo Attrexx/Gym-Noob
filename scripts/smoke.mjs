@@ -6,12 +6,18 @@
  */
 import { chromium } from 'playwright-core';
 import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const exe = process.env.CHROMIUM_PATH ?? '/opt/pw-browsers/chromium';
 const PORT = 4173;
 const BASE = `http://localhost:${PORT}/Gym-Noob/`;
 
-const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'pipe' });
+// Pornim vite direct cu node, nu prin `npx`: pe Windows npx e un .cmd, iar
+// kill() ar omorî shell-ul, lăsând serverul orfan și blocând scriptul la final.
+const vite = fileURLToPath(new URL('../node_modules/vite/bin/vite.js', import.meta.url));
+const server = spawn(process.execPath, [vite, 'preview', '--port', String(PORT), '--strictPort'], {
+  stdio: 'pipe',
+});
 const kill = () => {
   try {
     server.kill();
@@ -71,6 +77,39 @@ try {
   await page.goto(BASE + '#/biblioteca');
   await page.getByText('Presă de picioare', { exact: false }).first().waitFor();
   pas('biblioteca de exerciții se afișează');
+
+  // filtrul de categorie: calistenice
+  await page.getByRole('button', { name: /Calistenice/ }).click();
+  await page.getByText('Doar greutatea corpului', { exact: false }).waitFor();
+  await page.getByText('Tracțiuni cu priză supinată', { exact: false }).first().waitFor();
+  if (await page.getByText('Presă de picioare', { exact: false }).first().isVisible()) {
+    throw new Error('filtrul „calistenice" nu a exclus exercițiile la aparate');
+  }
+  pas('filtrul de categorie „calistenice" funcționează');
+
+  // pagina unui exercițiu nou + variantele înrudite
+  await page.getByText('Tracțiuni cu priză supinată', { exact: false }).first().click();
+  await page.getByText('Variante înrudite', { exact: false }).waitFor();
+  pas('pagina exercițiului arată variantele înrudite');
+
+  // ── programe celebre ──
+  await page.goto(BASE + '#/programe');
+  await page.getByText('Push / Pull / Legs', { exact: false }).first().waitFor();
+  await page.getByText('Wendler 5/3/1', { exact: false }).first().waitFor();
+  pas('lista de programe celebre se afișează');
+
+  await page.getByText('Powerbuilding periodizat', { exact: false }).first().click();
+  await page.getByText('Rutina 1 · Antrenamentul A', { exact: false }).first().waitFor();
+  await page.getByText('AMRAP', { exact: false }).first().waitFor();
+  pas('detaliul programului arată antrenamentele și notițele AMRAP');
+
+  await page.getByRole('button', { name: /Adaugă cele 5 antrenamente/ }).click();
+  await page.getByRole('button', { name: /Reîmprospătează cele 5 antrenamente/ }).waitFor({ timeout: 5000 });
+  pas('programul a fost importat în antrenamente');
+
+  await page.goto(BASE + '#/antrenamente');
+  await page.getByText('Rutina 2 · Antrenamentul B', { exact: false }).first().waitFor();
+  pas('antrenamentele importate apar în planuri');
 
   // ── sesiune live ──
   await page.goto(BASE + '#/sala');

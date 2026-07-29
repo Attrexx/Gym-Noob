@@ -8,7 +8,8 @@ Deep context, decisions and roadmap: see `docs/CONTEXT.md`. Read it before large
 ## Commands
 
 - `npm run dev` — dev server at `http://localhost:5173/Gym-Noob/` (note the base path)
-- `npm test` — Vitest unit tests for `src/domain/` (all math lives there; keep them green)
+- `npm test` — Vitest unit tests for `src/domain/` (all math lives there) plus catalog/program
+  integrity and text helpers; keep them green
 - `npm run build` — tsc + vite build + service worker → `dist/`
 - `npm run smoke` — Playwright e2e against the built `dist/` (needs Chromium; set `CHROMIUM_PATH`
   on Windows, e.g. `C:\Program Files\Google\Chrome\Application\chrome.exe`)
@@ -29,8 +30,19 @@ Routing is **HashRouter** (GH Pages friendly) — don't switch to BrowserRouter.
   Hetzner VPS someday) can be added without rewriting features.
 - `src/data/types.ts` — all entities. `src/data/repo.ts` — data access. `src/data/backup.ts` —
   JSON export/import (full replace).
-- **Exercise catalog is static TS**, not in DB: `src/data/catalog/exercises*.ts` (~50 exercises),
-  plus `starterTemplates.ts`, `articles.ts`, `tips.ts`.
+- **Exercise catalog is static TS**, not in DB: `src/data/catalog/exercises*.ts` (~100 exercises in
+  three files, merged + indexed by `exercises.ts`), plus `programs.ts`, `starterTemplates.ts`,
+  `articles.ts`, `tips.ts`.
+- **Library categories** (`ExerciseCategory`) are mostly *derived* from `echipament`/`tip` in
+  `categoriiExercitiu()`; write `categorii` on an exercise only when derivation isn't enough
+  (e.g. tagging the big lifts `powerlifting`). New equipment kinds must land in a category branch
+  there — the catalog test fails if an exercise ends up in none.
+- **Famous programs** (`src/data/catalog/programs.ts`: Full Body 3x, powerbuilding periodizat,
+  PPL, Upper/Lower, Wendler 5/3/1 BBB, calistenice) are static `ProgramDef`s shown at `/programe`.
+  Importing one copies its workouts into the user's templates, tagged `program:<id>` in `etichete`
+  — re-importing replaces those rows instead of duplicating them.
+- A `TemplateItem` with `repetari: undefined` means **AMRAP** ("cât poți") and must carry a
+  `notite` explaining it; `notite` is shown in the session and in the plan editor.
 - `src/domain/` — pure, unit-tested math (see formulas below). No React/Dexie imports here.
 - `src/state/profileStore.ts` — active profile + settings (Zustand); applies theme.
   `src/state/sessionStore.ts` — live workout session; persisted to localStorage so it survives

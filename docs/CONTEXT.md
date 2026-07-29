@@ -33,6 +33,21 @@ the way they are, what was consciously left out, and what the owner wants next.
    development to his local Windows machine (`I:\test\Gym-Noob`) and chose the **build-locally,
    commit `dist/`** publishing model. Workflow now only uploads committed `dist/`. `npm run deploy`
    added.
+4. **Catalog + programs round** (owner: "the exercises and machines database is too frugal") —
+   catalog roughly doubled to ~100 exercises, adding the barbell lifts the famous programs are
+   built on (back/front squat, conventional + sumo deadlift, overhead press, bent-over row,
+   close-grip & incline bench, shrugs, skull crushers, T-bar row, oblique cable twists, seated
+   calf raise, preacher/incline curls, straight-arm pulldown), a **calisthenics** block (chin-ups,
+   negatives, inverted rows, free dips, incline/diamond push-ups, hanging leg raises, side plank,
+   glute bridge, superman, step-ups, bear crawl, dead hang, ab wheel, TRX row, pistol squats) and
+   mobility/warm-up entries. Library gained a **category filter** (calisthenics, free weights,
+   machines, big lifts, cardio, mobility) derived from equipment, and exercises now link to
+   **related variants**. New `/programe` section ships six programs: Full Body 3x, the owner's
+   **powerbuilding periodizat** (Routine 1 A/B/C hypertrophy → Routine 2 A/B strength, 2+6 week
+   waves), PPL, Upper/Lower, Wendler 5/3/1 BBB and a calisthenics program; importing one copies
+   its workouts into the user's templates. AMRAP sets and per-set notes became first-class.
+   Tests 50 → 71; smoke covers the new flows; fixed `npm run smoke` on Windows (it spawned `npx`
+   through a shell, so `kill()` orphaned the preview server and the run never exited).
 
 ## 3. Decisions & rationale (don't relitigate casually)
 
@@ -48,6 +63,9 @@ the way they are, what was consciously left out, and what the owner wants next.
 | PRs need prior history & only vs previous sessions | First attempt ≠ record; no intra-session PR spam. |
 | Committed `dist/` + publish-only CI | Owner's explicit choice: build locally, push the dist. Revertible (old workflow in git history, commit `3707320`). |
 | Fonts via @fontsource (bundled) | No CDN → offline + no external requests. |
+| Programs are static `ProgramDef`s, imported into templates | Content ships with code (same reason as the exercise catalog), but once imported the user owns and can edit his copy without breaking the original. Re-import replaces the `program:<id>`-tagged rows so the list can't fill with duplicates. |
+| Categories derived from equipment, not hand-tagged | ~100 exercises would rot if each carried a manual category list; explicit `categorii` only where derivation can't know (the big lifts). A test asserts nothing falls through. |
+| 5/3/1 ships week 1 with percentages in `notite`, not computed | Would need a stored training max per lift + a cycle counter; the honest MVP is the printed percentages. Candidate for a later feature. |
 | Screensaver instead of just wake lock | Owner asked for watch-like dimmed black screen; saves OLED battery vs full-brightness yellow. |
 
 ## 4. Honest limitations (documented to the owner)
@@ -65,7 +83,12 @@ the way they are, what was consciously left out, and what the owner wants next.
   Would need auth + conflict strategy; keep export/import as the migration path.
 - Weekly recap screen ("săptămâna ta în cifre") + shareable card.
 - System notifications (rest end, workout reminders) via Notification API / periodic sync.
-- More exercises + richer animations; per-exercise photos of the actual gym machines.
+- **5/3/1 training-max assistant**: store a TM per main lift, compute the week's percentages and
+  auto-advance the cycle (today the percentages are static text in each set's `notite`).
+- Program "current week" tracking: which day of PPL / which phase of the powerbuilding wave you're
+  on, surfaced on the home page.
+- Richer animations for the new lifts (several reuse an existing scene via `anim`), plus
+  per-exercise photos of the actual gym machines.
 - Progressive-overload assistant: suggest next weight from history (domain/oneRm has
   `greutatePentruReps` ready).
 - Steps/daily activity: manual entry or Health Connect (would require a native wrapper — out of

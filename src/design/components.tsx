@@ -142,3 +142,13 @@ export function Stepper(props: {
 export function formatNr(v: number): string {
   return Number.isInteger(v) ? String(v) : v.toFixed(1).replace('.', ',');
 }
+
+/**
+ * Acordul cu „de" din română: 1 exercițiu, 5 exerciții, 28 DE exerciții.
+ * Se pune „de" când ultimele două cifre sunt 00 sau între 20 și 99.
+ */
+export function pluralRo(n: number, singular: string, plural: string): string {
+  if (n === 1) return `1 ${singular}`;
+  const ultimele = n % 100;
+  return `${n} ${ultimele === 0 || ultimele >= 20 ? 'de ' : ''}${plural}`;
+}

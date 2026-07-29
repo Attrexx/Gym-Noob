@@ -29,6 +29,7 @@ export function ExercisePage() {
   }
 
   const recorduri = istoric && istoric.length ? bestRecords(istoric) : null;
+  const variante = (ex.variante ?? []).map(getExercise).filter((v) => v !== undefined);
 
   return (
     <div className="pagina">
@@ -96,6 +97,25 @@ export function ExercisePage() {
           ))}
         </ul>
       </Sticker>
+
+      {variante.length > 0 && (
+        <>
+          <SectionTitle supratitlu="mai ușor, mai greu, altfel">Variante înrudite</SectionTitle>
+          {variante.map((v) => (
+            <Link key={v.id} to={`/biblioteca/${v.id}`} style={{ textDecoration: 'none' }}>
+              <Sticker>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+                  <b>{v.nume}</b>
+                  <span className="eticheta-mica" style={{ flexShrink: 0 }}>
+                    {DIFICULTATE_LABEL[v.dificultate]}
+                  </span>
+                </div>
+                <div className="mic estompat">{v.echipamentNume}</div>
+              </Sticker>
+            </Link>
+          ))}
+        </>
+      )}
 
       {recorduri && (
         <>

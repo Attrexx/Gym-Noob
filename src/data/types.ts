@@ -81,7 +81,24 @@ export type Equipment =
   | 'eliptica'
   | 'vaslit'
   | 'minge'
-  | 'bara_tractiuni';
+  | 'bara_tractiuni'
+  | 'paralele'
+  | 'trx'
+  | 'sanie';
+
+/**
+ * Categorii de filtrare în bibliotecă. Majoritatea se deduc automat din
+ * `echipament`/`tip` (vezi `categoriiExercitiu`), dar pot fi și declarate
+ * explicit pe exercițiu când deducerea nu e suficientă (ex. genuflexiunile
+ * cu bara sunt „powerlifting", nu doar „greutăți libere").
+ */
+export type ExerciseCategory =
+  | 'calistenice'
+  | 'greutati_libere'
+  | 'aparate'
+  | 'cardio'
+  | 'powerlifting'
+  | 'mobilitate';
 
 export interface ExerciseDef {
   /** id stabil, ex. "impins-piept-aparat" */
@@ -110,6 +127,10 @@ export interface ExerciseDef {
   ponturi: string[];
   /** id-ul animației stick-figure (cheie în registrul de animații) */
   anim?: string;
+  /** categorii suplimentare peste cele deduse din echipament/tip */
+  categorii?: ExerciseCategory[];
+  /** exerciții înrudite / variante (id-uri din catalog) */
+  variante?: string[];
 }
 
 // ── Șabloane (serii compuse de utilizator) ──────────────────────────
@@ -141,6 +162,45 @@ export interface Template {
   modificatLa: string;
   /** șablon livrat cu aplicația (nu poate fi șters, doar duplicat) */
   predefinit?: boolean;
+}
+
+// ── Programe celebre (statice, livrate cu aplicația) ────────────────
+
+/** Ce urmărește programul, pentru filtrare și pentru recomandări. */
+export type ProgramGoal = 'forta' | 'masa' | 'slabit' | 'rezistenta' | 'tehnica';
+
+export interface ProgramWorkout {
+  /** id stabil în cadrul programului, ex. "a" / "push" */
+  id: string;
+  nume: string;
+  descriere?: string;
+  /** gruparea în faze/blocuri, când programul e periodizat */
+  faza?: string;
+  items: TemplateItem[];
+}
+
+export interface ProgramDef {
+  id: string;
+  nume: string;
+  /** o propoziție care spune despre ce e vorba */
+  subtitlu: string;
+  /** cine l-a inventat / de unde vine */
+  origine: string;
+  descriere: string;
+  nivel: Difficulty;
+  obiective: ProgramGoal[];
+  /** ex. "3 zile pe săptămână" */
+  frecventa: string;
+  /** ex. "45-70 min" */
+  durata: string;
+  /** programul săptămânal, linie cu linie */
+  saptamana: string[];
+  /** cum crești greutățile */
+  progresie: string[];
+  /** avertismente, adaptări, note de periodizare */
+  note?: string[];
+  etichete: string[];
+  antrenamente: ProgramWorkout[];
 }
 
 // ── Sesiuni și jurnale ──────────────────────────────────────────────

@@ -1,10 +1,18 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DIFICULTATE_LABEL, EXERCITII, GRUPE_MUSCHI, numeGrupa } from '@/data/catalog/exercises';
-import type { MuscleGroup } from '@/data/types';
-import { Sticker } from '@/design/components';
+import {
+  areCategorie,
+  CATEGORII,
+  DIFICULTATE_LABEL,
+  EXERCITII,
+  GRUPE_MUSCHI,
+  numeGrupa,
+} from '@/data/catalog/exercises';
+import type { ExerciseCategory, MuscleGroup } from '@/data/types';
+import { pluralRo, Sticker } from '@/design/components';
 
 export function LibraryPage() {
+  const [categorie, setCategorie] = useState<ExerciseCategory | 'toate'>('toate');
   const [grupa, setGrupa] = useState<MuscleGroup | 'toate'>('toate');
   const [cauta, setCauta] = useState('');
 
@@ -12,10 +20,13 @@ export function LibraryPage() {
     const q = cauta.trim().toLowerCase();
     return EXERCITII.filter(
       (e) =>
+        (categorie === 'toate' || areCategorie(e, categorie)) &&
         (grupa === 'toate' || e.muschi.includes(grupa) || e.muschiSecundari?.includes(grupa)) &&
         (!q || e.nume.toLowerCase().includes(q) || e.echipamentNume.toLowerCase().includes(q)),
     );
-  }, [grupa, cauta]);
+  }, [categorie, grupa, cauta]);
+
+  const catActiva = CATEGORII.find((c) => c.id === categorie);
 
   return (
     <div className="pagina">
@@ -23,7 +34,8 @@ export function LibraryPage() {
         <div className="supratitlu">biblioteca de mișcări</div>
         <h1>Exerciții</h1>
         <p className="mic estompat" style={{ margin: 0 }}>
-          {EXERCITII.length} de exerciții cu sfaturi de formă, utilizare a aparatelor și demonstrații.
+          {pluralRo(EXERCITII.length, 'exercițiu', 'exerciții')} cu sfaturi de formă, utilizare a aparatelor și
+          demonstrații.
         </p>
       </div>
 
@@ -36,12 +48,39 @@ export function LibraryPage() {
         style={{ marginBottom: 10 }}
       />
 
+      <div className="supratitlu" style={{ fontSize: '0.7rem', marginBottom: 4 }}>
+        categorie
+      </div>
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8 }}>
+        <FiltruChip activ={categorie === 'toate'} onClick={() => setCategorie('toate')} nume="Toate" />
+        {CATEGORII.map((c) => (
+          <FiltruChip
+            key={c.id}
+            activ={categorie === c.id}
+            onClick={() => setCategorie(c.id)}
+            nume={`${c.emoji} ${c.nume}`}
+          />
+        ))}
+      </div>
+      {catActiva && (
+        <p className="mic estompat" style={{ margin: '0 0 8px' }}>
+          {catActiva.descriere}
+        </p>
+      )}
+
+      <div className="supratitlu" style={{ fontSize: '0.7rem', marginBottom: 4 }}>
+        grupă musculară
+      </div>
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 8 }}>
         <FiltruChip activ={grupa === 'toate'} onClick={() => setGrupa('toate')} nume="Toate" />
         {GRUPE_MUSCHI.map((g) => (
           <FiltruChip key={g.id} activ={grupa === g.id} onClick={() => setGrupa(g.id)} nume={g.nume} />
         ))}
       </div>
+
+      <p className="mic estompat" style={{ margin: '0 0 8px' }}>
+        {pluralRo(lista.length, 'exercițiu', 'exerciții')}
+      </p>
 
       {lista.map((e) => (
         <Link key={e.id} to={`/biblioteca/${e.id}`} style={{ textDecoration: 'none' }}>
@@ -58,7 +97,9 @@ export function LibraryPage() {
           </Sticker>
         </Link>
       ))}
-      {lista.length === 0 && <p className="estompat centrat">Nimic găsit. Încearcă alt termen sau altă grupă.</p>}
+      {lista.length === 0 && (
+        <p className="estompat centrat">Nimic găsit. Încearcă alt termen, altă grupă sau altă categorie.</p>
+      )}
     </div>
   );
 }
