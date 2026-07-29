@@ -1,0 +1,108 @@
+.shell main {
+  min-height: 100vh;
+}
+
+.bara-jos {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  background: var(--panou);
+  border-top: var(--grosime) solid var(--contur);
+  padding: 6px 4px calc(6px + var(--safe-jos));
+  z-index: 50;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  text-decoration: none;
+  color: var(--panou-fg);
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  border-radius: 8px;
+  min-width: 56px;
+  opacity: 0.65;
+}
+
+.tab-emoji { font-size: 1.25rem; line-height: 1; }
+.tab-activ {
+  opacity: 1;
+  background: var(--bg);
+  border: 2px solid var(--contur);
+  box-shadow: var(--umbra-mica);
+}
+
+.tab-central {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border: var(--grosime) solid var(--contur);
+  border-radius: 14px;
+  box-shadow: var(--umbra-mica);
+  padding: 8px 12px;
+  margin-top: -18px;
+  opacity: 1;
+}
+.tab-central .tab-emoji { font-size: 1.5rem; }
+.tab-central.tab-activ { outline: 3px solid var(--contur); outline-offset: 2px; }
+
+.banner-sesiune {
+  position: fixed;
+  bottom: calc(64px + var(--safe-jos));
+  left: 12px;
+  right: 12px;
+  z-index: 49;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  border: var(--grosime) solid var(--contur);
+  border-radius: var(--raza);
+  box-shadow: var(--umbra-mica);
+  padding: 8px 12px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.puls-rosu {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: puls-anim 1.2s ease-in-out infinite;
+}
+@keyframes puls-anim {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+@media (min-width: 900px) {
+  .bara-jos {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: auto;
+    width: 96px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    border-top: none;
+    border-right: var(--grosime) solid var(--contur);
+    padding: 12px 8px;
+  }
+  .shell main { margin-left: 96px; }
+  .tab-central { margin-top: 0; }
+  .banner-sesiune { left: 116px; right: auto; bottom: 16px; }
+}
