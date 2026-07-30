@@ -31,9 +31,12 @@ Boxa găzduiește și **lessgo.city, anyvote.eu, honcho, hermes, ollama**:
 
 ## Prima pornire (o singură dată, în ordinea asta)
 
-1. **DNS** — în Cloudflare (zona lessgo.city): A record `gym-api` → `89.167.46.38`,
-   **obligatoriu DNS-only (nor GRI)** — cu proxy portocaliu Caddy nu poate emite
-   certificatul. Verifică propagarea: `nslookup gym-api.lessgo.city`.
+1. **DNS** — lessgo.city e servit de **Unstoppable Domains** (`ns1/ns2.unstoppabledomains.com`
+   — NU Cloudflare; zona din dashboardul Cloudflare există, dar nu e autoritativă!).
+   În unstoppabledomains.com → My Domains → lessgo.city → DNS Records: A record
+   `gym-api` → `89.167.46.38`, TTL 1h. Schimbările stau într-o coadă („Update
+   Queued") care poate dura de la minute la ~1h. Verifică:
+   `nslookup gym-api.lessgo.city ns1.unstoppabledomains.com`.
 2. **Poarta de capacitate** — `free -h` (vezi mai sus).
 3. **Imaginea publică** — după primul push de tag (`git tag api-v1.0.0 && git push origin api-v1.0.0`,
    workflow-ul `api.yml` construiește arm64):

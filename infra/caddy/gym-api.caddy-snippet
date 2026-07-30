@@ -16,8 +16,9 @@
 #      Dacă reload-ul eșuează: restaurează backupul ÎNTÂI, depanează după.
 #
 # DNS: A record gym-api.lessgo.city -> 89.167.46.38 trebuie să existe ÎNAINTE
-# de merge (Cloudflare, obligatoriu DNS-only / nor GRI — cu proxy portocaliu
-# Caddy nu poate emite certificatul Let's Encrypt prin HTTP-01).
+# de merge. Zona e servită de Unstoppable Domains (ns1/ns2.unstoppabledomains.com)
+# — se adaugă din dashboardul lor, NU din Cloudflare (zona de acolo nu e
+# autoritativă). Updateurile lor stau la coadă câteva minute–1h.
 #
 # Upstream: containerul gymnoob-api:8787 pe rețeaua externă infra_lessgo-net
 # (vezi infra/docker-compose.yml). CORS-ul e făcut de aplicație, nu de Caddy —
