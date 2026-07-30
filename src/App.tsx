@@ -20,6 +20,7 @@ import { SettingsPage } from './features/settings/SettingsPage';
 import { MorePage } from './features/more/MorePage';
 import { ProfilesPage } from './features/onboarding/ProfilesPage';
 import { UpdatePrompt } from './app/UpdatePrompt';
+import { SyncBoot } from './app/SyncBoot';
 
 export default function App() {
   const { incarcat, profil, incarca } = useProfile();
@@ -33,6 +34,7 @@ export default function App() {
   return (
     <HashRouter>
       <UpdatePrompt />
+      <SyncBoot />
       {profil ? (
         <Shell>
           <Routes>

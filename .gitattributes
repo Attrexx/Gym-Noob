@@ -1,0 +1,5 @@
+# Scripturile de shell și fișierele care ajung pe server trebuie să rămână LF —
+# bash-ul (local în Git Bash sau remote pe VPS) moare criptic pe CRLF.
+*.sh text eol=lf
+*.caddy-snippet text eol=lf
+Dockerfile text eol=lf

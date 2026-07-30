@@ -1,3 +1,19 @@
+// ── Metadate de sincronizare ────────────────────────────────────────
+
+/**
+ * Câmpuri adăugate în schema v2 pe fiecare rând persistat. Opționale pentru
+ * că rândurile create înainte de v2 le primesc abia la upgrade (același
+ * tipar ca `economizor !== false` la setări).
+ */
+export interface SyncMeta {
+  /** identitate stabilă între dispozitive (uuid sau uid derivat) */
+  uid?: string;
+  /** ultima modificare locală (ISO) — baza last-write-wins la sincronizare */
+  updatedAt?: string;
+  /** 1 = modificat local, netrimis încă (0/1 pentru că boolean nu se poate indexa) */
+  dirty?: 0 | 1;
+}
+
 // ── Entități de bază ────────────────────────────────────────────────
 
 export type Sex = 'M' | 'F';
@@ -5,7 +21,7 @@ export type Sex = 'M' | 'F';
 /** Nivel de activitate zilnică (în afara sălii) — multiplicator TDEE */
 export type ActivityLevel = 'sedentar' | 'usor' | 'moderat' | 'activ' | 'foarte_activ';
 
-export interface Profile {
+export interface Profile extends SyncMeta {
   id?: number;
   nume: string;
   sex: Sex;
@@ -21,9 +37,10 @@ export interface Profile {
   folositLa: string;
 }
 
-export interface BodyMetric {
+export interface BodyMetric extends SyncMeta {
   id?: number;
   profileId: number;
+  profileUid?: string;
   data: string; // ISO datetime
   /** kg */
   greutate: number;
@@ -35,9 +52,10 @@ export interface BodyMetric {
   sursa: 'manual' | 'freefit';
 }
 
-export interface Goal {
+export interface Goal extends SyncMeta {
   id?: number;
   profileId: number;
+  profileUid?: string;
   /** kg */
   greutateTinta: number;
   /** kg pe săptămână (pozitiv = slăbire) */
@@ -151,9 +169,10 @@ export interface TemplateItem {
   notite?: string;
 }
 
-export interface Template {
+export interface Template extends SyncMeta {
   id?: number;
   profileId: number;
+  profileUid?: string;
   nume: string;
   descriere?: string;
   etichete: string[];
@@ -207,10 +226,12 @@ export interface ProgramDef {
 
 export type SessionStatus = 'activa' | 'pauza' | 'terminata' | 'abandonata';
 
-export interface Session {
+export interface Session extends SyncMeta {
   id?: number;
   profileId: number;
+  profileUid?: string;
   templateId?: number;
+  templateUid?: string;
   templateNume?: string;
   status: SessionStatus;
   inceput: string; // ISO
@@ -226,10 +247,12 @@ export interface Session {
   notite?: string;
 }
 
-export interface SetLog {
+export interface SetLog extends SyncMeta {
   id?: number;
   sessionId: number;
+  sessionUid?: string;
   profileId: number;
+  profileUid?: string;
   exerciseId: string;
   /** indexul setului în cadrul exercițiului (1-based) */
   setIndex: number;
@@ -246,19 +269,22 @@ export interface SetLog {
   data: string; // ISO
 }
 
-export interface WaterLog {
+export interface WaterLog extends SyncMeta {
   id?: number;
   sessionId: number;
+  sessionUid?: string;
   profileId: number;
+  profileUid?: string;
   ml: number;
   data: string;
 }
 
 // ── Realizări ───────────────────────────────────────────────────────
 
-export interface AchievementUnlock {
+export interface AchievementUnlock extends SyncMeta {
   id?: number;
   profileId: number;
+  profileUid?: string;
   achievementId: string;
   data: string;
 }
@@ -284,9 +310,10 @@ export interface PersonalRecord {
 
 // ── Setări ──────────────────────────────────────────────────────────
 
-export interface Settings {
+export interface Settings extends SyncMeta {
   id?: number;
   profileId: number;
+  profileUid?: string;
   tema: 'zi' | 'noapte' | 'auto';
   sunete: boolean;
   /** indicații vocale (TTS) */
@@ -306,3 +333,34 @@ export const SETARI_IMPLICITE: Omit<Settings, 'id' | 'profileId'> = {
   sugestiiAutomate: true,
   economizor: true,
 };
+
+// ── Sincronizare (tabele locale, nu se exportă în backup) ───────────
+
+/**
+ * Jurnalul ștergerilor locale („outbox"). Rândurile se șterg definitiv din
+ * tabelele lor (nu ținem cadavre prin interogări), dar ștergerea rămâne
+ * notată aici până ajunge la server. Cheia primară e chiar `uid`.
+ */
+export interface DeletionRecord {
+  uid: string;
+  tabel: string;
+  profileUid?: string;
+  deletedAt: string;
+  dirty: 0 | 1;
+}
+
+/**
+ * Starea contului de sincronizare, per profil (un cont = un profil).
+ * Stă în Dexie, nu în localStorage: cursorul trebuie să avanseze în
+ * ACEEAȘI tranzacție cu rândurile aplicate dintr-un pull.
+ */
+export interface SyncStateRow {
+  profileUid: string;
+  email: string;
+  accessToken: string;
+  refreshToken: string;
+  /** ultimul seq primit de la server (cursor de pull) */
+  cursor: number;
+  lastSyncLa?: string;
+  lastError?: string;
+}

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { BigButton, Sticker } from '@/design/components';
 import { parseFreefitCsv, type ParsedWeight } from '@/domain/freefit';
 import { useProfile } from '@/state/profileStore';
-import { db } from '@/data/db';
+import { importBodyMetrics } from '@/data/repo';
 
 /**
  * Import de istoric de greutate din Freefit (sau alte aplicații de
@@ -29,14 +29,7 @@ export function FreefitImport(props: { onGata: () => void }) {
 
   const importa = async () => {
     if (!profil?.id || !previzualizare) return;
-    const pid = profil.id;
-    const existente = await db.bodyMetrics.where({ profileId: pid }).toArray();
-    const zileExistente = new Set(existente.map((m) => m.data.slice(0, 10)));
-    const noi = previzualizare.filter((p) => !zileExistente.has(p.data.slice(0, 10)));
-    await db.bodyMetrics.bulkAdd(
-      noi.map((p) => ({ profileId: pid, data: p.data, greutate: p.greutate, sursa: 'freefit' as const })),
-    );
-    setGata(noi.length);
+    setGata(await importBodyMetrics(profil.id, previzualizare));
   };
 
   if (gata !== null) {

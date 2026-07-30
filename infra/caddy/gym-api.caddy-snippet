@@ -1,0 +1,39 @@
+# ============================================================================
+# Vhost-ul Gym Noob API — se ADAUGĂ (merge) în Caddyfile-ul COMUN al serverului.
+# Nu se instalează acest fișier de unul singur.
+#
+# Fișierul țintă (pe 89.167.46.38):
+#   /home/lessgo/lessgo/infra/caddy/Caddyfile.prod
+#
+# Procedura de merge (ÎNTOTDEAUNA backup întâi — Caddyfile-ul ăsta servește și
+# site-urile de producție ale celorlalți chiriași: lessgo.city, anyvote.eu):
+#   1. sudo cp /home/lessgo/lessgo/infra/caddy/Caddyfile.prod \
+#        ~claude-ops/caddy-backups/Caddyfile.prod.$(date +%Y%m%d-%H%M%S)
+#   2. sudo editează Caddyfile.prod și adaugă blocul de mai jos.
+#   3. Validează, apoi reload (fără downtime):
+#        docker exec infra-proxy-1 caddy validate --config /etc/caddy/Caddyfile
+#        docker exec infra-proxy-1 caddy reload   --config /etc/caddy/Caddyfile
+#      Dacă reload-ul eșuează: restaurează backupul ÎNTÂI, depanează după.
+#
+# DNS: A record gym-api.lessgo.city -> 89.167.46.38 trebuie să existe ÎNAINTE
+# de merge (Cloudflare, obligatoriu DNS-only / nor GRI — cu proxy portocaliu
+# Caddy nu poate emite certificatul Let's Encrypt prin HTTP-01).
+#
+# Upstream: containerul gymnoob-api:8787 pe rețeaua externă infra_lessgo-net
+# (vezi infra/docker-compose.yml). CORS-ul e făcut de aplicație, nu de Caddy —
+# aplicația știe lista de origini permise (CORS_ORIGINS în gymnoob.env).
+# ============================================================================
+
+gym-api.lessgo.city {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	encode gzip zstd
+	request_body {
+		max_size 32MB
+	}
+	reverse_proxy gymnoob-api:8787
+}

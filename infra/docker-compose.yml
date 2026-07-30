@@ -1,0 +1,42 @@
+# Stack-ul Gym Noob pe VPS-ul partajat (89.167.46.38) — UN singur container.
+# Trăiește pe server la /home/claude-ops/gymnoob/docker-compose.yml (copiat de
+# ops/deploy.sh la fiecare deploy, ca modificările din repo să ajungă mereu).
+#
+# Regulile casei (vezi docs/OPS.md — boxa e partajată cu lessgo/anyvote/etc.):
+#   - FĂRĂ `ports:` — publicul intră doar prin Caddy-ul comun (infra-proxy-1),
+#     care ne găsește după numele containerului pe rețeaua infra_lessgo-net;
+#   - mem_limit mic — sunt ~4 GB liberi pe toată boxa, nu-i umplem noi;
+#   - secretele stau DOAR pe server în gymnoob.env (chmod 600), niciodată în repo.
+#
+# Tagul imaginii vine din .env (GYMNOOB_TAG=api-vX.Y.Z, scris de ops/deploy.sh) —
+# rollback = deploy cu un tag mai vechi.
+name: gymnoob
+
+services:
+  api:
+    image: ghcr.io/attrexx/gym-noob-api:${GYMNOOB_TAG:-prod}
+    container_name: gymnoob-api
+    env_file: gymnoob.env
+    environment:
+      PORT: 8787
+      DB_PATH: /data/gym.db
+      APP_VERSION: ${GYMNOOB_TAG:-dev}
+    volumes:
+      - gymnoob_data:/data
+    networks:
+      - proxy
+    mem_limit: 256m
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+networks:
+  proxy:
+    external: true
+    name: infra_lessgo-net
+
+volumes:
+  gymnoob_data:

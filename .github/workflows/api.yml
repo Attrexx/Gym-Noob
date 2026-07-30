@@ -1,0 +1,65 @@
+name: API — build & push imagine (arm64)
+
+# EXCEPȚIE DELIBERATĂ de la regula „CI nu face build": regula aia e despre
+# dist/ (PWA-ul, construit local și comis). Aici se construiește IMAGINEA
+# serverului de sincronizare — alt artefact, care trebuie să fie linux/arm64
+# (VPS-ul Hetzner CAX e ARM; un build local de pe Windows x64 nu ar rula acolo).
+#
+# Declanșare: tag `api-vX.Y.Z` (sau manual). Publică în GHCR:
+#   ghcr.io/attrexx/gym-noob-api:{prod, <tag>, sha-<scurt>}
+# ATENȚIE la prima publicare: pachetul GHCR se naște PRIVAT — setează-l public
+# în GitHub → Packages → gym-noob-api → Package settings, altfel serverul nu
+# poate face pull fără docker login (vezi docs/OPS.md §Prima pornire).
+
+on:
+  push:
+    tags: ['api-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+        working-directory: server
+      - run: npm test
+        working-directory: server
+
+  build-push:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - id: sha
+        run: echo "short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # Ținta e ARM64 — build prin QEMU, ca la AnyVote.
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          # contextul e RĂDĂCINA repo-ului: Dockerfile-ul are nevoie de shared/
+          context: .
+          file: server/Dockerfile
+          platforms: linux/arm64
+          push: true
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+          tags: |
+            ghcr.io/attrexx/gym-noob-api:prod
+            ghcr.io/attrexx/gym-noob-api:${{ github.ref_name }}
+            ghcr.io/attrexx/gym-noob-api:sha-${{ steps.sha.outputs.short }}

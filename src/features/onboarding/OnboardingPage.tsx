@@ -16,10 +16,9 @@ import {
   varstaDinData,
 } from '@/domain/goals';
 import { bodyFatNavy } from '@/domain/bodyFat';
-import { createProfile, setGoal } from '@/data/repo';
-import { db } from '@/data/db';
-import { starterTemplates } from '@/data/catalog/starterTemplates';
+import { addStarterTemplates, createProfile, setGoal } from '@/data/repo';
 import { useProfile } from '@/state/profileStore';
+import { LoginCont } from './LoginCont';
 
 const PASI = 5;
 
@@ -27,6 +26,7 @@ export function OnboardingPage() {
   const nav = useNavigate();
   const { incarca } = useProfile();
   const [pas, setPas] = useState(0);
+  const [arataLogin, setArataLogin] = useState(false);
 
   const [nume, setNume] = useState('');
   const [sex, setSex] = useState<Sex>('M');
@@ -67,10 +67,18 @@ export function OnboardingPage() {
       { talie: talie || undefined, gat: gat || undefined, sold: sold || undefined },
     );
     await setGoal(profileId, tinta, clampRitm(ritm));
-    await db.templates.bulkAdd(starterTemplates(profileId) as never[]);
+    await addStarterTemplates(profileId);
     await incarca(profileId);
     nav('/');
   };
+
+  if (arataLogin) {
+    return (
+      <div className="pagina" style={{ paddingBottom: 24 }}>
+        <LoginCont onInapoi={() => setArataLogin(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="pagina" style={{ paddingBottom: 24 }}>
@@ -93,8 +101,8 @@ export function OnboardingPage() {
               <Flexu poza="flex" marime={150} />
             </div>
             <p className="estompat mic">
-              Antrenamente, jurnal de greutăți, calorii și încurajări — totul în română, totul pe telefonul tău,
-              nimic trimis pe internet.
+              Antrenamente, jurnal de greutăți, calorii și încurajări — totul în română, totul pe telefonul tău.
+              Cont opțional, doar dacă vrei datele pe mai multe dispozitive.
             </p>
           </div>
           <FlexuSpune poza="salut">
@@ -109,6 +117,15 @@ export function OnboardingPage() {
             <a href="#/profiluri" style={{ fontWeight: 700 }}>
               Alege profilul
             </a>
+          </p>
+          <p className="mic estompat" style={{ marginTop: 4 }}>
+            Ai deja cont de sincronizare?{' '}
+            <button
+              onClick={() => setArataLogin(true)}
+              style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }}
+            >
+              Intră și adu-ți datele
+            </button>
           </p>
         </div>
       )}

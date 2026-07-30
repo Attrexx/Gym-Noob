@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Profile, SetLog, TemplateItem } from '@/data/types';
 import { createSession, addSetLog, addWater as repoAddWater, setLogsForExercise, updateSession } from '@/data/repo';
+import { runSync } from '@/data/sync/engine';
 import { kcalSet, durataSetSec } from '@/domain/calories';
 import { detectPrs, type PrHit } from '@/domain/pr';
 import { getExercise } from '@/data/catalog/exercises';
@@ -149,6 +150,8 @@ export const useSession = create<LiveState>()(
         });
         const rezumat = { durataSec, kcal: Math.round(s.kcal), apaMl: s.apaMl, seturi };
         set({ ...GOL });
+        // sesiunea (și jurnalele ei, excluse cât era live) pot pleca acum spre cloud
+        void runSync('sesiune-incheiata');
         return abandon ? null : rezumat;
       },
 

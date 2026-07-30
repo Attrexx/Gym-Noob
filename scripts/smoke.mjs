@@ -1,16 +1,24 @@
 /**
  * Test de fum end-to-end: pornește build-ul din dist/ cu `vite preview`,
  * parcurge onboarding-ul, pornește o sesiune, înregistrează un set,
- * bea apă, încheie sesiunea și verifică statisticile.
+ * bea apă, încheie sesiunea și verifică statisticile. La final pornește
+ * API-ul de sincronizare LOCAL și verifică fluxul complet pe DOUĂ
+ * „dispozitive" (două contexte de browser): creare cont → sincronizare →
+ * login pe dispozitiv proaspăt → datele apar.
  *   npm run build && npm run smoke
  */
 import { chromium } from 'playwright-core';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const exe = process.env.CHROMIUM_PATH ?? '/opt/pw-browsers/chromium';
 const PORT = 4173;
+const API_PORT = 8788;
 const BASE = `http://localhost:${PORT}/Gym-Noob/`;
+const API_URL = `http://localhost:${API_PORT}`;
 
 // Pornim vite direct cu node, nu prin `npx`: pe Windows npx e un .cmd, iar
 // kill() ar omorî shell-ul, lăsând serverul orfan și blocând scriptul la final.
@@ -18,11 +26,36 @@ const vite = fileURLToPath(new URL('../node_modules/vite/bin/vite.js', import.me
 const server = spawn(process.execPath, [vite, 'preview', '--port', String(PORT), '--strictPort'], {
   stdio: 'pipe',
 });
+
+// API-ul de sincronizare, pe o bază SQLite de unică folosință
+const apiDir = mkdtempSync(join(tmpdir(), 'gym-noob-smoke-'));
+const apiMain = fileURLToPath(new URL('../server/src/main.ts', import.meta.url));
+const api = spawn(process.execPath, [apiMain], {
+  stdio: 'pipe',
+  env: {
+    ...process.env,
+    PORT: String(API_PORT),
+    DB_PATH: join(apiDir, 'smoke.db'),
+    JWT_SECRET: 'secret-de-fum-0123456789-0123456789',
+    CORS_ORIGINS: `http://localhost:${PORT}`,
+    LOG_LEVEL: 'silent',
+  },
+});
 const kill = () => {
   try {
     server.kill();
   } catch {
     /* gata deja */
+  }
+  try {
+    api.kill();
+  } catch {
+    /* gata deja */
+  }
+  try {
+    rmSync(apiDir, { recursive: true, force: true });
+  } catch {
+    /* rămâne în temp */
   }
 };
 process.on('exit', kill);
@@ -43,8 +76,26 @@ await new Promise((res, rej) => {
   void tick();
 });
 
+// așteaptă și API-ul
+await new Promise((res, rej) => {
+  const t0 = Date.now();
+  const tick = async () => {
+    try {
+      const r = await fetch(`${API_URL}/health`);
+      if (r.ok) return res(null);
+    } catch {
+      /* încă pornește */
+    }
+    if (Date.now() - t0 > 20000) return rej(new Error('API-ul de sincronizare nu a pornit'));
+    setTimeout(tick, 300);
+  };
+  void tick();
+});
+
 const browser = await chromium.launch({ executablePath: exe });
 const page = await browser.newPage({ viewport: { width: 400, height: 850 } });
+// build-ul de producție arată spre gym-api.lessgo.city — îl îndreptăm spre API-ul local
+await page.addInitScript(`localStorage.setItem('gym-noob-api-url', '${API_URL}')`);
 page.on('pageerror', (e) => {
   console.error('EROARE PE PAGINĂ:', e.message);
   process.exitCode = 1;
@@ -160,6 +211,38 @@ try {
   const sw = await fetch(BASE + 'sw.js');
   if (!sw.ok) throw new Error('sw.js lipsește');
   pas('manifest PWA + service worker prezente');
+
+  // ── cont + sincronizare: dispozitivul 1 creează contul ──
+  await page.goto(BASE + '#/setari');
+  await page.getByText('Cont și sincronizare').waitFor();
+  await page.locator('#cont-email').fill('smoke@test.ro');
+  await page.locator('#cont-parola').fill('parola-smoke-123');
+  await page.getByRole('button', { name: 'Creează cont' }).click();
+  await page.getByText('✅ Sincronizat').waitFor({ timeout: 15000 });
+  pas('cont creat + profilul urcat în cloud (Sincronizat)');
+
+  // ── „dispozitivul 2": context proaspăt, login, datele coboară ──
+  const ctx2 = await browser.newContext({ viewport: { width: 400, height: 850 } });
+  await ctx2.addInitScript(`localStorage.setItem('gym-noob-api-url', '${API_URL}')`);
+  const page2 = await ctx2.newPage();
+  page2.on('pageerror', (e) => {
+    console.error('EROARE PE PAGINA 2:', e.message);
+    process.exitCode = 1;
+  });
+  await page2.goto(BASE);
+  await page2.getByRole('button', { name: 'Intră și adu-ți datele' }).click();
+  await page2.locator('#lc-email').fill('smoke@test.ro');
+  await page2.locator('#lc-parola').fill('parola-smoke-123');
+  await page2.getByRole('button', { name: 'Intră în cont' }).click();
+  await page2.getByText('Salut, Testel!').waitFor({ timeout: 20000 });
+  pas('login pe al doilea dispozitiv → profilul a coborât din cloud');
+
+  await page2.goto(BASE + '#/antrenamente');
+  await page2.getByText('Rutina 2 · Antrenamentul B').first().waitFor({ timeout: 10000 });
+  await page2.goto(BASE + '#/statistici');
+  await page2.getByText('kcal arse', { exact: false }).first().waitFor({ timeout: 10000 });
+  pas('antrenamentele importate și statisticile sesiunii au ajuns pe dispozitivul 2');
+  await ctx2.close();
 
   console.log('\n🎉 SMOKE TEST TRECUT');
 } catch (e) {

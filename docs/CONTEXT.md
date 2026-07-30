@@ -48,12 +48,39 @@ the way they are, what was consciously left out, and what the owner wants next.
    its workouts into the user's templates. AMRAP sets and per-set notes became first-class.
    Tests 50 → 71; smoke covers the new flows; fixed `npm run smoke` on Windows (it spawned `npx`
    through a shell, so `kill()` orphaned the preview server and the run never exited).
+5. **Accounts + multi-device sync round** (July 29, 2026 — the roadmap's "Hetzner someday" item) —
+   Dexie **v2** additive migration stamping every row with `uid`/`updatedAt`/`dirty` + FK-mirror
+   uids (derived uids for settings/achievements so devices address the same logical row), a
+   `deletions` tombstone outbox and a `syncState` table (tokens + pull cursor — in Dexie so the
+   cursor advances atomically with applied rows); repo.ts became the single stamped write path
+   (fixed 5 stray writes in SettingsPage/OnboardingPage/FreefitImport); backup format v2 (v1
+   imports get uids via the shared `normalize.ts`). New `server/` package: Hono + built-in
+   `node:sqlite` on Node 24 (zero native deps for the ARM VPS), scrypt passwords, rotating
+   refresh-token families, generic `(user, tabel, uid)` row store with per-user `seq`, LWW merge
+   with clock clamping, 25 MB quota, in-process rate limits; `shared/wire.ts` is the contract both
+   sides import. Client `src/data/sync/`: push-pull engine (re-entrant, chunked, offline backoff),
+   linking flows (fresh account → replace up; fresh device → snapshot down via onboarding "Intră
+   și adu-ți datele"; fork → explicit conflict dialog, non-destructive), "Cont și sincronizare"
+   section in Setări with Flexu in every state. Infra: single 256 MB container on the shared
+   Hetzner box behind the communal Caddy (`gym-api.lessgo.city`), GHCR arm64 image built by CI on
+   `api-v*` tags (the one deliberate exception to "CI never builds" — that rule is about `dist/`),
+   AnyVote-style deploy script, nightly SQLite backups; runbook in `docs/OPS.md`. Tests 71 → 92
+   client (+ 33 server); smoke gained a real two-device flow (second browser context logs in and
+   receives the first device's data).
 
 ## 3. Decisions & rationale (don't relitigate casually)
 
 | Decision | Why |
 |---|---|
-| Local-first, IndexedDB, no accounts | Zero cost/ops, privacy, offline gym basements. `src/data/` isolated so sync can come later. |
+| Local-first, IndexedDB, accounts OPTIONAL | Zero-cost/offline stays the default; sync is opt-in. The `src/data/` isolation paid off — the backend arrived without rewriting features. |
+| One account = one profile | Profiles exist for shared phones; binding the account to a single profile keeps merges small and "profile = person" true. Each profile can link its own account. |
+| Row-level LWW by `updatedAt`, server clamps clocks +5 min | Simplest correct merge for append-mostly data; a wrong phone clock can't create unbeatable rows. Ties: upsert keeps server, deletion wins. |
+| Generic row store on the server (payload JSON, no schema) | Client schema evolves without server migrations; the server only knows `(user, tabel, uid, seq)`. |
+| SQLite via `node:sqlite` in ONE container (no Postgres) | The shared 8 GB box is memory-tight; a 256 MB budget fits Hono+SQLite comfortably, and users' phones hold full replicas anyway (worst-case reseed via `/sync/replace`). |
+| Derived uids for settings/achievements | Two devices generate the SAME uid for the same logical row → LWW converges with zero duplicate-singleton logic. |
+| Deletions = separate outbox table, not `deletedAt` columns | 3 delete sites vs 11 `useLiveQuery` readers that would each need tombstone filters forever. |
+| In-flight sessions never sync | The live session is device-local by design (localStorage store); rows leave the moment `opreste()` runs. |
+| Restore-while-linked is authoritative (replace or unlink) | A backup restore must never silently MERGE with the cloud; either the cloud becomes the restored data or the link drops with a message. |
 | HashRouter | GH Pages has no SPA rewrites; hash routing is bulletproof there and offline. |
 | Static TS exercise catalog (not DB) | Content ships with code, versioned in git, no migrations for content edits. |
 | SMIL/CSS SVG animations, no video/lottie | Tiny, offline, self-contained, theme-aware. |
@@ -76,11 +103,16 @@ the way they are, what was consciously left out, and what the owner wants next.
   broadcast). Steps are not available live over BLE — not implemented.
 - Notifications for rest timer: only beeps/vibration in-app today (no system notifications yet).
 - Screensaver motion-wake needs sensor permission on some Android browsers; touch always works.
+- **No self-service password reset yet** (needs an email sender) — stopgap is the owner-run
+  `reset-password` script on the server (docs/OPS.md); the UI is honest about it.
+- Sync accounts are open-signup, guarded by per-IP auth rate limits + a 25 MB/account quota
+  (~15+ years of sets) — a DoS guard more than a real limit.
 
 ## 5. Roadmap / ideas the owner may ask for next
 
-- Sync backend on owner's **Hetzner VPS** (he mentioned it; data layer is ready for a repo-swap).
-  Would need auth + conflict strategy; keep export/import as the migration path.
+- ~~Sync backend on owner's Hetzner VPS~~ — **built (timeline #5)**. Follow-ups it opened:
+  password reset by email (Resend or similar), account e-mail change, per-device session list
+  ("deloghează telefonul vechi"), maybe periodic background sync when the PWA gets notifications.
 - Weekly recap screen ("săptămâna ta în cifre") + shareable card.
 - System notifications (rest end, workout reminders) via Notification API / periodic sync.
 - **5/3/1 training-max assistant**: store a TM per main lift, compute the week's percentages and

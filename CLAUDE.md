@@ -8,11 +8,14 @@ Deep context, decisions and roadmap: see `docs/CONTEXT.md`. Read it before large
 ## Commands
 
 - `npm run dev` — dev server at `http://localhost:5173/Gym-Noob/` (note the base path)
-- `npm test` — Vitest unit tests for `src/domain/` (all math lives there) plus catalog/program
-  integrity and text helpers; keep them green
+- `npm test` — Vitest: domain math + catalog integrity + data-layer/sync tests (fake-indexeddb),
+  THEN the API suite in `server/` (chained via `npm --prefix server test`). First checkout needs
+  a one-time `npm install` inside `server/` too. Keep both green.
 - `npm run build` — tsc + vite build + service worker → `dist/`
+- `npm run api:dev` — run the sync API locally (`node server/src/main.ts`, Node ≥24, port 8787)
 - `npm run smoke` — Playwright e2e against the built `dist/` (needs Chromium; set `CHROMIUM_PATH`
-  on Windows, e.g. `C:\Program Files\Google\Chrome\Application\chrome.exe`)
+  on Windows, e.g. `C:\Program Files\Google\Chrome\Application\chrome.exe`). Also spawns the sync
+  API on :8788 with a throwaway DB and runs a TWO-device account/sync flow (second browser context).
 - `npm run capturi` — UI screenshots of the built `dist/` into a fresh versioned folder
   (`capturi/vNN_YYYY-MM-DD/`, index + per-shot README written automatically). Same `CHROMIUM_PATH`
   requirement as `smoke`; takes ~2.5 min because it waits out the 45 s screensaver.
@@ -26,13 +29,36 @@ touching `dist/**`). Pushing source without rebuilding leaves the live site stal
 Live URL: https://attrexx.github.io/Gym-Noob/ · Vite `base` is `/Gym-Noob/` — never remove it.
 Routing is **HashRouter** (GH Pages friendly) — don't switch to BrowserRouter.
 
+**The sync API is the one deliberate exception**: `.github/workflows/api.yml` DOES build — it
+tests `server/` and pushes a **linux/arm64** Docker image to GHCR on `api-v*` tags (the Hetzner
+box is ARM; a local Windows build wouldn't run there). Deploy with `bash ops/deploy.sh api-vX.Y.Z`
+(Git Bash). Full server runbook — DNS, Caddy vhost, secrets, backups, restore drill, password
+reset: **`docs/OPS.md`**. The API lives at `https://gym-api.lessgo.city` on the SHARED VPS
+(rules: no host ports, ≤256 MB, never touch other tenants).
+
 ## Architecture
 
-- **Local-first, no backend.** All user data in IndexedDB via Dexie (`src/data/db.ts`).
-  Only `src/data/` may touch Dexie — this isolation exists so a sync backend (owner may want his
-  Hetzner VPS someday) can be added without rewriting features.
-- `src/data/types.ts` — all entities. `src/data/repo.ts` — data access. `src/data/backup.ts` —
-  JSON export/import (full replace).
+- **Local-first, with an OPTIONAL sync backend.** All user data in IndexedDB via Dexie
+  (`src/data/db.ts`, schema **v2**). Only `src/data/` may touch Dexie. The app is fully usable
+  offline and without an account — sync is opt-in from Setări.
+- `src/data/types.ts` — all entities. `src/data/repo.ts` — data access; **every write here stamps
+  sync metadata** (`uid`, `updatedAt`, `dirty:1` + FK-mirror uids `profileUid`/`sessionUid`/
+  `templateUid`). NEVER write to Dexie outside `repo.ts`/`src/data/` — the sync engine would miss
+  it. Any NEW delete site must also record a `deletions` outbox row (see `deleteTemplate`).
+  `src/data/backup.ts` — JSON export/import v2 (full replace; v1 files get uids backfilled via
+  `normalize.ts`, shared with the Dexie v1→v2 upgrade). `deletions` + `syncState` tables are
+  local-only: never exported, never cleared by restore.
+- **Sync** (`src/data/sync/` + `server/` + `shared/wire.ts`): one account = ONE profile
+  (email+password, scrypt, rotating JWT refresh). Row-level last-write-wins by `updatedAt`
+  (server clamps clocks to now+5 min; ties keep server on upsert, favor deletion on delete).
+  Push-pull `POST /sync` with a per-user `seq` cursor stored in Dexie `syncState` — the cursor
+  advances IN THE SAME transaction that applies pulled rows. Settings/achievements use DERIVED
+  uids (`<profileUid>-settings`, `<profileUid>-ach-<id>`) so both devices address the same row.
+  **In-flight sessions (activa/pauza) and their logs never push** — they leave when `opreste()`
+  runs. Triggers: app start/profile switch, visibilitychange→visible, online, session end, manual.
+  Server: Hono + built-in `node:sqlite` (Node ≥24, zero native deps), generic row store — client
+  schema changes need NO server migration. NEVER add the API origin to the service worker's
+  `runtimeCaching`.
 - **Exercise catalog is static TS**, not in DB: `src/data/catalog/exercises*.ts` (~100 exercises in
   three files, merged + indexed by `exercises.ts`), plus `programs.ts`, `starterTemplates.ts`,
   `articles.ts`, `tips.ts`.
@@ -74,8 +100,16 @@ sessions (never vs sets from the same session).
 - **Dexie schema changes require a version bump** in `db.ts` (`this.version(2).stores(...)` + an
   upgrade fn). Users have real data — never wipe or clear tables outside explicit backup/restore.
 - Settings fields added after v1 may be `undefined` on old rows — follow the
-  `setari.economizor !== false` fallback pattern.
-- localStorage keys: `gym-noob-profil-activ` (active profile id), `gym-noob-sesiune` (live session).
+  `setari.economizor !== false` fallback pattern. Same for sync metadata (`uid?`, `updatedAt?`,
+  `dirty?`) — optional in types, backfilled by the v2 upgrade.
+- localStorage keys: `gym-noob-profil-activ` (active profile id), `gym-noob-sesiune` (live
+  session), `gym-noob-api-url` (dev/smoke override of the sync API base URL — lets the committed
+  production build talk to a local server without rebuilding).
+- Restoring a backup while an account is linked is AUTHORITATIVE for the cloud: same-uid profile →
+  `/sync/replace`; missing/re-uid'd profile (v1 files) or replace failure → the link is dropped
+  with a clear message (no silent merge). See `dupaRestaurareBackup` in `src/data/sync/engine.ts`.
+- Password reset: not self-service yet — owner runs `reset-password` on the server (docs/OPS.md).
+  The UI says so; don't promise email reset.
 - Session UX invariants: wake lock during session (re-acquired on visibilitychange); screensaver
   after 45 s idle (black, dimmed essentials, wakes on touch/devicemotion, toggle in Setări);
   rest-timer beeps in last 3 s + fanfare + vibration at 0; plate calculator assumes a 20 kg bar.

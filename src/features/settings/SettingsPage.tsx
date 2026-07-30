@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useProfile } from '@/state/profileStore';
 import { BigButton, SectionTitle, Sticker } from '@/design/components';
 import { downloadBackup, exportBackup, importBackup } from '@/data/backup';
-import { db } from '@/data/db';
+import { updateProfile } from '@/data/repo';
+import { ContSection } from './ContSection';
 import type { ActivityLevel, Settings } from '@/data/types';
 import { ACTIVITY_LABEL } from '@/domain/goals';
 import { spune } from '@/services/tts';
@@ -22,8 +23,11 @@ export function SettingsPage() {
     if (!confirm('Importul ÎNLOCUIEȘTE toate datele actuale ale aplicației cu cele din fișier. Continui?')) return;
     try {
       await importBackup(await f.text());
-      setMesajImport('✅ Datele au fost restaurate.');
       await incarca();
+      // restaurarea e autoritară și pentru cloud (sau dezleagă contul — vezi engine)
+      const { dupaRestaurareBackup } = await import('@/data/sync/engine');
+      const nota = await dupaRestaurareBackup();
+      setMesajImport(`✅ Datele au fost restaurate.${nota ? ` ${nota}` : ''}`);
     } catch (e) {
       setMesajImport(`❌ ${(e as Error).message}`);
     }
@@ -82,7 +86,7 @@ export function SettingsPage() {
           defaultValue={profil.nume}
           onBlur={(e) => {
             const v = e.target.value.trim();
-            if (v && v !== profil.nume) void db.profiles.update(profil.id!, { nume: v }).then(reincarcaProfil);
+            if (v && v !== profil.nume) void updateProfile(profil.id!, { nume: v }).then(reincarcaProfil);
           }}
         />
         <label htmlFor="s-inaltime">Înălțime (cm)</label>
@@ -92,14 +96,14 @@ export function SettingsPage() {
           defaultValue={profil.inaltime}
           onBlur={(e) => {
             const v = Number(e.target.value);
-            if (v >= 120 && v <= 230 && v !== profil.inaltime) void db.profiles.update(profil.id!, { inaltime: v }).then(reincarcaProfil);
+            if (v >= 120 && v <= 230 && v !== profil.inaltime) void updateProfile(profil.id!, { inaltime: v }).then(reincarcaProfil);
           }}
         />
         <label htmlFor="s-activitate">Nivel de activitate zilnică</label>
         <select
           id="s-activitate"
           value={profil.activitate}
-          onChange={(e) => void db.profiles.update(profil.id!, { activitate: e.target.value as ActivityLevel }).then(reincarcaProfil)}
+          onChange={(e) => void updateProfile(profil.id!, { activitate: e.target.value as ActivityLevel }).then(reincarcaProfil)}
         >
           {Object.entries(ACTIVITY_LABEL).map(([k, v]) => (
             <option key={k} value={k}>
@@ -111,6 +115,8 @@ export function SettingsPage() {
           <BigButton onClick={() => nav('/profiluri')}>👥 Schimbă profilul</BigButton>
         </div>
       </Sticker>
+
+      <ContSection />
 
       <SectionTitle supratitlu="datele tale">Backup</SectionTitle>
       <Sticker>
@@ -137,7 +143,7 @@ export function SettingsPage() {
       </Sticker>
 
       <p className="mic estompat centrat" style={{ marginTop: 20 }}>
-        Gym Noob · v1.0 · făcută cu 💪 și fără niciun server
+        Gym Noob · v1.1 · făcută cu 💪 — datele stau la tine, sincronizarea e opțională
       </p>
     </div>
   );
