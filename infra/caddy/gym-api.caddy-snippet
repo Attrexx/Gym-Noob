@@ -12,8 +12,12 @@
 #   2. sudo editează Caddyfile.prod și adaugă blocul de mai jos.
 #   3. Validează, apoi reload (fără downtime):
 #        docker exec infra-proxy-1 caddy validate --config /etc/caddy/Caddyfile
-#        docker exec infra-proxy-1 caddy reload   --config /etc/caddy/Caddyfile
-#      Dacă reload-ul eșuează: restaurează backupul ÎNTÂI, depanează după.
+#        docker kill -s USR1 infra-proxy-1
+#      ATENȚIE: `caddy reload` NU merge aici — Caddyfile-ul comun are `admin off`,
+#      deci API-ul de admin (:2019) e închis. SIGUSR1 către PID 1 face reload
+#      grațios din fișierul de config (verificat pe viu la 2026-07-30; procedura
+#      cu `caddy reload` din documentația AnyVote e și ea greșită pe boxa asta).
+#      Dacă validarea eșuează: restaurează backupul ÎNTÂI, NU trimite USR1.
 #
 # DNS: A record gym-api.lessgo.city -> 89.167.46.38 trebuie să existe ÎNAINTE
 # de merge. Zona e servită de Unstoppable Domains (ns1/ns2.unstoppabledomains.com)

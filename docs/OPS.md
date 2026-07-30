@@ -57,8 +57,11 @@ Boxa găzduiește și **lessgo.city, anyvote.eu, honcho, hermes, ollama**:
    (Restul variabilelor au valori implicite bune — vezi tabelul de la final.)
 5. **Vhost-ul Caddy** — urmează pas cu pas comentariile din
    `infra/caddy/gym-api.caddy-snippet`: backup → merge → `caddy validate` →
-   `caddy reload`. DNS-ul trebuie să existe DEJA (pasul 1), altfel emiterea
-   certificatului intră în retry-spam.
+   **`docker kill -s USR1 infra-proxy-1`** (reload grațios; `caddy reload` NU
+   merge — Caddyfile-ul comun are `admin off`, API-ul de admin e închis).
+   DNS-ul trebuie să existe DEJA (pasul 1), altfel emiterea certificatului
+   intră în retry-spam. După reload, verifică și vecinii:
+   `curl --resolve lessgo.city:443:127.0.0.1 https://lessgo.city/` → 200.
 6. **Primul deploy** — de pe mașina de dev, în Git Bash:
    ```bash
    bash ops/deploy.sh api-v1.0.0
@@ -137,8 +140,8 @@ docker exec gymnoob-api sqlite3 /data/gym.db 'SELECT COUNT(*) FROM users;'
 
 - **503/timeout prin Caddy, dar containerul e healthy** → verifică rețeaua:
   containerul trebuie să fie în `infra_lessgo-net` (`docker inspect gymnoob-api`).
-- **Certificat neemis** → DNS-ul nu era gata la reload sau e pe proxy portocaliu;
-  repară DNS-ul, apoi `docker exec infra-proxy-1 caddy reload --config /etc/caddy/Caddyfile`.
+- **Certificat neemis** → DNS-ul nu era gata la reload; repară DNS-ul (în
+  Unstoppable), apoi reload grațios: `docker kill -s USR1 infra-proxy-1`.
 - **CORS blocat în browser** → originea lipsește din `CORS_ORIGINS` în
   `gymnoob.env`; editează + `docker compose up -d` (fără rebuild).
 - **429 la utilizatori legitimi** → crește `RATE_SYNC_PER_MIN` în `gymnoob.env`.
