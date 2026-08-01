@@ -10,6 +10,7 @@ import { BigButton, Modal, ProgressBar, StatTile, Sticker, Stepper } from '@/des
 import { data, nr } from '@/i18n/format';
 import { Flexu, FlexuSpune } from '@/design/Flexu';
 import { getExercise } from '@/data/catalog/exercises';
+import { numeSablon } from '@/data/catalog/text/rezolva';
 import type { Template, TemplateItem } from '@/data/types';
 import { fmtDurata, useTick } from './useTick';
 import { kcalSet, metBanda, metDinPutere, metMediuBanda, type SegmentBanda } from '@/domain/calories';
@@ -78,7 +79,7 @@ function StartScreen() {
     if (!t) return;
     await porneșteCu(
       t.items.map((i) => ({ ...i })),
-      { templateId: t.id, templateNume: t.nume },
+      { templateId: t.id, templateNume: numeSablon(t) },
     );
   };
 
@@ -108,7 +109,7 @@ function StartScreen() {
           onClick={() => setAlesId(t.id!)}
           style={alesId === t.id ? { outline: '4px solid var(--accent)' } : undefined}
         >
-          <b>{t.nume}</b> {t.predefinit && <span className="eticheta-mica">de la Flexu</span>}
+          <b>{numeSablon(t)}</b> {t.predefinit && <span className="eticheta-mica">de la Flexu</span>}
           <div className="mic estompat">{t.items.length} exerciții</div>
         </Sticker>
       ))}

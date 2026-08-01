@@ -1,6 +1,7 @@
 import { db } from './db';
 import { achievementUid, newUid, settingsUid } from './ids';
 import { starterTemplates } from './catalog/starterTemplates';
+import { sursaProgram, sursaStarter } from './catalog/text/rezolva';
 import {
   SETARI_IMPLICITE,
   type BodyMetric,
@@ -181,9 +182,11 @@ export async function deleteTemplate(id: number) {
 export async function addStarterTemplates(profileId: number) {
   const profileUid = await profileUidOf(profileId);
   await db.templates.bulkAdd(
-    starterTemplates(profileId).map((t) => ({
+    starterTemplates(profileId).map((t, i) => ({
       ...t,
       profileUid,
+      // proveniența textului, ca să-l putem arăta în limba curentă mai târziu
+      sursaText: sursaStarter(i),
       uid: newUid(),
       updatedAt: now(),
       dirty: 1 as const,
@@ -221,8 +224,9 @@ export async function importaProgram(profileId: number, p: ProgramDef): Promise<
         dirty: 1 as const,
         nume: `${w.nume}`,
         descriere: w.descriere ?? p.subtitlu,
+        sursaText: sursaProgram(p.id, w.id),
         etichete: [eticheta, ...p.etichete],
-        items: w.items.map((i) => ({ ...i })),
+        items: w.items.map((i) => ({ ...i, notaDinCatalog: i.notite !== undefined || undefined })),
         creatLa: now(),
         modificatLa: now(),
         predefinit: false,

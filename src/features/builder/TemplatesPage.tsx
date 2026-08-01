@@ -6,6 +6,7 @@ import { useProfile } from '@/state/profileStore';
 import { BigButton, Chip, Sticker } from '@/design/components';
 import { useT } from '@/i18n';
 import { getExercise } from '@/data/catalog/exercises';
+import { descriereSablon, numeSablon } from '@/data/catalog/text/rezolva';
 import { getProgram, programe } from '@/data/catalog/programs';
 import { etichetaProgram, saveTemplate } from '@/data/repo';
 import type { Template } from '@/data/types';
@@ -70,8 +71,18 @@ function PlanurileMele() {
   );
 
   const dubleaza = async (sablon: Template) => {
-    const { id: _id, ...rest } = sablon;
-    await saveTemplate({ ...rest, nume: `${sablon.nume} (copie)`, predefinit: false, creatLa: '', modificatLa: '' } as Template);
+    const { id: _id, sursaText: _s, ...rest } = sablon;
+    // copia e a utilizatorului: îi înghețăm numele din limba curentă și îi
+    // tăiem proveniența, ca să nu se mai schimbe sub el
+    await saveTemplate({
+      ...rest,
+      nume: `${numeSablon(sablon)} (copie)`,
+      descriere: descriereSablon(sablon),
+      textEditat: true,
+      predefinit: false,
+      creatLa: '',
+      modificatLa: '',
+    } as Template);
   };
 
   return (
@@ -89,7 +100,7 @@ function PlanurileMele() {
           <Sticker key={sablon.id}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
               <div style={{ flex: 1 }}>
-                <b style={{ fontSize: '1.05rem' }}>{sablon.nume}</b>{' '}
+                <b style={{ fontSize: '1.05rem' }}>{numeSablon(sablon)}</b>{' '}
                 {sablon.predefinit && <span className="eticheta-mica">de la Flexu</span>}
                 {numeleProgramului(sablon) && <span className="eticheta-mica">{numeleProgramului(sablon)}</span>}
                 <div className="mic estompat" style={{ marginTop: 2 }}>
@@ -100,9 +111,9 @@ function PlanurileMele() {
                     .join(', ')}
                   {sablon.items.length > 3 ? '…' : ''}
                 </div>
-                {sablon.descriere && (
+                {descriereSablon(sablon) && (
                   <p className="mic" style={{ margin: '6px 0 0' }}>
-                    {sablon.descriere}
+                    {descriereSablon(sablon)}
                   </p>
                 )}
               </div>

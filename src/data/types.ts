@@ -156,6 +156,12 @@ export interface ExerciseDef {
 export interface TemplateItem {
   exerciseId: string;
   seturi: number;
+  /**
+   * Notița vine din catalog (e text de-al nostru, traductibil) — `notite`
+   * rămâne fallback-ul pentru ce a scris utilizatorul. Se anulează când
+   * utilizatorul editează notița: din acel moment e a lui.
+   */
+  notaDinCatalog?: boolean;
   /** ținte per set */
   repetari?: number;
   greutate?: number; // kg
@@ -181,6 +187,22 @@ export interface Template extends SyncMeta {
   modificatLa: string;
   /** șablon livrat cu aplicația (nu poate fi șters, doar duplicat) */
   predefinit?: boolean;
+  /**
+   * De unde vine textul șablonului: `starter:<index>` sau
+   * `program:<programId>/<workoutId>`.
+   *
+   * Există pentru că textul catalogului se COPIAZĂ în datele utilizatorului la
+   * import. Fără proveniență, un plan importat ar rămâne pe veci în limba în
+   * care a fost importat.
+   *
+   * ATENȚIE: nu rescriem niciodată `nume`/`descriere` în baza de date la
+   * schimbarea limbii. Sincronizarea e last-write-wins pe rând, deci un
+   * telefon în română și o tabletă în engleză s-ar rescrie reciproc la
+   * nesfârșit. Traducem la afișare, prin `numeSablon()`.
+   */
+  sursaText?: string;
+  /** utilizatorul a redenumit șablonul → e al lui, nu-l mai atingem */
+  textEditat?: boolean;
 }
 
 // ── Programe celebre (statice, livrate cu aplicația) ────────────────

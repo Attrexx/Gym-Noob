@@ -4,6 +4,7 @@ import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
 import { BigButton, Modal, Sticker } from '@/design/components';
 import { nr } from '@/i18n/format';
+import { descriereSablon, numeSablon } from '@/data/catalog/text/rezolva';
 import { getExercise, numeGrupa } from '@/data/catalog/exercises';
 import { deleteTemplate, saveTemplate } from '@/data/repo';
 import type { Template, TemplateItem } from '@/data/types';
@@ -23,15 +24,23 @@ export function TemplateEditorPage() {
   const [alegeExercitiu, setAlegeExercitiu] = useState(false);
   const [editIdx, setEditIdx] = useState<number | null>(null);
 
+  // proveniența textului, dusă prin editor: dacă utilizatorul redenumește,
+  // șablonul devine al lui și nu-l mai traducem niciodată
+  const [sursaText, setSursaText] = useState<string | undefined>();
+  const [textEditat, setTextEditat] = useState(false);
+
   useEffect(() => {
     if (!nou && id) {
       void db.templates.get(Number(id)).then((t) => {
         if (t) {
-          setNume(t.nume);
-          setDescriere(t.descriere ?? '');
+          // în câmp intră numele din limba curentă, nu cel înghețat în baza de date
+          setNume(numeSablon(t));
+          setDescriere(descriereSablon(t) ?? '');
           setEtichete(t.etichete ?? []);
           setItems(t.items);
           setTemplateId(t.id);
+          setSursaText(t.sursaText);
+          setTextEditat(t.textEditat ?? false);
         }
       });
     }
@@ -39,6 +48,12 @@ export function TemplateEditorPage() {
 
   const salveaza = async () => {
     if (!profil?.id || !nume.trim() || items.length === 0) return;
+    // zăvorul: dacă textul diferă de cel din catalog, e al utilizatorului
+    const aScrisSingur =
+      textEditat ||
+      !sursaText ||
+      nume.trim() !== numeSablon({ nume: '', sursaText } as Template) ||
+      (descriere.trim() || undefined) !== descriereSablon({ descriere: undefined, sursaText } as Template);
     await saveTemplate({
       id: templateId,
       profileId: profil.id,
@@ -46,6 +61,8 @@ export function TemplateEditorPage() {
       descriere: descriere.trim() || undefined,
       etichete,
       items,
+      sursaText,
+      textEditat: aScrisSingur || undefined,
       creatLa: '',
       modificatLa: '',
       predefinit: false,
