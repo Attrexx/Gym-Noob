@@ -34,6 +34,42 @@ export const ro = {
     other: '{n} de programe celebre',
   },
 
+  // ── navigare și șasiu ───────────────────────────────────────────────
+  'nav.azi': 'Azi',
+  'nav.programe': 'Programe',
+  'nav.sala': 'Sală',
+  'nav.exercitii': 'Exerciții',
+  'nav.maiMult': 'Mai mult',
+  'nav.aria': 'Navigare principală',
+  'nav.banner.aria': 'Sesiune în desfășurare',
+  // două propoziții întregi: ordinea cuvintelor nu supraviețuiește traducerii
+  'nav.banner.desfasurare': 'Sesiune în desfășurare — apasă pentru a reveni',
+  'nav.banner.pauza': 'Sesiune în pauză — apasă pentru a reveni',
+
+  'actualizare.disponibila': 'Versiune nouă disponibilă!',
+  'actualizare.acum': 'Actualizează',
+  'actualizare.maiTarziu': 'Mai târziu',
+
+  // ── verbe și etichete comune ────────────────────────────────────────
+  'comun.inchide': 'Închide',
+  'comun.scade': 'Scade {ce}',
+  'comun.creste': 'Crește {ce}',
+
+  // ── „Mai mult" ──────────────────────────────────────────────────────
+  'maiMult.supratitlu': 'restul aplicației',
+  'maiMult.titlu': 'Mai mult',
+  'maiMult.profil': 'profil: {nume}',
+  'maiMult.statistici.nume': 'Statistici',
+  'maiMult.statistici.desc': 'grafice, volume, recorduri, calendar',
+  'maiMult.greutate.nume': 'Greutate & obiectiv',
+  'maiMult.greutate.desc': 'cântăriri, țintă, import Freefit',
+  'maiMult.realizari.nume': 'Realizări',
+  'maiMult.realizari.desc': 'colecția de insigne',
+  'maiMult.ghid.nume': 'Ghidul Noobului',
+  'maiMult.ghid.desc': 'lecțiile esențiale, pe scurt',
+  'maiMult.setari.nume': 'Setări',
+  'maiMult.setari.desc': 'temă, sunete, profil, backup',
+
   // ── timp relativ („data trecută") ───────────────────────────────────
   'timp.aziMaiDevreme': 'azi mai devreme',
 

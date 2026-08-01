@@ -1,8 +1,10 @@
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { BigButton } from '@/design/components';
+import { useT } from '@/i18n';
 
 /** Notificare discretă când există o versiune nouă a aplicației. */
 export function UpdatePrompt() {
+  const { t } = useT();
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
@@ -30,12 +32,12 @@ export function UpdatePrompt() {
         margin: '0 auto',
       }}
     >
-      <span style={{ flex: 1, fontWeight: 700, fontSize: '0.9rem' }}>Versiune nouă disponibilă!</span>
+      <span style={{ flex: 1, fontWeight: 700, fontSize: '0.9rem' }}>{t('actualizare.disponibila')}</span>
       <BigButton varianta="accent" onClick={() => void updateServiceWorker(true)}>
-        Actualizează
+        {t('actualizare.acum')}
       </BigButton>
       <BigButton varianta="contur" onClick={() => setNeedRefresh(false)}>
-        Mai târziu
+        {t('actualizare.maiTarziu')}
       </BigButton>
     </div>
   );

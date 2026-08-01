@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactNode } from 'react';
 import { nr } from '@/i18n/format';
+import { t } from '@/i18n/runtime';
 import './components.css';
 
 /** Card „abțibild" cu contur gros și umbră dură, opțional ușor înclinat. */
@@ -124,7 +125,7 @@ export function Modal(props: { deschis: boolean; onInchide: () => void; titlu?: 
       <div className="modal-corp pop" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={props.titlu}>
         <div className="modal-cap">
           {props.titlu && <h3 style={{ margin: 0 }}>{props.titlu}</h3>}
-          <button className="modal-x" onClick={props.onInchide} aria-label="Închide">
+          <button className="modal-x" onClick={props.onInchide} aria-label={t('comun.inchide')}>
             ✕
           </button>
         </div>
@@ -152,14 +153,22 @@ export function Stepper(props: {
     <div className="stepper">
       {props.eticheta && <div className="stepper-eticheta">{props.eticheta}</div>}
       <div className="stepper-rand">
-        <button className="stepper-btn" onClick={() => set(props.valoare - pas)} aria-label={`Scade ${props.eticheta ?? ''}`}>
+        <button
+          className="stepper-btn"
+          onClick={() => set(props.valoare - pas)}
+          aria-label={t('comun.scade', { ce: props.eticheta ?? '' })}
+        >
           −
         </button>
         <div className="stepper-valoare">
           {nr(props.valoare)}
           {props.unitate && <span className="stepper-unitate"> {props.unitate}</span>}
         </div>
-        <button className="stepper-btn" onClick={() => set(props.valoare + pas)} aria-label={`Crește ${props.eticheta ?? ''}`}>
+        <button
+          className="stepper-btn"
+          onClick={() => set(props.valoare + pas)}
+          aria-label={t('comun.creste', { ce: props.eticheta ?? '' })}
+        >
           +
         </button>
       </div>
