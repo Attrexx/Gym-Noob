@@ -3,14 +3,16 @@ import { Link } from 'react-router-dom';
 import { DIFICULTATE_LABEL } from '@/data/catalog/exercises';
 import { numaraExercitii, numeObiectiv, OBIECTIVE, PROGRAME } from '@/data/catalog/programs';
 import type { ProgramGoal } from '@/data/types';
-import { Chip, pluralRo, Sticker } from '@/design/components';
+import { Chip, Sticker } from '@/design/components';
 import { FlexuSpune } from '@/design/Flexu';
+import { useT } from '@/i18n';
 
 /**
  * Programele care vin cu aplicația — un tab din pagina Programe.
  * Nu-și pune singur `.pagina` sau copertă: le are gazda.
  */
 export function ProgrameAplicatie() {
+  const { t } = useT();
   const [obiectiv, setObiectiv] = useState<ProgramGoal | 'toate'>('toate');
 
   const lista = useMemo(
@@ -50,8 +52,8 @@ export function ProgrameAplicatie() {
               {p.subtitlu}
             </p>
             <div className="mic estompat">
-              {p.frecventa} · {pluralRo(p.antrenamente.length, 'antrenament', 'antrenamente')} ·{' '}
-              {pluralRo(numaraExercitii(p), 'exercițiu', 'exerciții')} · {p.durata}
+              {p.frecventa} · {t('comun.antrenamente', { n: p.antrenamente.length })} ·{' '}
+              {t('comun.exercitii', { n: numaraExercitii(p) })} · {p.durata}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 8 }}>
               {p.obiective.map((o) => (

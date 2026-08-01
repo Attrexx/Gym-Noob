@@ -3,7 +3,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
-import { BigButton, Chip, pluralRo, Sticker } from '@/design/components';
+import { BigButton, Chip, Sticker } from '@/design/components';
+import { useT } from '@/i18n';
 import { getExercise } from '@/data/catalog/exercises';
 import { getProgram, PROGRAME } from '@/data/catalog/programs';
 import { etichetaProgram, saveTemplate } from '@/data/repo';
@@ -29,6 +30,7 @@ function numeleProgramului(t: Template): string | undefined {
 }
 
 export function TemplatesPage(props: { tabInitial?: 'mele' | 'aplicatie' }) {
+  const { t } = useT();
   const [tab, setTab] = useState<'mele' | 'aplicatie'>(props.tabInitial ?? 'mele');
 
   return (
@@ -38,7 +40,7 @@ export function TemplatesPage(props: { tabInitial?: 'mele' | 'aplicatie' }) {
         <h1>Programe</h1>
         <p className="mic estompat" style={{ margin: 0 }}>
           Ale tale sunt cele pe care le-ai creat, importat sau salvate după o sesiune. Ale aplicației sunt{' '}
-          {pluralRo(PROGRAME.length, 'program celebru', 'programe celebre')}, gata de copiat.
+          {t('comun.programeCelebre', { n: PROGRAME.length })}, gata de copiat.
         </p>
       </div>
 
@@ -58,6 +60,7 @@ export function TemplatesPage(props: { tabInitial?: 'mele' | 'aplicatie' }) {
 }
 
 function PlanurileMele() {
+  const { t } = useT();
   const { profil } = useProfile();
   const nav = useNavigate();
   const statusSesiune = useSession((s) => s.status);
@@ -66,9 +69,9 @@ function PlanurileMele() {
     [profil?.id],
   );
 
-  const dubleaza = async (t: Template) => {
-    const { id: _id, ...rest } = t;
-    await saveTemplate({ ...rest, nume: `${t.nume} (copie)`, predefinit: false, creatLa: '', modificatLa: '' } as Template);
+  const dubleaza = async (sablon: Template) => {
+    const { id: _id, ...rest } = sablon;
+    await saveTemplate({ ...rest, nume: `${sablon.nume} (copie)`, predefinit: false, creatLa: '', modificatLa: '' } as Template);
   };
 
   return (
@@ -78,28 +81,28 @@ function PlanurileMele() {
       </BigButton>
 
       <div style={{ height: 14 }} />
-      {(sabloane ?? []).map((t) => {
+      {(sabloane ?? []).map((sablon) => {
         const minute = Math.round(
-          t.items.reduce((a, i) => a + i.seturi * ((i.durataSec ?? 40) + i.pauzaSec), 0) / 60,
+          sablon.items.reduce((a, i) => a + i.seturi * ((i.durataSec ?? 40) + i.pauzaSec), 0) / 60,
         );
         return (
-          <Sticker key={t.id}>
+          <Sticker key={sablon.id}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
               <div style={{ flex: 1 }}>
-                <b style={{ fontSize: '1.05rem' }}>{t.nume}</b>{' '}
-                {t.predefinit && <span className="eticheta-mica">de la Flexu</span>}
-                {numeleProgramului(t) && <span className="eticheta-mica">{numeleProgramului(t)}</span>}
+                <b style={{ fontSize: '1.05rem' }}>{sablon.nume}</b>{' '}
+                {sablon.predefinit && <span className="eticheta-mica">de la Flexu</span>}
+                {numeleProgramului(sablon) && <span className="eticheta-mica">{numeleProgramului(sablon)}</span>}
                 <div className="mic estompat" style={{ marginTop: 2 }}>
-                  {pluralRo(t.items.length, 'exercițiu', 'exerciții')} · ~{minute} min ·{' '}
-                  {t.items
+                  {t('comun.exercitii', { n: sablon.items.length })} · ~{minute} min ·{' '}
+                  {sablon.items
                     .slice(0, 3)
                     .map((i) => getExercise(i.exerciseId)?.nume ?? i.exerciseId)
                     .join(', ')}
-                  {t.items.length > 3 ? '…' : ''}
+                  {sablon.items.length > 3 ? '…' : ''}
                 </div>
-                {t.descriere && (
+                {sablon.descriere && (
                   <p className="mic" style={{ margin: '6px 0 0' }}>
-                    {t.descriere}
+                    {sablon.descriere}
                   </p>
                 )}
               </div>
@@ -107,13 +110,13 @@ function PlanurileMele() {
             <div className="rand" style={{ marginTop: 10 }}>
               <BigButton
                 varianta="accent"
-                onClick={() => nav('/sala', { state: { templateId: t.id } })}
+                onClick={() => nav('/sala', { state: { templateId: sablon.id } })}
                 disabled={statusSesiune !== 'inactiva'}
               >
                 ▶ Începe
               </BigButton>
-              <BigButton onClick={() => nav(`/antrenamente/${t.id}`)}>Editează</BigButton>
-              <BigButton varianta="contur" onClick={() => void dubleaza(t)}>
+              <BigButton onClick={() => nav(`/antrenamente/${sablon.id}`)}>Editează</BigButton>
+              <BigButton varianta="contur" onClick={() => void dubleaza(sablon)}>
                 Copiază
               </BigButton>
             </div>

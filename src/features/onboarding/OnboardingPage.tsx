@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BigButton, ProgressBar, Sticker, StatTile, formatNr } from '@/design/components';
+import { BigButton, ProgressBar, Sticker, StatTile } from '@/design/components';
+import { data, nr } from '@/i18n/format';
 import { FlexuBula, FlexuSpune } from '@/design/Flexu';
 import { Sigla } from '@/design/Sigla';
 import type { ActivityLevel, Sex } from '@/data/types';
@@ -213,7 +214,7 @@ export function OnboardingPage() {
             </div>
             {calcule.grasime !== null && (
               <p className="mic" style={{ marginTop: 8 }}>
-                Grăsime corporală estimată (formula US Navy): <b>{formatNr(calcule.grasime)}%</b>
+                Grăsime corporală estimată (formula US Navy): <b>{nr(calcule.grasime)}%</b>
               </p>
             )}
           </Sticker>
@@ -239,7 +240,7 @@ export function OnboardingPage() {
           <Sticker>
             <label htmlFor="ob-tinta">Greutatea țintă (kg)</label>
             <input id="ob-tinta" type="number" min={40} max={250} step={0.5} value={tinta} onChange={(e) => setTinta(Number(e.target.value))} />
-            <label htmlFor="ob-ritm">Ritm de slăbire: {formatNr(ritm)} kg / săptămână</label>
+            <label htmlFor="ob-ritm">Ritm de slăbire: {nr(ritm)} kg / săptămână</label>
             <input id="ob-ritm" type="range" min={0.25} max={1} step={0.25} value={ritm} onChange={(e) => setRitm(Number(e.target.value))} />
             <div className="rand mic estompat" style={{ justifyContent: 'space-between' }}>
               <span>relaxat</span>
@@ -247,7 +248,7 @@ export function OnboardingPage() {
             </div>
             {calcule.saptamani !== null ? (
               <p style={{ marginTop: 10 }}>
-                🗓️ La ritmul ales, ajungi la <b>{formatNr(tinta)} kg</b> în aproximativ <b>{calcule.saptamani} săptămâni</b>{' '}
+                🗓️ La ritmul ales, ajungi la <b>{nr(tinta)} kg</b> în aproximativ <b>{calcule.saptamani} săptămâni</b>{' '}
                 ({dataEta(calcule.saptamani)}).
               </p>
             ) : (
@@ -270,7 +271,7 @@ export function OnboardingPage() {
             <h1 style={{ fontSize: '1.6rem', margin: 0 }}>Planul tău</h1>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-            <StatTile valoare={formatNr(calcule.imc)} eticheta="IMC" sub={bmiCategorie(calcule.imc)} />
+            <StatTile valoare={nr(calcule.imc)} eticheta="IMC" sub={bmiCategorie(calcule.imc)} />
             <StatTile valoare={`${calcule.b}`} eticheta="BMR (kcal)" sub="arse doar existând" />
             <StatTile valoare={`${calcule.t}`} eticheta="TDEE (kcal)" sub="consum zilnic total" />
             <StatTile valoare={`${calcule.buget.aportMaximBaza}`} eticheta="Buget zilnic" sub="kcal, în zi fără sală" accent />
@@ -294,5 +295,5 @@ export function OnboardingPage() {
 function dataEta(saptamani: number): string {
   const d = new Date();
   d.setDate(d.getDate() + saptamani * 7);
-  return d.toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' });
+  return data(d, 'lunaAn');
 }

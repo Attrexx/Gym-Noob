@@ -1,7 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useParams } from 'react-router-dom';
 import { DIFICULTATE_LABEL, getExercise, numeGrupa } from '@/data/catalog/exercises';
-import { SectionTitle, StatTile, Sticker, formatNr } from '@/design/components';
+import { SectionTitle, StatTile, Sticker } from '@/design/components';
+import { data, nr } from '@/i18n/format';
 import { FlexuSpune } from '@/design/Flexu';
 import { MuscleDiagram } from './MuscleDiagram';
 import { ExerciseAnim } from './ExerciseAnim';
@@ -126,9 +127,9 @@ export function ExercisePage() {
               .map((t) => (
                 <StatTile
                   key={t}
-                  valoare={`${formatNr(recorduri[t]!.valoare)}${t === 'repetari' ? '' : ' kg'}`}
+                  valoare={`${nr(recorduri[t]!.valoare)}${t === 'repetari' ? '' : ' kg'}`}
                   eticheta={PR_LABEL[t]}
-                  sub={new Date(recorduri[t]!.data).toLocaleDateString('ro-RO')}
+                  sub={data(recorduri[t]!.data)}
                 />
               ))}
           </div>

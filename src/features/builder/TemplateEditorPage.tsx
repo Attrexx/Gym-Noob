@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
-import { BigButton, Modal, Sticker, formatNr } from '@/design/components';
+import { BigButton, Modal, Sticker } from '@/design/components';
+import { nr } from '@/i18n/format';
 import { getExercise, numeGrupa } from '@/data/catalog/exercises';
 import { deleteTemplate, saveTemplate } from '@/data/repo';
 import type { Template, TemplateItem } from '@/data/types';
@@ -96,7 +97,7 @@ export function TemplateEditorPage() {
                 : it.repetari
                   ? `${it.repetari} rep.`
                   : 'maxim (AMRAP)'}
-              {it.greutate ? ` @ ${formatNr(it.greutate)} kg` : ''} · pauză {it.pauzaSec}s
+              {it.greutate ? ` @ ${nr(it.greutate)} kg` : ''} · pauză {it.pauzaSec}s
               {it.tempo ? ` · tempo ${it.tempo}` : ''}
               {it.notite && (
                 <div className="estompat" style={{ marginTop: 2 }}>

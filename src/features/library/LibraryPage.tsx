@@ -9,9 +9,11 @@ import {
   numeGrupa,
 } from '@/data/catalog/exercises';
 import type { ExerciseCategory, MuscleGroup } from '@/data/types';
-import { Chip, pluralRo, Sticker } from '@/design/components';
+import { Chip, Sticker } from '@/design/components';
+import { useT } from '@/i18n';
 
 export function LibraryPage() {
+  const { t } = useT();
   const [categorie, setCategorie] = useState<ExerciseCategory | 'toate'>('toate');
   const [grupa, setGrupa] = useState<MuscleGroup | 'toate'>('toate');
   const [cauta, setCauta] = useState('');
@@ -34,7 +36,7 @@ export function LibraryPage() {
         <div className="supratitlu">biblioteca de mișcări</div>
         <h1>Exerciții</h1>
         <p className="mic estompat" style={{ margin: 0 }}>
-          {pluralRo(EXERCITII.length, 'exercițiu', 'exerciții')} cu sfaturi de formă, utilizare a aparatelor și
+          {t('comun.exercitii', { n: EXERCITII.length })} cu sfaturi de formă, utilizare a aparatelor și
           demonstrații.
         </p>
       </div>
@@ -79,7 +81,7 @@ export function LibraryPage() {
       </div>
 
       <p className="mic estompat" style={{ margin: '0 0 8px' }}>
-        {pluralRo(lista.length, 'exercițiu', 'exerciții')}
+        {t('comun.exercitii', { n: lista.length })}
       </p>
 
       {lista.map((e) => (

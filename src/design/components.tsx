@@ -1,4 +1,5 @@
 import { type CSSProperties, type ReactNode } from 'react';
+import { nr } from '@/i18n/format';
 import './components.css';
 
 /** Card „abțibild" cu contur gros și umbră dură, opțional ușor înclinat. */
@@ -155,7 +156,7 @@ export function Stepper(props: {
           −
         </button>
         <div className="stepper-valoare">
-          {formatNr(props.valoare)}
+          {nr(props.valoare)}
           {props.unitate && <span className="stepper-unitate"> {props.unitate}</span>}
         </div>
         <button className="stepper-btn" onClick={() => set(props.valoare + pas)} aria-label={`Crește ${props.eticheta ?? ''}`}>
@@ -166,16 +167,6 @@ export function Stepper(props: {
   );
 }
 
-export function formatNr(v: number): string {
-  return Number.isInteger(v) ? String(v) : v.toFixed(1).replace('.', ',');
-}
-
-/**
- * Acordul cu „de" din română: 1 exercițiu, 5 exerciții, 28 DE exerciții.
- * Se pune „de" când ultimele două cifre sunt 00 sau între 20 și 99.
- */
-export function pluralRo(n: number, singular: string, plural: string): string {
-  if (n === 1) return `1 ${singular}`;
-  const ultimele = n % 100;
-  return `${n} ${ultimele === 0 || ultimele >= 20 ? 'de ' : ''}${plural}`;
-}
+// `formatNr` și `pluralRo` au plecat în `src/i18n/format.ts` (nr()) și în
+// mesajele cu plural (`t('comun.exercitii', { n })`) — separatorul zecimal și
+// acordul cu „de" depind de limbă, așa că nu mai pot fi hardcodate aici.

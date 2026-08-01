@@ -5,6 +5,7 @@ import type { TemplateItem } from '@/data/types';
 import { descrieSetLog, setariDeReluat, ultimaPerformanta } from '@/domain/sesiuni';
 import { greutatePentruReps } from '@/domain/oneRm';
 import { epley1Rm } from '@/domain/oneRm';
+import { useT } from '@/i18n';
 
 /**
  * „Data trecută" — memoria pe care o ține aplicația în locul tău.
@@ -22,6 +23,7 @@ export function UltimaData(props: {
   sessionIdCurent?: number;
   onReia?: (setari: Partial<TemplateItem>) => void;
 }) {
+  const { t, fmt } = useT();
   const istoric = useLiveQuery(
     () => setLogsForExercise(props.profileId, props.exerciseId),
     [props.profileId, props.exerciseId],
@@ -31,7 +33,8 @@ export function UltimaData(props: {
   if (!u || u.seturi.length === 0) return null;
 
   const zile = Math.round((Date.now() - Date.parse(u.data)) / 86_400_000);
-  const cand = zile <= 0 ? 'azi mai devreme' : zile === 1 ? 'ieri' : `acum ${zile} zile`;
+  // „azi" îl spunem noi — Intl ar da doar „azi", pierzând nuanța „mai devreme"
+  const cand = zile <= 0 ? t('timp.aziMaiDevreme') : fmt.relativZile(zile);
 
   // ținta de azi: cu cât mai mult decât data trecută, dacă are sens
   const celMaiBun = u.seturi.reduce<{ e: number; g: number; r: number } | null>((best, l) => {

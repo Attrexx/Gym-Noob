@@ -6,7 +6,8 @@ import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
 import { greutateCurenta, secundeActive, setGreutateCurenta, useSession, type RezumatSesiune } from '@/state/sessionStore';
 import { useLive } from '@/state/liveStore';
-import { BigButton, Modal, ProgressBar, StatTile, Sticker, Stepper, formatNr } from '@/design/components';
+import { BigButton, Modal, ProgressBar, StatTile, Sticker, Stepper } from '@/design/components';
+import { data, nr } from '@/i18n/format';
 import { Flexu, FlexuSpune } from '@/design/Flexu';
 import { getExercise } from '@/data/catalog/exercises';
 import type { Template, TemplateItem } from '@/data/types';
@@ -444,7 +445,7 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
                 <div className="mic estompat">
                   {s.seturiFacute[idx]}/{it.seturi} seturi
                   {ex.masura === 'repetari'
-                    ? ` · ${it.repetari ? `${it.repetari} rep.` : 'maxim'} @ ${formatNr(it.greutate ?? 0)} kg`
+                    ? ` · ${it.repetari ? `${it.repetari} rep.` : 'maxim'} @ ${nr(it.greutate ?? 0)} kg`
                     : ` · ${Math.round((it.durataSec ?? 0) / 60)} min`}
                 </div>
                 {it.notite && (
@@ -582,8 +583,8 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
           <Flexu poza="sarbatoreste" marime={110} />
           {(prCelebration ?? []).map((pr) => (
             <p key={pr.tip} style={{ fontWeight: 800 }}>
-              {PR_LABEL[pr.tip]}: <b>{formatNr(pr.valoare)}</b>
-              {pr.valoareVeche ? <span className="estompat mic"> (vechiul record: {formatNr(pr.valoareVeche)})</span> : null}
+              {PR_LABEL[pr.tip]}: <b>{nr(pr.valoare)}</b>
+              {pr.valoareVeche ? <span className="estompat mic"> (vechiul record: {nr(pr.valoareVeche)})</span> : null}
             </p>
           ))}
           <BigButton varianta="accent" mare onClick={() => setPrCelebration(null)}>
@@ -621,7 +622,7 @@ export function discuriPeParte(total: number): string {
       ramas -= d;
     }
   }
-  return folosite.length ? folosite.map((d) => formatNr(d)).join(' + ') + ' kg' : 'nimic';
+  return folosite.length ? folosite.map((d) => nr(d)).join(' + ') + ' kg' : 'nimic';
 }
 
 // ─────────────────────── CARDUL EXERCIȚIULUI CURENT ───────────────────────
@@ -832,7 +833,7 @@ function ExercitiuCurent(props: {
           )}
           {ex.echipament === 'haltera' && greutate > 20 && (
             <p className="mic estompat centrat" style={{ margin: '0 0 10px' }}>
-              🏋️ {formatNr(greutate)} kg = bara (20 kg) + <b>{discuriPeParte(greutate)}</b> pe fiecare parte
+              🏋️ {nr(greutate)} kg = bara (20 kg) + <b>{discuriPeParte(greutate)}</b> pe fiecare parte
             </p>
           )}
           <BigButton varianta="accent" mare onClick={() => void props.onSet(props.planIdx, { repetari, greutate, rpe })}>
@@ -994,7 +995,7 @@ function SalveazaCaPlan(props: { sumar: Sumar }) {
   const { profil } = useProfile();
   const [deschis, setDeschis] = useState(false);
   const [nume, setNume] = useState(
-    `Sesiune ${new Date(props.sumar.inceput).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })}`,
+    `Sesiune ${data(props.sumar.inceput, 'ziLunaLung')}`,
   );
   const [salvat, setSalvat] = useState(false);
 

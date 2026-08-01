@@ -5,6 +5,7 @@ import { useCont } from '@/data/sync/authStore';
 import { deconecteaza, legaCont, reAutentifica, rezolvaConflict, runSync, stergeCont } from '@/data/sync/engine';
 import { mesajEroare } from '@/data/sync/api';
 import { downloadBackup, exportBackup } from '@/data/backup';
+import { dataOra } from '@/i18n/format';
 
 /** „Cont și sincronizare" din Setări — toate stările contului, cu Flexu de serviciu. */
 export function ContSection() {
@@ -97,7 +98,7 @@ export function ContSection() {
     </>
   );
 
-  const cand = (iso?: string) => (iso ? new Date(iso).toLocaleString('ro-RO', { dateStyle: 'short', timeStyle: 'short' }) : '—');
+  const cand = (iso?: string) => (iso ? dataOra(iso) : '—');
 
   return (
     <>

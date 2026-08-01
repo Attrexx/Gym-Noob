@@ -4,6 +4,7 @@ import { db } from '@/data/db';
 import { BigButton, Sticker } from '@/design/components';
 import { Flexu } from '@/design/Flexu';
 import { useProfile } from '@/state/profileStore';
+import { data } from '@/i18n/format';
 import type { Profile } from '@/data/types';
 
 export function ProfilesPage() {
@@ -29,7 +30,7 @@ export function ProfilesPage() {
             <div style={{ flex: 1 }}>
               <b style={{ fontSize: '1.1rem' }}>{p.nume}</b>
               {profil?.id === p.id && <span className="eticheta-mica" style={{ marginLeft: 8 }}>activ</span>}
-              <div className="mic estompat">creat {new Date(p.creatLa).toLocaleDateString('ro-RO')}</div>
+              <div className="mic estompat">creat {data(p.creatLa)}</div>
             </div>
             <span aria-hidden style={{ fontSize: '1.4rem' }}>→</span>
           </div>

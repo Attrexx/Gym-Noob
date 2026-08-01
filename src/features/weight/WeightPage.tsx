@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
-import { BigButton, Modal, SectionTitle, StatTile, Sticker, formatNr } from '@/design/components';
+import { BigButton, Modal, SectionTitle, StatTile, Sticker } from '@/design/components';
+import { data, nr } from '@/i18n/format';
 import { FlexuSpune } from '@/design/Flexu';
 import { addBodyMetric, setGoal } from '@/data/repo';
 import { bmi, bmiCategorie, clampRitm, saptamaniPanaLaTinta } from '@/domain/goals';
@@ -43,10 +44,10 @@ export function WeightPage() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <StatTile valoare={`${formatNr(kg)} kg`} eticheta="acum" sub={ultima ? new Date(ultima.data).toLocaleDateString('ro-RO') : '—'} accent />
-        <StatTile valoare={`${formatNr(Math.max(0, maxKg - kg))} kg`} eticheta="slăbite" sub={`de la maximul de ${formatNr(maxKg)} kg`} />
-        <StatTile valoare={formatNr(imc)} eticheta="IMC" sub={bmiCategorie(imc)} />
-        <StatTile valoare={grasime !== null ? `${formatNr(grasime)}%` : '—'} eticheta="grăsime est." sub={grasime === null ? 'adaugă măsurători' : 'formula US Navy'} />
+        <StatTile valoare={`${nr(kg)} kg`} eticheta="acum" sub={ultima ? data(ultima.data) : '—'} accent />
+        <StatTile valoare={`${nr(Math.max(0, maxKg - kg))} kg`} eticheta="slăbite" sub={`de la maximul de ${nr(maxKg)} kg`} />
+        <StatTile valoare={nr(imc)} eticheta="IMC" sub={bmiCategorie(imc)} />
+        <StatTile valoare={grasime !== null ? `${nr(grasime)}%` : '—'} eticheta="grăsime est." sub={grasime === null ? 'adaugă măsurători' : 'formula US Navy'} />
       </div>
 
       <BigButton varianta="accent" mare onClick={() => setAdaug(true)}>
@@ -57,11 +58,11 @@ export function WeightPage() {
       {date.goal ? (
         <Sticker>
           <p style={{ margin: 0 }}>
-            🎯 <b>{formatNr(date.goal.greutateTinta)} kg</b> în ritm de <b>{formatNr(date.goal.ritmKgSaptamana)} kg/săpt.</b>
+            🎯 <b>{nr(date.goal.greutateTinta)} kg</b> în ritm de <b>{nr(date.goal.ritmKgSaptamana)} kg/săpt.</b>
             {saptamani !== null ? (
               <>
                 {' '}
-                — încă <b>{formatNr(Math.max(0, kg - date.goal.greutateTinta))} kg</b>, aproximativ{' '}
+                — încă <b>{nr(Math.max(0, kg - date.goal.greutateTinta))} kg</b>, aproximativ{' '}
                 <b>{saptamani} săptămâni</b>.
               </>
             ) : (
@@ -85,7 +86,7 @@ export function WeightPage() {
         <FlexuSpune poza={maxKg - kg >= 1 ? 'sarbatoreste' : 'explica'}>
           {maxKg - kg >= 1 ? (
             <>
-              De la <b>{formatNr(maxKg)} kg</b> la <b>{formatNr(kg)} kg</b> — se mișcă treaba! Ține ritmul, nu
+              De la <b>{nr(maxKg)} kg</b> la <b>{nr(kg)} kg</b> — se mișcă treaba! Ține ritmul, nu
               graba.
             </>
           ) : (
@@ -98,9 +99,9 @@ export function WeightPage() {
       {[...date.metrici].reverse().slice(0, 30).map((m) => (
         <Sticker key={m.id} style={{ padding: '8px 12px', marginBottom: 8 }}>
           <div className="rand" style={{ justifyContent: 'space-between' }}>
-            <b>{formatNr(m.greutate)} kg</b>
+            <b>{nr(m.greutate)} kg</b>
             <span className="mic estompat">
-              {new Date(m.data).toLocaleDateString('ro-RO')} · {m.sursa === 'freefit' ? 'import Freefit' : 'manual'}
+              {data(m.data)} · {m.sursa === 'freefit' ? 'import Freefit' : 'manual'}
             </span>
           </div>
         </Sticker>
@@ -191,7 +192,7 @@ function EditeazaObiectiv(props: { onInchide: () => void; kgCurent: number; goal
     <Modal deschis onInchide={props.onInchide} titlu="Obiectivul de greutate">
       <label htmlFor="g-tinta">Greutatea țintă (kg)</label>
       <input id="g-tinta" type="number" step={0.5} min={40} max={250} value={tinta} onChange={(e) => setTinta(Number(e.target.value))} />
-      <label htmlFor="g-ritm">Ritm: {formatNr(ritm)} kg / săptămână</label>
+      <label htmlFor="g-ritm">Ritm: {nr(ritm)} kg / săptămână</label>
       <input id="g-ritm" type="range" min={0.25} max={1} step={0.25} value={ritm} onChange={(e) => setRitm(Number(e.target.value))} />
       {saptamani !== null && (
         <p className="mic" style={{ marginTop: 8 }}>

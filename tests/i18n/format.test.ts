@@ -1,11 +1,12 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { incarcaLimba } from '@/i18n/store';
-import { categoriePlural, data, km, nr, relativZile, viteza } from '@/i18n/format';
+import { data, km, nr, relativZile, viteza } from '@/i18n/format';
 import { t } from '@/i18n/runtime';
 
 /**
  * Notă: datele NU se compară exact — ieșirea CLDR se schimbă între versiuni de
  * ICU/Node și ar face suita fragilă. Verificăm forma, nu octeții.
+ * Pluralele stau separat, în `plural.test.ts`.
  */
 
 describe('formatare în română', () => {
@@ -52,38 +53,6 @@ describe('formatare în română', () => {
     expect(relativZile(3)).toBe('acum 3 zile');
     // regula lui „de" vine gratis din CLDR
     expect(relativZile(30)).toBe('acum 30 de zile');
-  });
-});
-
-describe('reguli de plural (canar pentru ICU complet)', () => {
-  beforeAll(async () => {
-    await incarcaLimba('ro');
-  });
-
-  // dacă Node e compilat fără ICU complet, tabelul ăsta pică primul și explică de ce
-  it.each([
-    [0, 'few'],
-    [1, 'one'],
-    [2, 'few'],
-    [19, 'few'],
-    [20, 'other'],
-    [98, 'other'],
-    [100, 'other'],
-    [101, 'few'],
-    [125, 'other'],
-  ])('categoriePlural(%i) = %s', (n, asteptat) => {
-    expect(categoriePlural(n)).toBe(asteptat);
-  });
-
-  it('acordul cu „de" din română, prin t()', () => {
-    expect(t('comun.exercitii', { n: 1 })).toBe('1 exercițiu');
-    expect(t('comun.exercitii', { n: 5 })).toBe('5 exerciții');
-    expect(t('comun.exercitii', { n: 19 })).toBe('19 exerciții');
-    expect(t('comun.exercitii', { n: 20 })).toBe('20 de exerciții');
-    expect(t('comun.exercitii', { n: 101 })).toBe('101 exerciții');
-    expect(t('comun.exercitii', { n: 125 })).toBe('125 de exerciții');
-    // schimbare asumată față de vechiul pluralRo: CLDR spune „0 exerciții"
-    expect(t('comun.exercitii', { n: 0 })).toBe('0 exerciții');
   });
 });
 

@@ -6,7 +6,8 @@ import { DIFICULTATE_LABEL, getExercise } from '@/data/catalog/exercises';
 import { getProgram, minuteEstimate, numeObiectiv } from '@/data/catalog/programs';
 import { etichetaProgram, importaProgram } from '@/data/repo';
 import type { ProgramWorkout, TemplateItem } from '@/data/types';
-import { BigButton, Sticker, formatNr } from '@/design/components';
+import { BigButton, Sticker } from '@/design/components';
+import { nr } from '@/i18n/format';
 import { FlexuSpune } from '@/design/Flexu';
 import { useProfile } from '@/state/profileStore';
 
@@ -176,7 +177,7 @@ export function descriereSet(it: TemplateItem): string {
       : it.repetari
         ? `${it.repetari} rep.`
         : 'maxim (AMRAP)';
-  const greutate = it.greutate ? ` @ ${formatNr(it.greutate)} kg` : '';
+  const greutate = it.greutate ? ` @ ${nr(it.greutate)} kg` : '';
   const pauza = it.pauzaSec >= 60 ? `${Math.floor(it.pauzaSec / 60)}:${String(it.pauzaSec % 60).padStart(2, '0')}` : `${it.pauzaSec}s`;
   return `${it.seturi} × ${cantitate}${greutate} · pauză ${pauza}`;
 }

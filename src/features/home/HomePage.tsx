@@ -1,7 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '@/data/db';
-import { BigButton, ProgressBar, SectionTitle, StatTile, Sticker, formatNr } from '@/design/components';
+import { BigButton, ProgressBar, SectionTitle, StatTile, Sticker } from '@/design/components';
+import { data, nr } from '@/i18n/format';
 import { FlexuSpune } from '@/design/Flexu';
 import { useProfile } from '@/state/profileStore';
 import { bugetZilnic, saptamaniPanaLaTinta, varstaDinData } from '@/domain/goals';
@@ -49,7 +50,7 @@ export function HomePage() {
   return (
     <div className="pagina">
       <div className="coperta">
-        <div className="supratitlu">{new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+        <div className="supratitlu">{data(new Date(), 'zilnic')}</div>
         <h1>Salut, {profil.nume}!</h1>
         {streak > 0 && <span className="eticheta-mica">🔥 {streak} săpt. consecutive</span>}
       </div>
@@ -75,7 +76,7 @@ export function HomePage() {
         </div>
         <p className="mic estompat" style={{ margin: '10px 0 0' }}>
           {date.goal
-            ? `Ținta: ${formatNr(date.goal.greutateTinta)} kg în ritm de ${formatNr(date.goal.ritmKgSaptamana)} kg/săpt. (deficit ${buget.deficit} kcal/zi).${
+            ? `Ținta: ${nr(date.goal.greutateTinta)} kg în ritm de ${nr(date.goal.ritmKgSaptamana)} kg/săpt. (deficit ${buget.deficit} kcal/zi).${
                 saptamani ? ` Mai ai ~${saptamani} săptămâni.` : ' Obiectiv atins! 🎉'
               }`
             : 'Nu ai un obiectiv activ — setează unul din pagina Greutate.'}
@@ -83,11 +84,11 @@ export function HomePage() {
       </Sticker>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <StatTile valoare={`${formatNr(greutate)} kg`} eticheta="greutatea curentă" sub={ultima ? new Date(ultima.data).toLocaleDateString('ro-RO') : ''} />
+        <StatTile valoare={`${nr(greutate)} kg`} eticheta="greutatea curentă" sub={ultima ? data(ultima.data) : ''} />
         <StatTile
-          valoare={date.goal ? `${formatNr(Math.max(0, greutate - date.goal.greutateTinta))} kg` : '—'}
+          valoare={date.goal ? `${nr(Math.max(0, greutate - date.goal.greutateTinta))} kg` : '—'}
           eticheta="până la țintă"
-          sub={date.goal ? `țintă ${formatNr(date.goal.greutateTinta)} kg` : ''}
+          sub={date.goal ? `țintă ${nr(date.goal.greutateTinta)} kg` : ''}
         />
       </div>
 

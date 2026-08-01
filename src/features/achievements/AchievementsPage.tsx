@@ -4,6 +4,7 @@ import { useProfile } from '@/state/profileStore';
 import { ACHIEVEMENTS } from '@/domain/achievements';
 import { Sticker } from '@/design/components';
 import { FlexuSpune } from '@/design/Flexu';
+import { data } from '@/i18n/format';
 
 const CATEGORII: Record<string, string> = {
   inceput: 'Începuturi',
@@ -66,7 +67,7 @@ export function AchievementsPage() {
                     <div className="mic" style={{ opacity: 0.85 }}>
                       {a.descriere}
                     </div>
-                    {cand && <div className="mic" style={{ marginTop: 4, fontWeight: 800 }}>{new Date(cand).toLocaleDateString('ro-RO')}</div>}
+                    {cand && <div className="mic" style={{ marginTop: 4, fontWeight: 800 }}>{data(cand)}</div>}
                   </Sticker>
                 );
               })}

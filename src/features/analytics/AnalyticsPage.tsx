@@ -17,7 +17,8 @@ import {
 } from 'recharts';
 import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
-import { SectionTitle, StatTile, Sticker, formatNr } from '@/design/components';
+import { SectionTitle, StatTile, Sticker } from '@/design/components';
+import { data, nr } from '@/i18n/format';
 import { getExercise, numeGrupa } from '@/data/catalog/exercises';
 import { epley1Rm } from '@/domain/oneRm';
 import { weekKey } from '@/domain/achievements';
@@ -219,7 +220,7 @@ export function AnalyticsPage() {
                 }}
               >
                 <div style={{ minWidth: 0 }}>
-                  <b>{new Date(s.inceput).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' })}</b>{' '}
+                  <b>{data(s.inceput, 'ziLunaScurt')}</b>{' '}
                   <span className="mic estompat">
                     {fmtOra(s.inceput)} → {fmtOra(s.sfarsit)}
                   </span>
@@ -360,7 +361,7 @@ export function AnalyticsPage() {
         </button>
       </Sticker>
       <p className="mic estompat">
-        Total istoric: {date.sesiuni.length} sesiuni · {formatNr(Math.round(date.seturi.reduce((a, l) => a + (l.greutate ?? 0) * (l.repetari ?? 0), 0) / 1000))} tone ridicate.
+        Total istoric: {date.sesiuni.length} sesiuni · {nr(Math.round(date.seturi.reduce((a, l) => a + (l.greutate ?? 0) * (l.repetari ?? 0), 0) / 1000))} tone ridicate.
       </p>
     </div>
   );
