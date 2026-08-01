@@ -6,7 +6,7 @@ import { useProfile } from '@/state/profileStore';
 import { BigButton, Chip, Sticker } from '@/design/components';
 import { useT } from '@/i18n';
 import { getExercise } from '@/data/catalog/exercises';
-import { getProgram, PROGRAME } from '@/data/catalog/programs';
+import { getProgram, programe } from '@/data/catalog/programs';
 import { etichetaProgram, saveTemplate } from '@/data/repo';
 import type { Template } from '@/data/types';
 import { useSession } from '@/state/sessionStore';
@@ -40,7 +40,7 @@ export function TemplatesPage(props: { tabInitial?: 'mele' | 'aplicatie' }) {
         <h1>Programe</h1>
         <p className="mic estompat" style={{ margin: 0 }}>
           Ale tale sunt cele pe care le-ai creat, importat sau salvate după o sesiune. Ale aplicației sunt{' '}
-          {t('comun.programeCelebre', { n: PROGRAME.length })}, gata de copiat.
+          {t('comun.programeCelebre', { n: programe().length })}, gata de copiat.
         </p>
       </div>
 

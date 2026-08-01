@@ -3,6 +3,7 @@ import { EXERCITII_1 } from './exercises-cardio-impins-tras';
 import { EXERCITII_2 } from './exercises-umeri-brate-picioare-core';
 import { EXERCITII_3 } from './exercises-haltera-calistenice';
 import type { ExerciseCore, PachetCatalog } from './text/types';
+import { pachetCatalog, seteazaPachetCatalog } from './text/activ';
 
 /**
  * Punctul unde structura se împreunează cu textul limbii active.
@@ -20,20 +21,16 @@ const CORE: ExerciseCore[] = [...EXERCITII_1, ...EXERCITII_2, ...EXERCITII_3];
 let lista: ExerciseDef[] = [];
 let index = new Map<string, ExerciseDef>();
 let categoriiCache = new Map<string, ExerciseCategory[]>();
-let text: PachetCatalog | null = null;
 
 /** Chemat de `incarcaLimba()` — singura cale prin care catalogul își ia textul. */
 export function aplicaTextCatalog(pachet: PachetCatalog): void {
-  text = pachet;
+  seteazaPachetCatalog(pachet);
   lista = CORE.map((c) => ({ ...c, ...pachet.exercitii[c.id] }));
   index = new Map(lista.map((e) => [e.id, e]));
   categoriiCache = new Map(lista.map((e) => [e.id, categoriiExercitiu(e)]));
 }
 
-function pachet(): PachetCatalog {
-  if (!text) throw new Error('catalog: nicio limbă încărcată — cheamă incarcaLimba() înainte');
-  return text;
-}
+const pachet = pachetCatalog;
 
 export function exercitii(): ExerciseDef[] {
   return lista;

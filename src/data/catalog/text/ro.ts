@@ -1,5 +1,14 @@
 import type { PachetCatalog } from './types';
 import { EXERCITII_RO } from './ro-exercitii';
+import {
+  ARTICOLE_RO,
+  INCURAJARI_FINAL_RO,
+  INCURAJARI_SET_RO,
+  OBIECTIVE_RO,
+  PROGRAME_RO,
+  SABLOANE_START_RO,
+  SFATURI_RO,
+} from './ro-continut';
 
 /**
  * Textul românesc al catalogului.
@@ -58,4 +67,12 @@ export const catalogRo: PachetCatalog = {
       descriere: 'Încălzire și întinderi — 5 minute care îți salvează lunile următoare.',
     },
   },
+
+  programe: PROGRAME_RO,
+  obiective: OBIECTIVE_RO,
+  articole: ARTICOLE_RO,
+  sabloaneStart: SABLOANE_START_RO,
+  sfaturi: SFATURI_RO,
+  incurajariSet: INCURAJARI_SET_RO,
+  incurajariFinal: INCURAJARI_FINAL_RO,
 };

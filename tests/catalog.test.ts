@@ -7,7 +7,7 @@ import {
   getExercise,
   grupeMuschi,
 } from '../src/data/catalog/exercises';
-import { PROGRAME, getProgram, minuteEstimate, numaraExercitii } from '../src/data/catalog/programs';
+import { programe, getProgram, minuteEstimate, numaraExercitii } from '../src/data/catalog/programs';
 import { starterTemplates } from '../src/data/catalog/starterTemplates';
 import { incarcaLimba } from '../src/i18n/store';
 
@@ -86,12 +86,12 @@ describe('catalogul de exerciții', () => {
 
 describe('programele celebre', () => {
   it('au id-uri unice', () => {
-    const ids = PROGRAME.map((p) => p.id);
+    const ids = programe().map((p) => p.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('trimit doar spre exerciții existente în catalog', () => {
-    for (const p of PROGRAME) {
+    for (const p of programe()) {
       for (const w of p.antrenamente) {
         for (const it of w.items) {
           expect(getExercise(it.exerciseId), `${p.id}/${w.id} → ${it.exerciseId}`).toBeDefined();
@@ -101,7 +101,7 @@ describe('programele celebre', () => {
   });
 
   it('au antrenamente cu id-uri unice și cel puțin 4 exerciții', () => {
-    for (const p of PROGRAME) {
+    for (const p of programe()) {
       const ids = p.antrenamente.map((w) => w.id);
       expect(new Set(ids).size, p.id).toBe(ids.length);
       expect(p.antrenamente.length, p.id).toBeGreaterThan(1);
@@ -112,7 +112,7 @@ describe('programele celebre', () => {
   });
 
   it('au seturi, pauze și ținte plauzibile', () => {
-    for (const p of PROGRAME) {
+    for (const p of programe()) {
       for (const w of p.antrenamente) {
         for (const it of w.items) {
           const ex = getExercise(it.exerciseId)!;
@@ -133,7 +133,7 @@ describe('programele celebre', () => {
   });
 
   it('explică seturile AMRAP într-o notiță', () => {
-    for (const p of PROGRAME) {
+    for (const p of programe()) {
       for (const w of p.antrenamente) {
         for (const it of w.items) {
           const ex = getExercise(it.exerciseId)!;
@@ -146,7 +146,7 @@ describe('programele celebre', () => {
   });
 
   it('au textele explicative completate', () => {
-    for (const p of PROGRAME) {
+    for (const p of programe()) {
       expect(p.subtitlu.length, p.id).toBeGreaterThan(20);
       expect(p.descriere.length, p.id).toBeGreaterThan(80);
       expect(p.origine.length, p.id).toBeGreaterThan(5);
@@ -158,7 +158,7 @@ describe('programele celebre', () => {
   });
 
   it('estimează durate realiste pentru fiecare antrenament', () => {
-    for (const p of PROGRAME) {
+    for (const p of programe()) {
       for (const w of p.antrenamente) {
         const min = minuteEstimate(w.items);
         expect(min, `${p.id}/${w.id}`).toBeGreaterThan(15);

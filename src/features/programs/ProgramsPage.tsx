@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { numeDificultate } from '@/data/catalog/exercises';
-import { numaraExercitii, numeObiectiv, OBIECTIVE, PROGRAME } from '@/data/catalog/programs';
+import { numaraExercitii, numeObiectiv, obiective, programe } from '@/data/catalog/programs';
 import type { ProgramGoal } from '@/data/types';
 import { Chip, Sticker } from '@/design/components';
 import { FlexuSpune } from '@/design/Flexu';
@@ -15,9 +15,10 @@ export function ProgrameAplicatie() {
   const { t } = useT();
   const [obiectiv, setObiectiv] = useState<ProgramGoal | 'toate'>('toate');
 
+  const toate = programe();
   const lista = useMemo(
-    () => (obiectiv === 'toate' ? PROGRAME : PROGRAME.filter((p) => p.obiective.includes(obiectiv))),
-    [obiectiv],
+    () => (obiectiv === 'toate' ? toate : toate.filter((p) => p.obiective.includes(obiectiv))),
+    [toate, obiectiv],
   );
 
   return (
@@ -29,7 +30,7 @@ export function ProgrameAplicatie() {
 
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '10px 0 8px' }}>
         <Chip activ={obiectiv === 'toate'} onClick={() => setObiectiv('toate')} nume="Toate" />
-        {OBIECTIVE.map((o) => (
+        {obiective().map((o) => (
           <Chip
             key={o.id}
             activ={obiectiv === o.id}

@@ -1,10 +1,12 @@
 import { Link, useParams } from 'react-router-dom';
-import { ARTICOLE } from '@/data/catalog/articles';
+import { getArticol } from '@/data/catalog/articles';
 import { Sticker } from '@/design/components';
+import { useT } from '@/i18n';
 
 export function ArticlePage() {
+  useT(); // abonament la limbă — conținutul vine din pachet
   const { id } = useParams();
-  const art = ARTICOLE.find((a) => a.id === id);
+  const art = id ? getArticol(id) : undefined;
   if (!art) {
     return (
       <div className="pagina">

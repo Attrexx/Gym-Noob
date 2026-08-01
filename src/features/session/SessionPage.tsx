@@ -23,7 +23,7 @@ import { AlegeExercitiu, itemNou } from '../builder/AlegeExercitiu';
 import { Metronom, sunete, vibreaza } from '@/services/audio';
 import { spune } from '@/services/tts';
 import { elibereazaEcranul, reactiveazaLaRevenire, tineEcranAprins } from '@/services/wakeLock';
-import { aleator, INCURAJARI_FINAL, INCURAJARI_SET } from '@/data/catalog/tips';
+import { aleator, incurajariFinal, incurajariSet } from '@/data/catalog/tips';
 import { type PrHit } from '@/domain/pr';
 import { descrieMotiv, descriereRealizare, numeRealizare } from '@/i18n/descrieri';
 import { t as tr } from '@/i18n';
@@ -277,7 +277,7 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
       if (setari?.vocale) spune('Record personal! Felicitări!');
       void confetti({ particleCount: 120, spread: 75, origin: { y: 0.6 } });
     } else if (setari?.vocale) {
-      spune(aleator(INCURAJARI_SET));
+      spune(aleator(incurajariSet()));
     }
     const item = s.plan[planIdx];
     if (item && item.pauzaSec > 0) s.startRest(item.pauzaSec);
@@ -980,7 +980,7 @@ function SummaryScreen(props: { sumar: Sumar }) {
           })}
         </>
       )}
-      <FlexuSpune poza="obosit">{aleator(INCURAJARI_FINAL)}</FlexuSpune>
+      <FlexuSpune poza="obosit">{aleator(incurajariFinal())}</FlexuSpune>
       <BigButton varianta="accent" mare onClick={() => nav('/')}>
         Acasă
       </BigButton>

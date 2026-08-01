@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/data/db';
+import { incarcaLimba } from '@/i18n/store';
 import {
   addBodyMetric,
   addSetLog,
@@ -18,6 +19,11 @@ import {
   updateSession,
 } from '@/data/repo';
 import type { ProgramDef } from '@/data/types';
+
+// șabloanele livrate își iau numele din pachetul limbii
+beforeAll(async () => {
+  await incarcaLimba('ro');
+});
 
 /** Fiecare scriere din repo trebuie să stampileze uid/updatedAt/dirty + oglinzile FK. */
 
