@@ -8,7 +8,7 @@ import { ContSection } from './ContSection';
 import { AparateSection } from './AparateSection';
 import type { ActivityLevel, Settings } from '@/data/types';
 import { NIVELURI } from '@/domain/goals';
-import { useT } from '@/i18n';
+import { AUTONIM, LIMBI, useT } from '@/i18n';
 import { spune } from '@/services/tts';
 
 export function SettingsPage() {
@@ -43,6 +43,32 @@ export function SettingsPage() {
         <h1>Setări</h1>
       </div>
 
+      {/* Limba stă prima: e cel mai global reglaj, și primul lucru de care are
+          nevoie cineva care a nimerit aplicația într-o limbă pe care n-o știe.
+          Se arată doar când chiar există de ales. */}
+      {LIMBI.length > 1 && (
+        <>
+          <SectionTitle supratitlu={t('setari.limba.supratitlu')}>{t('setari.limba.titlu')}</SectionTitle>
+          <Sticker>
+            <div className="rand">
+              {([...LIMBI, 'auto'] as const).map((l) => (
+                <BigButton
+                  key={l}
+                  id={`limba-${l}`}
+                  varianta={(setari.limba ?? 'auto') === l ? 'accent' : 'contur'}
+                  onClick={() => set({ limba: l })}
+                >
+                  {l === 'auto' ? `🌐 ${t('setari.limba.auto')}` : (AUTONIM[l] ?? l)}
+                </BigButton>
+              ))}
+            </div>
+            <p className="mic estompat" style={{ margin: '8px 0 0' }}>
+              {t('setari.limba.explicatie')}
+            </p>
+          </Sticker>
+        </>
+      )}
+
       <SectionTitle supratitlu="aspect">Temă</SectionTitle>
       <Sticker>
         <div className="rand">
@@ -69,7 +95,7 @@ export function SettingsPage() {
           activ={setari.vocale}
           onChange={(v) => {
             set({ vocale: v });
-            if (v) spune('Indicațiile vocale sunt active. Spor la antrenament!');
+            if (v) spune(t('setari.vocale.confirmare'));
           }}
         />
         <Comutator eticheta="📳 Vibrații" activ={setari.vibratii} onChange={(v) => set({ vibratii: v })} />

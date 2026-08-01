@@ -129,6 +129,14 @@ export const ro = {
   'realizari.pr-25.nume': 'Mașina de PR-uri',
   'realizari.pr-25.descriere': '25 de recorduri personale doborâte.',
 
+  // ── setări ──────────────────────────────────────────────────────────
+  'setari.limba.supratitlu': 'în ce limbă',
+  'setari.limba.titlu': 'Limba',
+  'setari.limba.auto': 'Automat',
+  'setari.limba.explicatie':
+    '„Automat" ia limba telefonului, cu româna ca variantă de rezervă. Se schimbă tot: meniurile, exercițiile, ghidul și vocea din căști.',
+  'setari.vocale.confirmare': 'Indicațiile vocale sunt active. Spor la antrenament!',
+
   // ── meta ────────────────────────────────────────────────────────────
   'meta.descriere':
     'Ghidul complet al începătorului absolut la sală. Antrenamente, jurnale, calorii și statistici — totul în română.',

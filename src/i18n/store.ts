@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { LIMBI, TAG, type Limba, type LimbaSetare } from './types';
+import { LIMBI, TAG, type Limba } from './types';
 import type { Pachet } from './types-pachet';
 import { PACHETE } from './messages';
 import { aplicaTextCatalog } from '@/data/catalog/exercises';
@@ -64,10 +64,17 @@ export async function incarcaLimba(limba: Limba): Promise<void> {
 
 /**
  * Alege limba efectivă dintr-o setare, negociind cu browserul pentru „auto".
+ *
+ * Primește `string`, nu `LimbaSetare`, intenționat: setarea vine din baza de
+ * date și se sincronizează între dispozitive, deci un telefon cu o versiune
+ * mai nouă poate trimite o limbă pe care build-ul ăsta n-o cunoaște încă.
+ * Într-un asemenea caz cădem elegant pe negociere, nu crăpăm.
+ *
  * `limbiBrowser` e injectabil ca să fie testabil fără `navigator`.
  */
-export function rezolvaLimba(setare: LimbaSetare | undefined, limbiBrowser?: readonly string[]): Limba {
-  if (setare && setare !== 'auto') return setare;
+export function rezolvaLimba(setare: string | undefined, limbiBrowser?: readonly string[]): Limba {
+  const cunoscuta = LIMBI.find((l) => l === setare);
+  if (cunoscuta) return cunoscuta;
   const preferate = limbiBrowser ?? (typeof navigator !== 'undefined' ? navigator.languages : undefined) ?? [];
   for (const tag of preferate) {
     const primar = tag.toLowerCase().split('-')[0];

@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import type { Profile, Settings } from '@/data/types';
 import { db } from '@/data/db';
 import { getSettings, touchProfile } from '@/data/repo';
+import { incarcaLimba, rezolvaLimba } from '@/i18n/store';
+import { t } from '@/i18n/runtime';
+import { CHEIE_LIMBA } from '@/i18n/boot';
 
 interface ProfileState {
   incarcat: boolean;
@@ -34,6 +37,8 @@ export const useProfile = create<ProfileState>((set, get) => ({
       localStorage.setItem(KEY_ACTIV, String(profil.id));
       const setari = await getSettings(profil.id!);
       aplicaTema(setari.tema);
+      // înainte de `incarcat: true`, ca App să nu deseneze în limba greșită
+      await aplicaLimba(setari.limba);
       set({ profil, setari, incarcat: true });
       void touchProfile(profil.id!);
     } else {
@@ -60,6 +65,7 @@ export const useProfile = create<ProfileState>((set, get) => ({
     const noi = { ...setari, ...changes };
     set({ setari: noi });
     aplicaTema(noi.tema);
+    if (changes.limba !== undefined) await aplicaLimba(noi.limba);
     const { updateSettings } = await import('@/data/repo');
     await updateSettings(profil.id, changes);
   },
@@ -69,6 +75,28 @@ export const useProfile = create<ProfileState>((set, get) => ({
     set({ profil: null, setari: null });
   },
 }));
+
+/**
+ * Perechea lui `aplicaTema`, pentru limbă. Asincronă fiindcă pachetul limbii
+ * se încarcă leneș — `versiune` crește abia după ce e gata, deci interfața nu
+ * apucă să deseneze un cadru pe jumătate tradus.
+ *
+ * Aici stă tot ce atinge browserul (localStorage, `<html lang>`, meta), ca
+ * `src/i18n/store.ts` să rămână curat și testabil sub vitest.
+ */
+export async function aplicaLimba(setare: Settings['limba']) {
+  const limba = rezolvaLimba(setare);
+  try {
+    // indiciul de pornire: la următoarea deschidere nimerim din prima
+    localStorage.setItem(CHEIE_LIMBA, limba);
+  } catch {
+    // stocare blocată — mergem mai departe, doar că pornirea va negocia iar
+  }
+  await incarcaLimba(limba);
+  document.documentElement.lang = limba;
+  const meta = document.querySelector('meta[name="description"]');
+  if (meta) meta.setAttribute('content', t('meta.descriere'));
+}
 
 export function aplicaTema(tema: Settings['tema']) {
   const noapte =

@@ -347,6 +347,15 @@ export interface Settings extends SyncMeta {
   aparatAuto?: boolean;
   /** numele ultimului aparat conectat */
   aparatUltimulDispozitiv?: string;
+  /**
+   * Limba interfeței. Lipsă = „auto" (limba browserului, cu româna ca plasă).
+   * Câmp opțional și neindexat, deci NU cere versiune nouă de schemă Dexie și
+   * nici schimbări pe server (magazinul de rânduri e generic).
+   *
+   * Se sincronizează ca orice setare, deci limba te urmează pe toate
+   * dispozitivele — la fel ca tema.
+   */
+  limba?: 'ro' | 'en' | 'auto';
 }
 
 export const SETARI_IMPLICITE: Omit<Settings, 'id' | 'profileId'> = {

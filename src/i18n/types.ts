@@ -25,6 +25,17 @@ export const TAG: Record<Limba, string> = {
 };
 
 /**
+ * Numele limbilor, în limba lor. NU se traduc niciodată: cine a comutat din
+ * greșeală trebuie să-și recunoască limba în listă ca să se poată întoarce.
+ * Cheile sunt `string`, nu `Limba`, ca să poți pregăti un nume înainte să
+ * înregistrezi limba.
+ */
+export const AUTONIM: Record<string, string> = {
+  ro: '🇷🇴 Română',
+  en: '🇬🇧 English',
+};
+
+/**
  * Un mesaj cu plural. `other` e obligatoriu — e categoria pe care CLDR o are în
  * orice limbă. Restul (`one`, `few`, `many`, …) depind de limbă și sunt
  * verificate de `tests/i18n/paritate.test.ts` cu `Intl.PluralRules`.
