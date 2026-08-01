@@ -154,6 +154,37 @@ describe('stampilarea din repo', () => {
     expect(dupa!.updatedAt! >= inainte).toBe(true);
   });
 
+  it('datele de la aparatul Bluetooth se salvează pe set, cu stampilele obișnuite', async () => {
+    const id = await profilNou();
+    const p = await db.profiles.get(id);
+    const sid = await createSession({
+      profileId: id, status: 'activa', inceput: new Date().toISOString(),
+      durataActivaSec: 0, apaMl: 0, kcal: 0,
+    });
+
+    await addSetLog({
+      sessionId: sid, profileId: id, exerciseId: 'banda-alergare', setIndex: 1,
+      durataSec: 1500, kcal: 280, data: new Date().toISOString(),
+      viteza: 9.5, inclinatie: 2,
+      aparatTip: 'banda', aparatModel: 'Star Trac 8TR',
+      distantaM: 3100, cadentaMedie: 168, putereMedieW: 210, kcalAparat: 265,
+    });
+
+    const set = await db.setLogs.where({ sessionId: sid }).first();
+    expect(set).toMatchObject({
+      aparatTip: 'banda',
+      aparatModel: 'Star Trac 8TR',
+      distantaM: 3100,
+      cadentaMedie: 168,
+      putereMedieW: 210,
+      kcalAparat: 265,
+    });
+    // câmpurile noi nu au voie să strice contractul de sincronizare
+    expect(set?.uid).toBeTruthy();
+    expect(set?.dirty).toBe(1);
+    expect(set?.profileUid).toBe(p!.uid);
+  });
+
   it('unlockAchievement folosește uid derivat și rămâne idempotent', async () => {
     const id = await profilNou();
     const p = await db.profiles.get(id);

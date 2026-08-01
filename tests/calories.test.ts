@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { durataSetSec, kcalKeytel, kcalMet, kcalSet, metBanda, metMediuBanda } from '@/domain/calories';
+import {
+  durataSetSec,
+  kcalKeytel,
+  kcalMet,
+  kcalSet,
+  metBanda,
+  metDinPutere,
+  metMediuBanda,
+} from '@/domain/calories';
 
 describe('kcal MET', () => {
   it('formula de bază: MET 8, 100kg, 30 min ≈ 420 kcal', () => {
@@ -12,6 +20,32 @@ describe('kcal MET', () => {
     expect(kcalMet(6, 90, 600, 2)).toBeLessThan(moderat);
     // limitele de siguranță
     expect(kcalMet(6, 90, 600, 10)).toBeLessThanOrEqual(moderat * 1.3 + 0.001);
+  });
+});
+
+describe('MET din puterea aparatului (rower, bicicletă)', () => {
+  it('fără putere înseamnă efort de repaus', () => {
+    expect(metDinPutere(0, 80)).toBe(1);
+    expect(metDinPutere(-50, 80)).toBe(1);
+    expect(metDinPutere(200, 0)).toBe(1);
+  });
+
+  it('200 W la 80 kg cade într-o zonă plauzibilă de vâslit intens', () => {
+    const met = metDinPutere(200, 80);
+    expect(met).toBeGreaterThan(8);
+    expect(met).toBeLessThan(16);
+  });
+
+  it('crește cu wații și scade cu greutatea corporală', () => {
+    expect(metDinPutere(250, 80)).toBeGreaterThan(metDinPutere(150, 80));
+    // același efort mecanic e relativ mai ușor pentru un corp mai mare
+    expect(metDinPutere(200, 100)).toBeLessThan(metDinPutere(200, 70));
+  });
+
+  it('dus prin kcalSet dă calorii pe oră rezonabile', () => {
+    const kcal = kcalSet({ met: metDinPutere(200, 80), greutateKg: 80, secunde: 3600 });
+    expect(kcal).toBeGreaterThan(500);
+    expect(kcal).toBeLessThan(1200);
   });
 });
 

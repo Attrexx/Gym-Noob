@@ -5,7 +5,7 @@ import './shell.css';
 
 const TABURI = [
   { la: '/', emoji: '🏠', nume: 'Azi' },
-  { la: '/antrenamente', emoji: '📋', nume: 'Planuri' },
+  { la: '/antrenamente', emoji: '📋', nume: 'Programe' },
   { la: '/sala', emoji: '🏋️', nume: 'Sală', central: true },
   { la: '/biblioteca', emoji: '📚', nume: 'Exerciții' },
   { la: '/mai-mult', emoji: '☰', nume: 'Mai mult' },

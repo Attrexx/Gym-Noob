@@ -1,18 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
-import { BigButton, Modal, Sticker, Stepper, formatNr } from '@/design/components';
-import { EXERCITII, getExercise, numeGrupa } from '@/data/catalog/exercises';
+import { BigButton, Modal, Sticker, formatNr } from '@/design/components';
+import { getExercise, numeGrupa } from '@/data/catalog/exercises';
 import { deleteTemplate, saveTemplate } from '@/data/repo';
 import type { Template, TemplateItem } from '@/data/types';
-
-function itemNou(exerciseId: string): TemplateItem {
-  const ex = getExercise(exerciseId)!;
-  return ex.masura === 'timp'
-    ? { exerciseId, seturi: 1, durataSec: 300, pauzaSec: 60 }
-    : { exerciseId, seturi: 3, repetari: 10, greutate: 10, pauzaSec: 90 };
-}
+import { AlegeExercitiu, ParametriExercitiu } from './AlegeExercitiu';
 
 export function TemplateEditorPage() {
   const { id } = useParams();
@@ -27,7 +21,6 @@ export function TemplateEditorPage() {
   const [templateId, setTemplateId] = useState<number | undefined>();
   const [alegeExercitiu, setAlegeExercitiu] = useState(false);
   const [editIdx, setEditIdx] = useState<number | null>(null);
-  const [cauta, setCauta] = useState('');
 
   useEffect(() => {
     if (!nou && id) {
@@ -42,11 +35,6 @@ export function TemplateEditorPage() {
       });
     }
   }, [id, nou]);
-
-  const listaCautare = useMemo(() => {
-    const q = cauta.trim().toLowerCase();
-    return EXERCITII.filter((e) => !q || e.nume.toLowerCase().includes(q) || e.echipamentNume.toLowerCase().includes(q));
-  }, [cauta]);
 
   const salveaza = async () => {
     if (!profil?.id || !nume.trim() || items.length === 0) return;
@@ -148,43 +136,15 @@ export function TemplateEditorPage() {
         </>
       )}
 
-      <Modal deschis={alegeExercitiu} onInchide={() => setAlegeExercitiu(false)} titlu="Alege exercițiul">
-        <input
-          type="search"
-          placeholder="Caută…"
-          value={cauta}
-          onChange={(e) => setCauta(e.target.value)}
-          style={{ marginBottom: 10 }}
-        />
-        <div style={{ maxHeight: '48vh', overflowY: 'auto' }}>
-          {listaCautare.map((e) => (
-            <button
-              key={e.id}
-              onClick={() => {
-                setItems([...items, itemNou(e.id)]);
-                setAlegeExercitiu(false);
-                setCauta('');
-              }}
-              style={{
-                display: 'block',
-                width: '100%',
-                textAlign: 'left',
-                background: 'none',
-                border: 'none',
-                borderBottom: '2px solid var(--linie)',
-                padding: '10px 4px',
-                color: 'inherit',
-                fontSize: '0.95rem',
-              }}
-            >
-              <b>{e.nume}</b>
-              <div className="mic estompat">
-                {e.echipamentNume} · {e.muschi.map(numeGrupa).join(', ')}
-              </div>
-            </button>
-          ))}
-        </div>
-      </Modal>
+      <AlegeExercitiu
+        deschis={alegeExercitiu}
+        onInchide={() => setAlegeExercitiu(false)}
+        actiune="+ Adaugă în plan"
+        onAlege={(it) => {
+          setItems([...items, it]);
+          setAlegeExercitiu(false);
+        }}
+      />
 
       {editIdx !== null && items[editIdx] && (
         <ItemEditor
@@ -198,100 +158,14 @@ export function TemplateEditorPage() {
 }
 
 function ItemEditor(props: { item: TemplateItem; onChange: (it: TemplateItem) => void; onInchide: () => void }) {
-  const { item, onChange } = props;
-  const ex = getExercise(item.exerciseId)!;
+  const ex = getExercise(props.item.exerciseId)!;
   return (
     <Modal deschis onInchide={props.onInchide} titlu={ex.nume}>
-      <div style={{ display: 'grid', gap: 14 }}>
-        <Stepper eticheta="Seturi" valoare={item.seturi} min={1} max={10} onChange={(v) => onChange({ ...item, seturi: v })} />
-        {ex.masura === 'repetari' ? (
-          <>
-            {item.repetari === undefined ? (
-              <div className="rand" style={{ alignItems: 'center' }}>
-                <b>Repetări: maxim (AMRAP)</b>
-                <BigButton varianta="contur" onClick={() => onChange({ ...item, repetari: 10 })}>
-                  Pune un număr
-                </BigButton>
-              </div>
-            ) : (
-              <>
-                <Stepper eticheta="Repetări" valoare={item.repetari} min={1} max={50} onChange={(v) => onChange({ ...item, repetari: v })} />
-                <BigButton varianta="contur" onClick={() => onChange({ ...item, repetari: undefined })}>
-                  Fă-l „cât poți" (AMRAP)
-                </BigButton>
-              </>
-            )}
-            <Stepper
-              eticheta="Greutate"
-              valoare={item.greutate ?? 0}
-              pas={2.5}
-              min={0}
-              max={400}
-              unitate="kg"
-              onChange={(v) => onChange({ ...item, greutate: v })}
-            />
-          </>
-        ) : (
-          <>
-            <Stepper
-              eticheta="Durată (minute)"
-              valoare={Math.round((item.durataSec ?? 300) / 60)}
-              min={1}
-              max={90}
-              unitate="min"
-              onChange={(v) => onChange({ ...item, durataSec: v * 60 })}
-            />
-            {ex.echipament === 'banda_alergare' && (
-              <>
-                <Stepper
-                  eticheta="Viteză de pornire"
-                  valoare={item.viteza ?? 5}
-                  pas={0.5}
-                  min={0.5}
-                  max={22}
-                  unitate="km/h"
-                  onChange={(v) => onChange({ ...item, viteza: v })}
-                />
-                <Stepper
-                  eticheta="Înclinație de pornire"
-                  valoare={item.inclinatie ?? 0}
-                  pas={1}
-                  min={0}
-                  max={20}
-                  unitate="%"
-                  onChange={(v) => onChange({ ...item, inclinatie: v })}
-                />
-              </>
-            )}
-          </>
-        )}
-        <Stepper eticheta="Pauză între seturi" valoare={item.pauzaSec} pas={15} min={0} max={600} unitate="sec" onChange={(v) => onChange({ ...item, pauzaSec: v })} />
-        <div>
-          <label htmlFor="tempo-sel">Cadență (tempo) — opțional</label>
-          <select
-            id="tempo-sel"
-            value={item.tempo ?? ''}
-            onChange={(e) => onChange({ ...item, tempo: e.target.value || undefined })}
-          >
-            <option value="">fără</option>
-            <option value="2-0-1">2-0-1 (normal)</option>
-            <option value="3-1-2">3-1-2 (controlat)</option>
-            <option value="4-2-1">4-2-1 (lent, intens)</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="item-notite">Notiță (apare în sală) — opțional</label>
-          <input
-            id="item-notite"
-            value={item.notite ?? ''}
-            onChange={(e) => onChange({ ...item, notite: e.target.value || undefined })}
-            placeholder="ex. 75% din maxim · 8 pe fiecare picior"
-          />
-        </div>
-        <BigButton varianta="accent" onClick={props.onInchide}>
-          Gata
-        </BigButton>
-      </div>
+      <ParametriExercitiu item={props.item} onChange={props.onChange} detaliat />
+      <div style={{ height: 14 }} />
+      <BigButton varianta="accent" onClick={props.onInchide}>
+        Gata
+      </BigButton>
     </Modal>
   );
 }

@@ -76,10 +76,20 @@ reset: **`docs/OPS.md`**. The API lives at `https://gym-api.lessgo.city` on the 
 - `src/state/profileStore.ts` — active profile + settings (Zustand); applies theme.
   `src/state/sessionStore.ts` — live workout session; persisted to localStorage so it survives
   reloads; set/water logs still write straight to IndexedDB.
+  `src/state/liveStore.ts` — **not persisted, on purpose**: BLE machine connection, last FTMS
+  sample, per-set accumulators (`rezumatSet()` feeds `logSet`) and `kcalParial` (calories accruing
+  during a running set, display-only). Never put GATT handles in `sessionStore` — it persists
+  everything to `gym-noob-sesiune`.
 - `src/features/<area>/` — pages. `src/design/` — tokens (`global.css`), shared components
   (`components.tsx`: Sticker, BigButton, Stepper, Modal, StatTile…), and the mascot `Flexu.tsx`.
 - `src/services/` — audio beeps/metronome (Web Audio), TTS (ro), wake lock, BLE heart rate,
-  achievements aggregation.
+  BLE fitness machines (FTMS), achievements aggregation. `ble.ts` holds the shared reconnect
+  logic for both HR and machines.
+- **Programe = Planuri**: ONE page (`TemplatesPage`, tabs "Ale mele" / "Ale aplicației") served at
+  both `/antrenamente` and `/programe` via a `tabInitial` prop. `ProgramsPage.tsx` exports the tab
+  body `ProgrameAplicatie`, not a page. Don't reintroduce a separate programs screen.
+- `AlegeExercitiu.tsx` (in `features/builder/`) is the ONE exercise picker + parameter sheet —
+  used by the session and the plan editor. Add exercise-choosing UI there, not a third copy.
 - AnalyticsPage is lazy-loaded (Recharts is heavy). Keep it that way.
 
 ## Domain formulas (tested in `tests/`)
@@ -90,7 +100,15 @@ max 1 kg/week**, intake floor = max(1200, 80%·BMR)) · calories = MET×3.5×kg/
 run ≥8), integrated over segments as the user changes settings mid-run — when this dynamic MET is
 used, RPE must NOT also scale it · Keytel HR formula when watch connected (only ≥90 bpm) ·
 Epley 1RM · US Navy body fat · PR detection: no PR without prior history, and only vs earlier
-sessions (never vs sets from the same session).
+sessions (never vs sets from the same session) · **MET from machine power** (`metDinPutere`,
+22% mechanical efficiency + 1 MET resting) for rower/bike.
+**Calorie precedence** (decided at the call site, matching the existing "objective MET ⇒ no RPE"
+rule): watch HR ≥ 90 → Keytel · machine-reported MET · treadmill ACSM (`metMediuBanda`, fed by the
+steppers *or* the connected machine) · machine power → `metDinPutere` · catalog MET × RPE.
+Watch HR beats machine HR.
+**Time at the gym** (`src/domain/sesiuni.ts`): `impartireTimp` derives total/activ/pauză from
+`inceput`/`sfarsit`/`durataActivaSec` — there is deliberately no stored `pauzaSec` column to drift
+out of sync. `planDinSeturi` builds a plan from what was actually logged (median reps/weight).
 
 ## Conventions & gotchas
 
@@ -99,6 +117,9 @@ sessions (never vs sets from the same session).
 - TypeScript strict; path alias `@/` → `src/`; tests only under `tests/`.
 - **Dexie schema changes require a version bump** in `db.ts` (`this.version(2).stores(...)` + an
   upgrade fn). Users have real data — never wipe or clear tables outside explicit backup/restore.
+  Adding *optional, unindexed* fields to an entity is NOT a schema change (the `stores()` string
+  only declares indexes) — that's why the machine fields on `SetLog` landed on v2 with no bump and
+  no server work. The moment a new field needs an index, bump to v3.
 - Settings fields added after v1 may be `undefined` on old rows — follow the
   `setari.economizor !== false` fallback pattern. Same for sync metadata (`uid?`, `updatedAt?`,
   `dirty?`) — optional in types, backfilled by the v2 upgrade.
@@ -115,6 +136,19 @@ sessions (never vs sets from the same session).
   rest-timer beeps in last 3 s + fanfare + vibration at 0; plate calculator assumes a 20 kg bar.
 - Web Bluetooth HR = standard `heart_rate` GATT; works with Huawei GT4's "Difuzare ritm cardiac"
   during a watch workout; **iOS has no Web Bluetooth** — always feature-detect (`bleDisponibil`).
+- **BLE gestures**: `requestDevice()` REQUIRES a user gesture — silent first-connect is only
+  possible via `getDevices()`+`watchAdvertisements()`, still flag-gated in Chrome, so always
+  feature-detect (`bleSilentiosDisponibil()`) and keep the one-tap fallback. Reconnecting a device
+  you already hold needs no gesture — that's why auto-retry works everywhere.
+- **FTMS parsing gotcha** (`src/domain/ftms.ts`): flag **bit 0 is "More Data" and INVERTED** —
+  instantaneous speed (treadmill) and stroke rate/count (rower) are present when bit 0 is **0**.
+  Every other bit means "present" when 1. Distance is uint24, inclination is sint16 ×0,1 %, and
+  "expended energy" is a triple (total uint16 + per-hour uint16 + per-minute uint8) — reading only
+  the first two bytes silently misaligns everything after it. Parsers are pure and byte-fixture
+  tested in `tests/ftms.test.ts`; keep them free of Web Bluetooth.
+- localStorage `gym-noob-aparat-fals` = `'banda'|'rower'` makes `bleMachine` return a **simulated**
+  machine emitting samples on a timer — Playwright can't do Bluetooth, so the smoke test uses this.
+  Inert unless the key is set; same trick as `gym-noob-api-url`.
 - Freefit has no API; import is a tolerant CSV parser (`src/domain/freefit.ts`) — en/ro headers,
   `dd.MM.yyyy`, decimal commas, per-day dedup.
 - New achievements: add def + condition in `src/domain/achievements.ts` (unique id, Romanian,

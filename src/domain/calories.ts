@@ -66,6 +66,27 @@ export function metMediuBanda(segmente: SegmentBanda[], totalSec: number): numbe
 }
 
 /**
+ * MET din puterea mecanică raportată de aparat (rower, bicicletă).
+ *
+ * Wații de pe ecran sunt lucru mecanic; corpul consumă mai mult, pentru că
+ * randamentul mușchiului la pedalat/vâslit e ~22%. Deci:
+ *   kcal/min metabolic = (W × 60 / 4184) / 0,22
+ * plus 1 MET pentru metabolismul de repaus, care merge oricum.
+ * Convertim înapoi în MET ca să treacă prin aceeași `kcalSet` ca restul.
+ *
+ * Notă onestă: Concept2 folosește o formulă mai generoasă (kcal/h = 4×W + 300);
+ * a noastră iese mai mică. Preferăm să subestimăm decât să promitem calorii.
+ */
+export const RANDAMENT_MECANIC = 0.22;
+
+export function metDinPutere(watts: number, greutateKg: number): number {
+  if (watts <= 0 || greutateKg <= 0) return 1;
+  const kcalPerMin = ((watts * 60) / 4184) / RANDAMENT_MECANIC;
+  const met = 1 + (kcalPerMin * 200) / (3.5 * greutateKg);
+  return Math.round(met * 100) / 100;
+}
+
+/**
  * Formula Keytel — kcal/min din puls, mai precisă decât MET când avem
  * date de la ceas. Valabilă pentru efort aerob (puls 90-150+).
  */

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { secundeActive, useSession } from '@/state/sessionStore';
+import { secundeTotale, useSession } from '@/state/sessionStore';
+import { useLive } from '@/state/liveStore';
 import { getExercise } from '@/data/catalog/exercises';
+import { descrieAparat } from '@/domain/ftms';
 import { fmtDurata, useTick } from './useTick';
 
 const PRAG_INACTIVITATE_MS = 45_000;
@@ -49,11 +51,16 @@ export function Screensaver(props: { activ: boolean }) {
   });
 
   const s = useSession();
+  const aparat = useLive((l) => l.aparat);
+  const ultimAparat = useLive((l) => l.ultim);
+  const kcalParial = useLive((l) => l.kcalParial);
   if (!props.activ || !adormit) return null;
 
-  const sec = secundeActive(s);
+  // aceleași cifre ca în antet, ca să nu trebuiască să trezești ecranul
+  const sec = secundeTotale(s);
   const restRamas = s.restEndsMs ? Math.max(0, Math.ceil((s.restEndsMs - Date.now()) / 1000)) : null;
   const ex = s.plan[s.exIndex] ? getExercise(s.plan[s.exIndex].exerciseId) : undefined;
+  const telemetrie = aparat && ultimAparat ? descrieAparat(aparat.tip, ultimAparat) : '';
 
   return (
     <div
@@ -93,8 +100,13 @@ export function Screensaver(props: { activ: boolean }) {
           {ex.nume}
         </div>
       )}
+      {telemetrie && (
+        <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.95rem', fontWeight: 700, textAlign: 'center', padding: '0 24px' }}>
+          {telemetrie}
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 18, color: 'rgba(245,197,24,0.5)', fontSize: '0.9rem', fontWeight: 700 }}>
-        <span>🔥 {Math.round(s.kcal)} kcal</span>
+        <span>🔥 {Math.round(s.kcal + kcalParial)} kcal</span>
         <span>💧 {s.apaMl} ml</span>
         {s.hrUltim ? <span>♥ {s.hrUltim}</span> : null}
         {s.status === 'pauza' ? <span>⏸ pauză</span> : null}

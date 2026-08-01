@@ -68,6 +68,30 @@ the way they are, what was consciously left out, and what the owner wants next.
    client (+ 33 server); smoke gained a real two-device flow (second browser context logs in and
    receives the first device's data).
 
+6. **Prima sesiune reală la sală** (August 1, 2026) — the owner finally took the app to a gym and
+   came back with six concrete complaints; this round is exactly those six, nothing else.
+   **Mod liber**: a shared `AlegeExercitiu` picker (search + category chips + Flexu's suggestions)
+   with a parameter sheet, reused by the session AND the plan editor (which lost its duplicated
+   search modal and `ItemEditor` form body); the start screen leads with "🔥 MOD LIBER", an
+   exercise added mid-session becomes the active one, and the summary can save the whole thing as
+   a plan built from what was *actually done* (`planDinSeturi`, median reps/weight), not what was
+   planned. **HUD** (`SumarHud`): the big timer now shows wall-clock time at the gym, with
+   kcal / bpm / ml / activ-vs-pauză underneath and an inverted telemetry bar when a machine is
+   connected; calories accrue *during* a set (`liveStore.kcalParial`) instead of jumping at the end.
+   **Ceas automat**: `reconectareSilentioasa()` via `getDevices()`+`watchAdvertisements()` when the
+   browser allows it, a remembered device name, and gesture-free auto-retry after a dropped link.
+   **Programe = Planuri**: the owner's own words; `/antrenamente` and `/programe` are now one page
+   with two tabs, "Programe celebre" left the Mai mult menu, and the nav tab is "Programe".
+   **Timp la sală**: `impartireTimp` derives total/activ/pauză from fields that already existed
+   (no schema change), surfaced in the summary, in new analytics tiles, on the per-session chart,
+   and in a new "Ultimele sesiuni" journal card. **Aparate FTMS**: `domain/ftms.ts` parses
+   treadmill / rower / bike / cross-trainer / stair-climber packets, `services/bleMachine.ts`
+   connects and reads the model from Device Information, machine speed/incline feeds the existing
+   `SegmentBanda` ACSM math, power becomes calories via `metDinPutere`, and a "data trecută" strip
+   reminds you of last time's machine and numbers with a one-tap "reia setările". A diagnostic
+   scanner in Setări reports what a machine actually exposes. Tests 92 → 141 client; smoke covers
+   mod liber, free switching, a simulated Bluetooth treadmill, save-as-plan and the program tabs.
+
 ## 3. Decisions & rationale (don't relitigate casually)
 
 | Decision | Why |
@@ -94,6 +118,14 @@ the way they are, what was consciously left out, and what the owner wants next.
 | Categories derived from equipment, not hand-tagged | ~100 exercises would rot if each carried a manual category list; explicit `categorii` only where derivation can't know (the big lifts). A test asserts nothing falls through. |
 | 5/3/1 ships week 1 with percentages in `notite`, not computed | Would need a stored training max per lift + a cycle counter; the honest MVP is the printed percentages. Candidate for a later feature. |
 | Screensaver instead of just wake lock | Owner asked for watch-like dimmed black screen; saves OLED battery vs full-brightness yellow. |
+| Programe and Planuri are ONE page with two tabs, not two entities | The owner's answer when asked what a "custom program" should be: *"Programe = Planuri. same stuff."* No new grouping entity, no schema change — just stop pretending they're different things. |
+| The big session timer shows WALL-CLOCK time, not active time | Req was literally "time elapsed since session start". Activ/pauză moved to the row below, where the split is more useful than the raw number. |
+| Machine fields on `SetLog`, no Dexie bump, no server change | They're optional and unindexed, so Dexie's `stores()` string is untouched; `payloadDin()` strips a denylist, so new keys sync for free. Caveat: LWW is whole-row, so a device left on an old build can push a stale row and drop them — update both devices together. |
+| A connected treadmill feeds the EXISTING `SegmentBanda` list | The machine just replaces the thumb on the steppers; ACSM integration, tests and calorie math stay exactly as they were. Steppers remain authoritative when nothing is connected. |
+| Rower/bike calories from power at 22% efficiency, +1 MET resting | Concept2's own formula (4×W + 300 kcal/h) is markedly more generous. We'd rather under-promise calories than inflate them. Machine-reported MET wins when the machine sends one; the watch's HR still beats everything. |
+| Generic FTMS + a diagnostic scanner, not a Star Trac driver | The StairMaster rower is confirmed FTMS; the Star Trac 8TR is confirmed Bluetooth but NOT confirmed FTMS. Writing a proprietary decoder blind is guesswork — the scanner brings back facts first. |
+| "Data trecută" is generic, not machine-only | Same component, same query (`setLogsForExercise`, already indexed); making it barbell-aware too costs nothing and delivers the roadmap's progressive-overload nudge. |
+| BLE state lives in a separate, non-persisted `liveStore` | `sessionStore` persists its whole state to localStorage; GATT handles and 3-second-old telemetry have no business surviving a refresh. |
 
 ## 4. Honest limitations (documented to the owner)
 
@@ -101,6 +133,15 @@ the way they are, what was consciously left out, and what the owner wants next.
 - **Freefit**: no public API → CSV file import only (parser is deliberately tolerant).
 - **Huawei GT4**: live HR only via the watch's workout "Difuzare ritm cardiac" (standard BLE HR
   broadcast). Steps are not available live over BLE — not implemented.
+- **Truly silent BLE auto-connect is not guaranteed by the platform.** `requestDevice()` always
+  needs a user gesture; the gesture-free path (`getDevices()` + `watchAdvertisements()`) is still
+  behind `chrome://flags/#enable-experimental-web-platform-features`. We feature-detect and use it
+  when present; otherwise the session shows a one-tap ♥ chip. Re-connecting after a *dropped*
+  link needs no gesture and is automatic everywhere.
+- **Star Trac 8TR is unproven.** It pairs over Bluetooth, but nothing we found confirms it speaks
+  FTMS. The StairMaster HIIT Rower is confirmed FTMS. Setări → "Scanează un aparat" exists to
+  settle this at the gym; note it can only reveal services declared up front, hence the
+  custom-UUID field.
 - Notifications for rest timer: only beeps/vibration in-app today (no system notifications yet).
 - Screensaver motion-wake needs sensor permission on some Android browsers; touch always works.
 - **No self-service password reset yet** (needs an email sender) — stopgap is the owner-run
@@ -121,8 +162,10 @@ the way they are, what was consciously left out, and what the owner wants next.
   on, surfaced on the home page.
 - Richer animations for the new lifts (several reuse an existing scene via `anim`), plus
   per-exercise photos of the actual gym machines.
-- Progressive-overload assistant: suggest next weight from history (domain/oneRm has
-  `greutatePentruReps` ready).
+- ~~Progressive-overload assistant~~ — **partly done**: the "data trecută" strip nudges +2,5% on
+  the best set. A full per-exercise progression scheme is still open.
+- **Star Trac follow-up**: run the diagnostic at the gym; if the treadmill isn't FTMS, decode
+  whatever its report shows.
 - Steps/daily activity: manual entry or Health Connect (would require a native wrapper — out of
   PWA scope today).
 - Body measurements tracking beyond weight (talie/gât already captured; chart them).

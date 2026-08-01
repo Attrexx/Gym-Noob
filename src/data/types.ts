@@ -247,6 +247,9 @@ export interface Session extends SyncMeta {
   notite?: string;
 }
 
+/** Tipurile de aparate de cardio pe care le înțelegem prin Bluetooth (FTMS). */
+export type TipAparat = 'banda' | 'rower' | 'bicicleta' | 'eliptica' | 'stepper';
+
 export interface SetLog extends SyncMeta {
   id?: number;
   sessionId: number;
@@ -267,6 +270,17 @@ export interface SetLog extends SyncMeta {
   inclinatie?: number;
   kcal: number;
   data: string; // ISO
+  // ── date de la aparatul conectat prin Bluetooth (toate opționale) ──
+  /** ce fel de aparat a transmis datele */
+  aparatTip?: TipAparat;
+  /** modelul aparatului, ex. „Star Trac 8TR" — ca să știm pe care l-am folosit */
+  aparatModel?: string;
+  distantaM?: number;
+  /** ritm mediu: lopătări/min (rower) sau rotații/min (bicicletă) */
+  cadentaMedie?: number;
+  putereMedieW?: number;
+  /** caloriile pe care le-a raportat aparatul însuși (noi le calculăm separat) */
+  kcalAparat?: number;
 }
 
 export interface WaterLog extends SyncMeta {
@@ -323,6 +337,14 @@ export interface Settings extends SyncMeta {
   sugestiiAutomate: boolean;
   /** economizor de ecran (stil ceas) în timpul sesiunii */
   economizor: boolean;
+  /** caută singur ceasul cu puls la începutul sesiunii (implicit da) */
+  pulsAuto?: boolean;
+  /** numele ultimului ceas conectat — ca să-l recunoaștem și să-l anunțăm pe nume */
+  pulsUltimulDispozitiv?: string;
+  /** caută singur aparatul de cardio la începutul sesiunii (implicit da) */
+  aparatAuto?: boolean;
+  /** numele ultimului aparat conectat */
+  aparatUltimulDispozitiv?: string;
 }
 
 export const SETARI_IMPLICITE: Omit<Settings, 'id' | 'profileId'> = {

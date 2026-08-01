@@ -7,6 +7,7 @@ import { kcalSet, durataSetSec } from '@/domain/calories';
 import { detectPrs, type PrHit } from '@/domain/pr';
 import { getExercise } from '@/data/catalog/exercises';
 import { varstaDinData } from '@/domain/goals';
+import type { RezumatSetAparat } from './liveStore';
 
 /**
  * Starea sesiunii live de la sală. Persistată în localStorage ca să
@@ -15,6 +16,24 @@ import { varstaDinData } from '@/domain/goals';
  */
 
 export type LiveStatus = 'inactiva' | 'activa' | 'pauza';
+
+/**
+ * Ce rămâne după ce sesiunea s-a închis și store-ul s-a golit — ecranul de
+ * rezumat trăiește din asta. Poartă și `sessionId` + `plan`, ca să putem
+ * salva sesiunea ca plan după ce totul s-a stins.
+ */
+export interface RezumatSesiune {
+  sessionId: number;
+  inceput: string;
+  sfarsit: string;
+  totalSec: number;
+  activSec: number;
+  pauzaSec: number;
+  kcal: number;
+  apaMl: number;
+  seturi: number;
+  plan: TemplateItem[];
+}
 
 export interface LiveState {
   status: LiveStatus;
@@ -43,7 +62,7 @@ export interface LiveState {
   porneste: (profil: Profile, plan: TemplateItem[], opts?: { templateId?: number; templateNume?: string }) => Promise<void>;
   pauza: () => Promise<void>;
   reia: () => Promise<void>;
-  opreste: (abandon?: boolean) => Promise<{ durataSec: number; kcal: number; apaMl: number; seturi: number } | null>;
+  opreste: (abandon?: boolean) => Promise<RezumatSesiune | null>;
   logSet: (
     profil: Profile,
     planIdx: number,
@@ -56,7 +75,7 @@ export interface LiveState {
       met?: number;
       viteza?: number;
       inclinatie?: number;
-    },
+    } & RezumatSetAparat,
   ) => Promise<PrHit[]>;
   bea: (ml: number) => Promise<void>;
   sareLa: (idx: number) => void;
@@ -90,6 +109,14 @@ const GOL = {
 export function secundeActive(s: Pick<LiveState, 'status' | 'activeSecBaza' | 'reluatLaMs'>): number {
   const extra = s.status === 'activa' && s.reluatLaMs ? (Date.now() - s.reluatLaMs) / 1000 : 0;
   return Math.floor(s.activeSecBaza + extra);
+}
+
+/** Ceasul de pe perete: de când ai intrat pe ușă, pauzele incluse. */
+export function secundeTotale(s: Pick<LiveState, 'inceput'>): number {
+  if (!s.inceput) return 0;
+  const start = Date.parse(s.inceput);
+  if (Number.isNaN(start)) return 0;
+  return Math.max(0, Math.floor((Date.now() - start) / 1000));
 }
 
 export const useSession = create<LiveState>()(
@@ -139,16 +166,29 @@ export const useSession = create<LiveState>()(
       opreste: async (abandon = false) => {
         const s = get();
         if (s.status === 'inactiva' || !s.sessionId) return null;
-        const durataSec = secundeActive(s);
+        const activSec = secundeActive(s);
         const seturi = s.seturiFacute.reduce((a, b) => a + b, 0);
+        const sfarsit = new Date().toISOString();
         await updateSession(s.sessionId, {
           status: abandon ? 'abandonata' : 'terminata',
-          sfarsit: new Date().toISOString(),
-          durataActivaSec: durataSec,
+          sfarsit,
+          durataActivaSec: activSec,
           kcal: Math.round(s.kcal),
           pulsMediu: s.hrNr > 0 ? Math.round(s.hrSuma / s.hrNr) : undefined,
         });
-        const rezumat = { durataSec, kcal: Math.round(s.kcal), apaMl: s.apaMl, seturi };
+        const totalSec = Math.max(activSec, secundeTotale(s));
+        const rezumat: RezumatSesiune = {
+          sessionId: s.sessionId,
+          inceput: s.inceput ?? sfarsit,
+          sfarsit,
+          totalSec,
+          activSec,
+          pauzaSec: totalSec - activSec,
+          kcal: Math.round(s.kcal),
+          apaMl: s.apaMl,
+          seturi,
+          plan: s.plan,
+        };
         set({ ...GOL });
         // sesiunea (și jurnalele ei, excluse cât era live) pot pleca acum spre cloud
         void runSync('sesiune-incheiata');
@@ -188,6 +228,13 @@ export const useSession = create<LiveState>()(
           inclinatie: date.inclinatie,
           kcal: Math.round(kcal * 10) / 10,
           data: new Date().toISOString(),
+          // ce a spus aparatul, dacă a fost unul conectat
+          aparatTip: date.aparatTip,
+          aparatModel: date.aparatModel,
+          distantaM: date.distantaM,
+          cadentaMedie: date.cadentaMedie,
+          putereMedieW: date.putereMedieW,
+          kcalAparat: date.kcalAparat,
         };
         await addSetLog(logNou);
         const facute = [...s.seturiFacute];
@@ -239,6 +286,9 @@ export const useSession = create<LiveState>()(
 let greutateCache = 80;
 export function setGreutateCurenta(kg: number) {
   greutateCache = kg;
+}
+export function greutateCurenta(): number {
+  return greutateCache;
 }
 function profilGreutate(_p: Profile): number {
   return greutateCache;

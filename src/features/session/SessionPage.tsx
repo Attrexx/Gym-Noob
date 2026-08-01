@@ -4,14 +4,21 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import confetti from 'canvas-confetti';
 import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
-import { secundeActive, setGreutateCurenta, useSession } from '@/state/sessionStore';
+import { greutateCurenta, secundeActive, setGreutateCurenta, useSession, type RezumatSesiune } from '@/state/sessionStore';
+import { useLive } from '@/state/liveStore';
 import { BigButton, Modal, ProgressBar, StatTile, Sticker, Stepper, formatNr } from '@/design/components';
 import { Flexu, FlexuSpune } from '@/design/Flexu';
 import { getExercise } from '@/data/catalog/exercises';
 import type { Template, TemplateItem } from '@/data/types';
 import { fmtDurata, useTick } from './useTick';
-import { metBanda, metMediuBanda, type SegmentBanda } from '@/domain/calories';
+import { kcalSet, metBanda, metDinPutere, metMediuBanda, type SegmentBanda } from '@/domain/calories';
+import { fmtOra, planDinSeturi } from '@/domain/sesiuni';
+import { varstaDinData } from '@/domain/goals';
+import { EMOJI_APARAT, NUME_APARAT } from '@/domain/ftms';
 import { Screensaver } from './Screensaver';
+import { SumarHud } from './SumarHud';
+import { UltimaData } from './UltimaData';
+import { AlegeExercitiu, itemNou } from '../builder/AlegeExercitiu';
 import { Metronom, sunete, vibreaza } from '@/services/audio';
 import { spune } from '@/services/tts';
 import { elibereazaEcranul, reactiveazaLaRevenire, tineEcranAprins } from '@/services/wakeLock';
@@ -20,14 +27,11 @@ import { PR_LABEL, type PrHit } from '@/domain/pr';
 import { suggestNext, type Suggestion } from '@/domain/suggestions';
 import { verificaRealizari } from '@/services/achievementService';
 import { ACHIEVEMENTS } from '@/domain/achievements';
-import { bleDisponibil, conecteazaPuls, type HrConnection } from '@/services/bleHeartRate';
-import { latestMetric, sessionsDesc, setLogsForSession } from '@/data/repo';
+import { bleDisponibil, conecteazaPuls, reconectareSilentioasa, type HrConnection } from '@/services/bleHeartRate';
+import { conecteazaAparat, reconectareAparat, type MachineConnection } from '@/services/bleMachine';
+import { latestMetric, saveTemplate, sessionsDesc, setLogsForSession, updateSettings } from '@/data/repo';
 
-interface Sumar {
-  durataSec: number;
-  kcal: number;
-  apaMl: number;
-  seturi: number;
+interface Sumar extends RezumatSesiune {
   realizariNoi: string[];
 }
 
@@ -46,7 +50,8 @@ function StartScreen() {
   const { profil } = useProfile();
   const loc = useLocation();
   const porneste = useSession((st) => st.porneste);
-  const [alesId, setAlesId] = useState<number | 'liber' | null>((loc.state as { templateId?: number })?.templateId ?? null);
+  const [alesId, setAlesId] = useState<number | null>((loc.state as { templateId?: number })?.templateId ?? null);
+  const [modLiber, setModLiber] = useState(false);
 
   const sabloane = useLiveQuery(
     async () => (profil?.id ? db.templates.where({ profileId: profil.id }).toArray() : []),
@@ -57,20 +62,21 @@ function StartScreen() {
     if (profil?.id) void latestMetric(profil.id).then((m) => m && setGreutateCurenta(m.greutate));
   }, [profil?.id]);
 
-  const start = async () => {
-    if (!profil || alesId === null) return;
-    let plan: TemplateItem[] = [];
-    let opts: { templateId?: number; templateNume?: string } = {};
-    if (alesId !== 'liber') {
-      const t = (sabloane ?? []).find((x) => x.id === alesId);
-      if (t) {
-        plan = t.items.map((i) => ({ ...i }));
-        opts = { templateId: t.id, templateNume: t.nume };
-      }
-    }
+  const porneșteCu = async (plan: TemplateItem[], opts: { templateId?: number; templateNume?: string } = {}) => {
+    if (!profil) return;
     await porneste(profil, plan, opts);
     sunete.start();
     void tineEcranAprins();
+  };
+
+  const start = async () => {
+    if (alesId === null) return;
+    const t = (sabloane ?? []).find((x) => x.id === alesId);
+    if (!t) return;
+    await porneșteCu(
+      t.items.map((i) => ({ ...i })),
+      { templateId: t.id, templateNume: t.nume },
+    );
   };
 
   return (
@@ -80,10 +86,19 @@ function StartScreen() {
         <h1>Începe sesiunea</h1>
       </div>
       <FlexuSpune poza="flex">
-        Alege un plan sau pornește o <b>sesiune liberă</b> și adaugi exercițiile pe parcurs. Cronometrul, apa și
-        caloriile — le țin eu socoteala.
+        Ai un plan? Alege-l. N-ai? <b>Mod liber</b> — alegi exercițiul, îi pui cifrele și ai pornit. Adaugi altele
+        pe parcurs, iar la final poți salva tot ca plan. Cronometrul, apa și caloriile le țin eu.
       </FlexuSpune>
 
+      {/* calea rapidă: de la ușa sălii la primul set în trei atingeri */}
+      <Sticker accent inclinat onClick={() => setModLiber(true)} style={{ marginBottom: 14 }}>
+        <b id="mod-liber" style={{ fontSize: '1.15rem' }}>
+          🔥 MOD LIBER — începe acum
+        </b>
+        <div className="mic">alegi exercițiul pe loc, fără plan dinainte</div>
+      </Sticker>
+
+      {(sabloane ?? []).length > 0 && <h2 style={{ marginTop: 4 }}>Planurile tale</h2>}
       {(sabloane ?? []).map((t: Template) => (
         <Sticker
           key={t.id}
@@ -94,14 +109,27 @@ function StartScreen() {
           <div className="mic estompat">{t.items.length} exerciții</div>
         </Sticker>
       ))}
-      <Sticker onClick={() => setAlesId('liber')} style={alesId === 'liber' ? { outline: '4px solid var(--accent)' } : undefined}>
-        <b>Sesiune liberă</b>
-        <div className="mic estompat">fără plan — adaugi exercițiile din mers</div>
-      </Sticker>
 
       <BigButton varianta="accent" mare disabled={alesId === null} onClick={() => void start()}>
         ▶ START
       </BigButton>
+
+      <AlegeExercitiu
+        deschis={modLiber}
+        onInchide={() => setModLiber(false)}
+        actiune="▶ Începe cu ăsta"
+        onAlege={(item) => {
+          setModLiber(false);
+          void porneșteCu([item]);
+        }}
+        extra={{
+          text: 'Pornesc gol, mă hotărăsc acolo',
+          onClick: () => {
+            setModLiber(false);
+            void porneșteCu([]);
+          },
+        }}
+      />
     </div>
   );
 }
@@ -116,8 +144,12 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
 
   const [prCelebration, setPrCelebration] = useState<PrHit[] | null>(null);
   const [sugestii, setSugestii] = useState<Suggestion[] | null>(null);
+  const [adaugExercitiu, setAdaugExercitiu] = useState(false);
   const [confirmStop, setConfirmStop] = useState(false);
   const [hrCon, setHrCon] = useState<HrConnection | null>(null);
+  const [cautCeas, setCautCeas] = useState(false);
+  const [aparatCon, setAparatCon] = useState<MachineConnection | null>(null);
+  const [cautAparat, setCautAparat] = useState(false);
   const ultimulSetLa = useRef(Date.now());
   const [sugestieAuto, setSugestieAuto] = useState<Suggestion | null>(null);
 
@@ -133,6 +165,52 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
       elibereazaEcranul();
     };
   }, []);
+
+  // la începutul sesiunii încercăm singuri ceasul și aparatul, în tăcere.
+  // dacă browserul nu ne lasă (vezi services/ble.ts), rămâne butonul din antet.
+  useEffect(() => {
+    if (!bleDisponibil) return;
+    let anulat = false;
+    void (async () => {
+      if (setari?.pulsAuto !== false) {
+        setCautCeas(true);
+        const con = await reconectareSilentioasa(
+          (bpm) => useSession.getState().hrSample(bpm),
+          () => setHrCon(null),
+          setari?.pulsUltimulDispozitiv,
+        );
+        if (anulat) con?.deconecteaza();
+        else {
+          if (con) setHrCon(con);
+          setCautCeas(false);
+        }
+      }
+      if (setari?.aparatAuto !== false) {
+        setCautAparat(true);
+        const con = await reconectareAparat(
+          (d) => useLive.getState().esantion(d),
+          () => {
+            setAparatCon(null);
+            useLive.getState().setAparat(null);
+          },
+          setari?.aparatUltimulDispozitiv,
+        );
+        if (anulat) con?.deconecteaza();
+        else {
+          if (con) {
+            setAparatCon(con);
+            useLive.getState().setAparat(con);
+          }
+          setCautAparat(false);
+        }
+      }
+    })();
+    return () => {
+      anulat = true;
+    };
+    // pornim o singură dată pe sesiune, după ce avem setările
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!setari]);
 
   // bipuri la finalul pauzei
   const restNotificat = useRef(false);
@@ -182,9 +260,11 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
     });
   }, [profil?.id, s.sessionId, s.plan, sec]);
 
-  const dupaSet = async (planIdx: number, date: { repetari?: number; greutate?: number; durataSec?: number; rpe?: number }) => {
+  const dupaSet = async (planIdx: number, date: DateSet) => {
     if (!profil) return;
-    const prs = await s.logSet(profil, planIdx, date);
+    // ce a măsurat aparatul pe setul ăsta pleacă în jurnal odată cu setul
+    const prs = await s.logSet(profil, planIdx, { ...useLive.getState().rezumatSet(), ...date });
+    useLive.getState().reseteazaSet();
     ultimulSetLa.current = Date.now();
     if (setari?.sunete) sunete.set();
     if (prs.length > 0) {
@@ -203,6 +283,9 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
   const opresteSesiunea = async (abandon: boolean) => {
     try {
       hrCon?.deconecteaza();
+      aparatCon?.deconecteaza();
+      useLive.getState().setAparat(null);
+      useLive.getState().reseteazaSet();
       const rez = await s.opreste(abandon);
       elibereazaEcranul();
       if (setari?.sunete) sunete.stop();
@@ -226,9 +309,37 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
         () => setHrCon(null),
       );
       setHrCon(con);
+      setCautCeas(false);
+      // ținem minte ceasul ca să-l putem căuta singuri data viitoare
+      if (profil?.id) void updateSettings(profil.id, { pulsUltimulDispozitiv: con.deviceName });
     } catch (e) {
       alert((e as Error).message);
     }
+  };
+
+  const conectezAparatul = async () => {
+    try {
+      const con = await conecteazaAparat(
+        (d) => useLive.getState().esantion(d),
+        () => {
+          setAparatCon(null);
+          useLive.getState().setAparat(null);
+        },
+      );
+      setAparatCon(con);
+      useLive.getState().setAparat(con);
+      setCautAparat(false);
+      if (profil?.id) void updateSettings(profil.id, { aparatUltimulDispozitiv: con.deviceName });
+    } catch (e) {
+      alert((e as Error).message);
+    }
+  };
+
+  /** Exercițiul nou intră în plan ȘI devine cel activ — asta ceruse sala. */
+  const adaugaSiTreciLa = (it: TemplateItem) => {
+    s.adaugaInPlan(it);
+    s.sareLa(useSession.getState().plan.length - 1);
+    useLive.getState().reseteazaSet();
   };
 
   const item = s.plan[s.exIndex];
@@ -236,35 +347,13 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
   return (
     <div className="pagina">
       <Screensaver activ={setari?.economizor !== false} />
-      {/* ── antet cu cronometru și comenzi ── */}
-      <Sticker style={{ position: 'sticky', top: 8, zIndex: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'var(--font-titlu)', fontSize: '2rem', lineHeight: 1 }}>{fmtDurata(sec)}</div>
-            <div className="mic estompat">
-              {Math.round(s.kcal)} kcal · {s.apaMl} ml apă
-              {s.hrUltim ? ` · ♥ ${s.hrUltim} bpm` : ''}
-            </div>
-          </div>
-          {s.status === 'activa' ? (
-            <BigButton onClick={() => void s.pauza()} ariaLabel="Pauză">
-              ⏸ Pauză
-            </BigButton>
-          ) : (
-            <BigButton varianta="accent" onClick={() => void s.reia()} ariaLabel="Reia">
-              ▶ Reia
-            </BigButton>
-          )}
-          <BigButton varianta="pericol" onClick={() => setConfirmStop(true)} ariaLabel="Oprește sesiunea">
-            ⏹
-          </BigButton>
-        </div>
-        {s.status === 'pauza' && (
-          <p className="mic centrat" style={{ margin: '8px 0 0', fontWeight: 800 }}>
-            ⏸ SESIUNE ÎN PAUZĂ — cronometrul stă pe loc
-          </p>
-        )}
-      </Sticker>
+      {/* ── sumarul live: timp, calorii, puls, apă, aparat ── */}
+      <SumarHud
+        numeCeas={hrCon?.deviceName ?? null}
+        cautaCeas={cautCeas}
+        onConecteazaPuls={() => void conectezCeasul()}
+        onStop={() => setConfirmStop(true)}
+      />
 
       {/* ── pauza dintre seturi ── */}
       {restRamas !== null && restRamas > 0 && (
@@ -293,7 +382,7 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
             <BigButton
               varianta="accent"
               onClick={() => {
-                s.adaugaInPlan(itemDinExercitiu(sugestieAuto.exercise.id));
+                adaugaSiTreciLa(itemNou(sugestieAuto.exercise.id));
                 setSugestieAuto(null);
               }}
             >
@@ -310,16 +399,25 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
       {item ? (
         <ExercitiuCurent key={s.exIndex} planIdx={s.exIndex} onSet={dupaSet} />
       ) : (
-        <FlexuSpune poza="explica">
-          Plan gol — adaugă un exercițiu cu butonul de mai jos sau cere-mi o sugestie!
-        </FlexuSpune>
+        <>
+          <FlexuSpune poza="explica">
+            Încă n-ai ales nimic. Apasă butonul de mai jos, caută aparatul sau exercițiul și dă-i drumul —
+            nu trebuie să știi de la început tot ce faci azi.
+          </FlexuSpune>
+          <BigButton varianta="accent" mare onClick={() => setAdaugExercitiu(true)}>
+            + Alege primul exercițiu
+          </BigButton>
+        </>
       )}
 
       {/* ── planul sesiunii ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 16 }}>
         <h2 style={{ margin: 0 }}>Planul de azi</h2>
         <button
-          onClick={() => void construiesteSugestii().then(setSugestii)}
+          onClick={() => {
+            setAdaugExercitiu(true);
+            void construiesteSugestii().then(setSugestii);
+          }}
           style={{ background: 'none', border: 'none', fontWeight: 800, textDecoration: 'underline', color: 'inherit', fontSize: '0.85rem' }}
         >
           💡 Ce urmează?
@@ -341,7 +439,8 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
               <div>
-                <b>{gata ? '✅ ' : ''}{ex.nume}</b>
+                <b>{gata ? '✅ ' : ''}{ex.nume}</b>{' '}
+                {idx === s.exIndex && <span className="eticheta-mica">▶ activ</span>}
                 <div className="mic estompat">
                   {s.seturiFacute[idx]}/{it.seturi} seturi
                   {ex.masura === 'repetari'
@@ -370,9 +469,18 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
           </Sticker>
         );
       })}
-      <BigButton mare onClick={() => void construiesteSugestii().then(setSugestii)}>
+      <BigButton
+        mare
+        onClick={() => {
+          setAdaugExercitiu(true);
+          void construiesteSugestii().then(setSugestii);
+        }}
+      >
         + Adaugă exercițiu
       </BigButton>
+      <p className="mic estompat centrat" style={{ margin: '6px 0 0' }}>
+        Exercițiul adăugat devine cel activ. Poți sări oricând înapoi la altul apăsând pe el în listă.
+      </p>
 
       {/* ── apă ── */}
       <h2 style={{ marginTop: 18 }}>💧 Apă</h2>
@@ -391,53 +499,83 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
         </div>
       </Sticker>
 
-      {/* ── puls ── */}
+      {/* ── ceas și aparat ── */}
       {bleDisponibil && (
-        <Sticker>
-          {hrCon ? (
-            <div className="rand">
-              <span>
-                ♥ <b>{s.hrUltim ?? '—'} bpm</b> <span className="mic estompat">({hrCon.deviceName})</span>
-              </span>
-              <BigButton varianta="contur" onClick={() => { hrCon.deconecteaza(); setHrCon(null); }}>
-                Deconectează
-              </BigButton>
-            </div>
-          ) : (
-            <>
+        <>
+          <h2 style={{ marginTop: 18 }}>📡 Ceas și aparat</h2>
+          <Sticker>
+            {hrCon ? (
               <div className="rand">
-                <span className="mic">Ceas cu difuzare de puls (ex. Huawei GT4)?</span>
-                <BigButton onClick={() => void conectezCeasul()}>♥ Conectează</BigButton>
+                <span>
+                  ♥ <b>{s.hrUltim ?? '—'} bpm</b> <span className="mic estompat">({hrCon.deviceName})</span>
+                </span>
+                <BigButton varianta="contur" onClick={() => { hrCon.deconecteaza(); setHrCon(null); }}>
+                  Deconectează
+                </BigButton>
               </div>
-              <p className="mic estompat" style={{ margin: '6px 0 0' }}>
-                Pe ceas: pornește un antrenament și activează „Difuzare ritm cardiac", apoi apasă Conectează.
-              </p>
-            </>
-          )}
-        </Sticker>
+            ) : (
+              <>
+                <div className="rand">
+                  <span className="mic">
+                    {cautCeas ? 'Caut ceasul…' : 'Ceas cu difuzare de puls (ex. Huawei GT4)?'}
+                  </span>
+                  <BigButton onClick={() => void conectezCeasul()}>♥ Conectează</BigButton>
+                </div>
+                <p className="mic estompat" style={{ margin: '6px 0 0' }}>
+                  Pe ceas: pornește un antrenament și activează „Difuzare ritm cardiac". Îl caut singur la
+                  începutul sesiunii, dar dacă browserul nu mă lasă, un tap aici rezolvă.
+                </p>
+              </>
+            )}
+          </Sticker>
+
+          <Sticker>
+            {aparatCon ? (
+              <div className="rand">
+                <span>
+                  {EMOJI_APARAT[aparatCon.tip]} <b>{aparatCon.model}</b>{' '}
+                  <span className="mic estompat">({NUME_APARAT[aparatCon.tip]})</span>
+                </span>
+                <BigButton
+                  varianta="contur"
+                  onClick={() => {
+                    aparatCon.deconecteaza();
+                    setAparatCon(null);
+                    useLive.getState().setAparat(null);
+                  }}
+                >
+                  Deconectează
+                </BigButton>
+              </div>
+            ) : (
+              <>
+                <div className="rand">
+                  <span className="mic">{cautAparat ? 'Caut aparatul…' : 'Bandă sau rower cu Bluetooth?'}</span>
+                  <BigButton id="conecteaza-aparat" onClick={() => void conectezAparatul()}>
+                    🔌 Conectează
+                  </BigButton>
+                </div>
+                <p className="mic estompat" style={{ margin: '6px 0 0' }}>
+                  Pornește Bluetooth-ul de pe consola aparatului, apoi apasă aici. Preiau viteza, distanța și
+                  puterea direct de la el. Dacă nu-l găsesc, e în Setări un scaner care spune ce vorbește aparatul.
+                </p>
+              </>
+            )}
+          </Sticker>
+        </>
       )}
 
       {/* ── modale ── */}
-      <Modal deschis={!!sugestii} onInchide={() => setSugestii(null)} titlu="Flexu propune">
-        {(sugestii ?? []).map((sg) => (
-          <Sticker key={sg.exercise.id}>
-            <b>{sg.exercise.nume}</b>
-            <p className="mic" style={{ margin: '4px 0 8px' }}>
-              {sg.motiv}
-            </p>
-            <BigButton
-              varianta="accent"
-              onClick={() => {
-                s.adaugaInPlan(itemDinExercitiu(sg.exercise.id));
-                setSugestii(null);
-              }}
-            >
-              Adaugă în plan
-            </BigButton>
-          </Sticker>
-        ))}
-        {sugestii && sugestii.length === 0 && <p>Nu am idei noi acum — ai acoperit tot ce trebuia azi! 💪</p>}
-      </Modal>
+      <AlegeExercitiu
+        deschis={adaugExercitiu}
+        onInchide={() => setAdaugExercitiu(false)}
+        sugestii={sugestii}
+        actiune="▶ Treci la el acum"
+        onAlege={(it) => {
+          setAdaugExercitiu(false);
+          adaugaSiTreciLa(it);
+        }}
+      />
 
       <Modal deschis={!!prCelebration} onInchide={() => setPrCelebration(null)} titlu="🏆 RECORD PERSONAL!">
         <div className="centrat">
@@ -486,20 +624,25 @@ export function discuriPeParte(total: number): string {
   return folosite.length ? folosite.map((d) => formatNr(d)).join(' + ') + ' kg' : 'nimic';
 }
 
-function itemDinExercitiu(exerciseId: string): TemplateItem {
-  const ex = getExercise(exerciseId)!;
-  return ex.masura === 'timp'
-    ? { exerciseId, seturi: 1, durataSec: 300, pauzaSec: 60 }
-    : { exerciseId, seturi: 3, repetari: 10, greutate: 10, pauzaSec: 90 };
-}
-
 // ─────────────────────── CARDUL EXERCIȚIULUI CURENT ───────────────────────
+
+/** Ce trimite cardul mai departe când bifezi un set. */
+interface DateSet {
+  repetari?: number;
+  greutate?: number;
+  durataSec?: number;
+  rpe?: number;
+  met?: number;
+  viteza?: number;
+  inclinatie?: number;
+}
 
 function ExercitiuCurent(props: {
   planIdx: number;
-  onSet: (planIdx: number, date: { repetari?: number; greutate?: number; durataSec?: number; rpe?: number }) => Promise<void>;
+  onSet: (planIdx: number, date: DateSet) => Promise<void>;
 }) {
   const s = useSession();
+  const { profil } = useProfile();
   const item = s.plan[props.planIdx];
   const ex = getExercise(item.exerciseId)!;
   const [greutate, setGreutate] = useState(item.greutate ?? 0);
@@ -519,6 +662,9 @@ function ExercitiuCurent(props: {
   const [inclinatie, setInclinatie] = useState(item.inclinatie ?? 0);
   const segmente = useRef<SegmentBanda[]>([]);
 
+  const aparat = useLive((l) => l.aparat);
+  const dateAparat = useLive((l) => l.ultim);
+
   useEffect(() => () => metronomRef.current?.stop(), []);
 
   const cronoSec = cronoActiv ? Math.floor((Date.now() - cronoStart.current) / 1000) : crono;
@@ -529,6 +675,55 @@ function ExercitiuCurent(props: {
     setInclinatie(inc);
     segmente.current.push({ startSec: cronoSec, viteza: v, inclinatie: inc });
   };
+
+  /**
+   * Aparatul conectat înlocuiește stepperele ca sursă de adevăr: fiecare
+   * schimbare de viteză/înclinație intră în ACELEAȘI segmente pe care le
+   * scria mâna, deci calculul de calorii ACSM rămâne neatins.
+   */
+  useEffect(() => {
+    if (!banda || aparat?.tip !== 'banda' || !dateAparat || !cronoActiv) return;
+    const v = dateAparat.vitezaKmh ?? viteza;
+    const inc = dateAparat.inclinatieProcent ?? inclinatie;
+    if (Math.abs(v - viteza) < 0.05 && Math.abs(inc - inclinatie) < 0.05) return;
+    setViteza(v);
+    setInclinatie(inc);
+    segmente.current.push({ startSec: cronoSec, viteza: v, inclinatie: inc });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateAparat, cronoActiv, banda, aparat?.tip]);
+
+  /** MET-ul de acum: aparatul are ultimul cuvânt, apoi ACSM, apoi catalogul. */
+  const metCurent = (): number => {
+    if (banda) return metBanda(viteza, inclinatie);
+    if (aparat && dateAparat?.met) return dateAparat.met;
+    if (aparat && dateAparat?.putereW && dateAparat.putereW > 0) {
+      return metDinPutere(dateAparat.putereW, greutateCurenta());
+    }
+    return ex.met;
+  };
+
+  /**
+   * Caloriile setului în curs, ca să nu stea antetul pe zero 25 de minute
+   * pe bandă. E doar pentru afișare — cifra care se scrie în jurnal se
+   * calculează la bifarea setului, ca până acum.
+   */
+  useEffect(() => {
+    if (!cronoActiv || ex.masura !== 'timp') {
+      useLive.getState().setKcalParial(0);
+      return;
+    }
+    useLive.getState().setKcalParial(
+      kcalSet({
+        met: metCurent(),
+        greutateKg: greutateCurenta(),
+        secunde: cronoSec,
+        sex: profil?.sex,
+        varsta: profil ? varstaDinData(profil.dataNasterii) : undefined,
+        pulsMediu: s.hrNr > 0 ? Math.round(s.hrSuma / s.hrNr) : undefined,
+      }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cronoSec, cronoActiv]);
 
   /** mediile ponderate cu timpul, pentru jurnal */
   const mediiBanda = (totalSec: number) => {
@@ -584,6 +779,20 @@ function ExercitiuCurent(props: {
         >
           📌 {item.notite}
         </div>
+      )}
+
+      {profil?.id && !gata && (
+        <UltimaData
+          profileId={profil.id}
+          exerciseId={ex.id}
+          sessionIdCurent={s.sessionId ?? undefined}
+          onReia={(set) => {
+            if (set.greutate !== undefined) setGreutate(set.greutate);
+            if (set.repetari !== undefined) setRepetari(set.repetari);
+            if (set.viteza !== undefined) setViteza(set.viteza);
+            if (set.inclinatie !== undefined) setInclinatie(set.inclinatie);
+          }}
+        />
       )}
 
       {gata ? (
@@ -695,12 +904,19 @@ function ExercitiuCurent(props: {
             disabled={cronoSec === 0}
             onClick={() => {
               setCronoActiv(false);
-              const extra = banda
-                ? {
-                    met: metMediuBanda(segmente.current.length ? segmente.current : [{ startSec: 0, viteza, inclinatie }], cronoSec),
-                    ...mediiBanda(cronoSec),
-                  }
-                : {};
+              // banda are ACSM din segmente; rowerul/bicicleta, MET din wați —
+              // în ambele cazuri MET-ul e obiectiv, deci RPE nu-l mai scalează
+              const rezumatAparat = useLive.getState().rezumatSet();
+              const metObiectiv = banda
+                ? metMediuBanda(segmente.current.length ? segmente.current : [{ startSec: 0, viteza, inclinatie }], cronoSec)
+                : rezumatAparat.putereMedieW
+                  ? metDinPutere(rezumatAparat.putereMedieW, greutateCurenta())
+                  : undefined;
+              const extra: DateSet = banda
+                ? { met: metObiectiv, ...mediiBanda(cronoSec) }
+                : metObiectiv !== undefined
+                  ? { met: metObiectiv }
+                  : {};
               void props.onSet(props.planIdx, { durataSec: cronoSec, rpe, ...extra }).then(() => {
                 setCrono(0);
                 segmente.current = [];
@@ -728,11 +944,23 @@ function SummaryScreen(props: { sumar: Sumar }) {
         <Flexu poza="sarbatoreste" marime={130} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-        <StatTile valoare={fmtDurata(sumar.durataSec)} eticheta="timp activ" />
+        <StatTile
+          valoare={fmtDurata(sumar.totalSec)}
+          eticheta="la sală"
+          sub={`${fmtOra(sumar.inceput)} → ${fmtOra(sumar.sfarsit)}`}
+        />
         <StatTile valoare={sumar.kcal} eticheta="kcal arse" accent />
+        <StatTile valoare={fmtDurata(sumar.activSec)} eticheta="timp activ" sub={`pauze ${fmtDurata(sumar.pauzaSec)}`} />
         <StatTile valoare={sumar.seturi} eticheta="seturi" />
         <StatTile valoare={`${sumar.apaMl} ml`} eticheta="apă băută" />
+        <StatTile
+          valoare={sumar.totalSec > 0 ? `${Math.round((sumar.activSec / sumar.totalSec) * 100)}%` : '—'}
+          eticheta="cât ai lucrat"
+        />
       </div>
+
+      <SalveazaCaPlan sumar={sumar} />
+
       {sumar.realizariNoi.length > 0 && (
         <>
           <h2>Realizări deblocate!</h2>
@@ -754,5 +982,69 @@ function SummaryScreen(props: { sumar: Sumar }) {
         Acasă
       </BigButton>
     </div>
+  );
+}
+
+/**
+ * Salvarea sesiunii ca plan, la final. Planul se construiește din ce ai
+ * FĂCUT, nu din ce plănuiseși: dacă ai urcat de la 40 la 45 kg, planul
+ * salvat spune 45. Din planul original păstrăm doar pauzele și notițele.
+ */
+function SalveazaCaPlan(props: { sumar: Sumar }) {
+  const { profil } = useProfile();
+  const [deschis, setDeschis] = useState(false);
+  const [nume, setNume] = useState(
+    `Sesiune ${new Date(props.sumar.inceput).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long' })}`,
+  );
+  const [salvat, setSalvat] = useState(false);
+
+  if (props.sumar.seturi === 0) return null;
+
+  const salveaza = async () => {
+    if (!profil?.id || !nume.trim()) return;
+    const logs = await setLogsForSession(props.sumar.sessionId);
+    const items = planDinSeturi(logs, props.sumar.plan);
+    if (items.length === 0) return;
+    await saveTemplate({
+      profileId: profil.id,
+      nume: nume.trim(),
+      descriere: 'Salvat dintr-o sesiune la sală',
+      etichete: [],
+      items,
+      creatLa: '',
+      modificatLa: '',
+      predefinit: false,
+    } as Template);
+    setSalvat(true);
+    setDeschis(false);
+  };
+
+  if (salvat) {
+    return (
+      <Sticker accent inclinat style={{ marginBottom: 14 }}>
+        <b>✅ Salvat ca plan!</b>
+        <div className="mic">Îl găsești la Programe → Ale mele, gata de repetat.</div>
+      </Sticker>
+    );
+  }
+
+  return (
+    <>
+      <BigButton id="salveaza-plan" onClick={() => setDeschis(true)} style={{ marginBottom: 14 }}>
+        💾 Salvează sesiunea ca plan
+      </BigButton>
+      <Modal deschis={deschis} onInchide={() => setDeschis(false)} titlu="Salvezi ca plan?">
+        <p className="mic">
+          Fac un plan din exercițiile și cifrele pe care le-ai bifat azi. Data viitoare îl pornești dintr-o
+          atingere, fără să te mai gândești.
+        </p>
+        <label htmlFor="nume-plan">Cum îl numim?</label>
+        <input id="nume-plan" value={nume} onChange={(e) => setNume(e.target.value)} />
+        <div style={{ height: 12 }} />
+        <BigButton varianta="accent" mare disabled={!nume.trim()} onClick={() => void salveaza()}>
+          💾 Salvează planul
+        </BigButton>
+      </Modal>
+    </>
   );
 }

@@ -30,10 +30,13 @@ export function BigButton(props: {
   style?: CSSProperties;
   type?: 'button' | 'submit';
   ariaLabel?: string;
+  /** ancoră stabilă pentru testul e2e */
+  id?: string;
 }) {
   const cls = ['btn', `btn-${props.varianta ?? 'normal'}`, props.mare ? 'btn-mare' : ''].filter(Boolean).join(' ');
   return (
     <button
+      id={props.id}
       type={props.type ?? 'button'}
       className={cls}
       onClick={props.onClick}
@@ -56,6 +59,30 @@ export function SectionTitle(props: { supratitlu?: string; children: ReactNode; 
       </div>
       {props.actiune}
     </div>
+  );
+}
+
+/** Pastilă de filtru (rândurile de categorii, obiective, taburi). */
+export function Chip(props: { activ: boolean; onClick: () => void; nume: ReactNode; id?: string }) {
+  return (
+    <button
+      id={props.id}
+      onClick={props.onClick}
+      aria-pressed={props.activ}
+      style={{
+        flexShrink: 0,
+        border: '2px solid var(--contur)',
+        borderRadius: 999,
+        padding: '6px 12px',
+        fontWeight: 800,
+        fontSize: '0.78rem',
+        textTransform: 'uppercase',
+        background: props.activ ? 'var(--accent)' : 'var(--panou)',
+        color: props.activ ? 'var(--accent-fg)' : 'var(--panou-fg)',
+      }}
+    >
+      {props.nume}
+    </button>
   );
 }
 

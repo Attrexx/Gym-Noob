@@ -3,10 +3,14 @@ import { Link } from 'react-router-dom';
 import { DIFICULTATE_LABEL } from '@/data/catalog/exercises';
 import { numaraExercitii, numeObiectiv, OBIECTIVE, PROGRAME } from '@/data/catalog/programs';
 import type { ProgramGoal } from '@/data/types';
-import { pluralRo, Sticker } from '@/design/components';
+import { Chip, pluralRo, Sticker } from '@/design/components';
 import { FlexuSpune } from '@/design/Flexu';
 
-export function ProgramsPage() {
+/**
+ * Programele care vin cu aplicația — un tab din pagina Programe.
+ * Nu-și pune singur `.pagina` sau copertă: le are gazda.
+ */
+export function ProgrameAplicatie() {
   const [obiectiv, setObiectiv] = useState<ProgramGoal | 'toate'>('toate');
 
   const lista = useMemo(
@@ -15,16 +19,7 @@ export function ProgramsPage() {
   );
 
   return (
-    <div className="pagina">
-      <div className="coperta">
-        <div className="supratitlu">programe celebre</div>
-        <h1>Programe</h1>
-        <p className="mic estompat" style={{ margin: 0 }}>
-          {pluralRo(PROGRAME.length, 'program', 'programe')} verificate de timp, traduse și explicate. Alegi
-          unul, îl copiezi în antrenamentele tale, îl reglezi cum vrei.
-        </p>
-      </div>
-
+    <>
       <FlexuSpune poza="explica">
         Cel mai bun program e cel pe care <b>chiar îl faci</b>, săptămână de săptămână. Nu-l alege pe cel mai
         complicat — alege-l pe cel care îți intră în program și rămâi la el trei luni.
@@ -68,27 +63,6 @@ export function ProgramsPage() {
           </Sticker>
         </Link>
       ))}
-    </div>
-  );
-}
-
-function Chip(props: { activ: boolean; onClick: () => void; nume: string }) {
-  return (
-    <button
-      onClick={props.onClick}
-      style={{
-        flexShrink: 0,
-        border: '2px solid var(--contur)',
-        borderRadius: 999,
-        padding: '6px 12px',
-        fontWeight: 800,
-        fontSize: '0.78rem',
-        textTransform: 'uppercase',
-        background: props.activ ? 'var(--accent)' : 'var(--panou)',
-        color: props.activ ? 'var(--accent-fg)' : 'var(--panou-fg)',
-      }}
-    >
-      {props.nume}
-    </button>
+    </>
   );
 }

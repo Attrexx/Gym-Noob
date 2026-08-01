@@ -9,7 +9,7 @@ import {
   numeGrupa,
 } from '@/data/catalog/exercises';
 import type { ExerciseCategory, MuscleGroup } from '@/data/types';
-import { pluralRo, Sticker } from '@/design/components';
+import { Chip, pluralRo, Sticker } from '@/design/components';
 
 export function LibraryPage() {
   const [categorie, setCategorie] = useState<ExerciseCategory | 'toate'>('toate');
@@ -52,9 +52,9 @@ export function LibraryPage() {
         categorie
       </div>
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8 }}>
-        <FiltruChip activ={categorie === 'toate'} onClick={() => setCategorie('toate')} nume="Toate" />
+        <Chip activ={categorie === 'toate'} onClick={() => setCategorie('toate')} nume="Toate" />
         {CATEGORII.map((c) => (
-          <FiltruChip
+          <Chip
             key={c.id}
             activ={categorie === c.id}
             onClick={() => setCategorie(c.id)}
@@ -72,9 +72,9 @@ export function LibraryPage() {
         grupă musculară
       </div>
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 8 }}>
-        <FiltruChip activ={grupa === 'toate'} onClick={() => setGrupa('toate')} nume="Toate" />
+        <Chip activ={grupa === 'toate'} onClick={() => setGrupa('toate')} nume="Toate" />
         {GRUPE_MUSCHI.map((g) => (
-          <FiltruChip key={g.id} activ={grupa === g.id} onClick={() => setGrupa(g.id)} nume={g.nume} />
+          <Chip key={g.id} activ={grupa === g.id} onClick={() => setGrupa(g.id)} nume={g.nume} />
         ))}
       </div>
 
@@ -104,23 +104,3 @@ export function LibraryPage() {
   );
 }
 
-function FiltruChip(props: { activ: boolean; onClick: () => void; nume: string }) {
-  return (
-    <button
-      onClick={props.onClick}
-      style={{
-        flexShrink: 0,
-        border: '2px solid var(--contur)',
-        borderRadius: 999,
-        padding: '6px 12px',
-        fontWeight: 800,
-        fontSize: '0.78rem',
-        textTransform: 'uppercase',
-        background: props.activ ? 'var(--accent)' : 'var(--panou)',
-        color: props.activ ? 'var(--accent-fg)' : 'var(--panou-fg)',
-      }}
-    >
-      {props.nume}
-    </button>
-  );
-}

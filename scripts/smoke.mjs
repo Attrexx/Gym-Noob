@@ -143,11 +143,17 @@ try {
   await page.getByText('Variante înrudite', { exact: false }).waitFor();
   pas('pagina exercițiului arată variantele înrudite');
 
-  // ── programe celebre ──
+  // ── programe: un singur loc, două rafturi ──
   await page.goto(BASE + '#/programe');
   await page.getByText('Push / Pull / Legs', { exact: false }).first().waitFor();
   await page.getByText('Wendler 5/3/1', { exact: false }).first().waitFor();
-  pas('lista de programe celebre se afișează');
+  pas('tabul „Ale aplicației" arată programele celebre');
+
+  await page.locator('#tab-mele').click();
+  await page.getByRole('button', { name: /Plan nou/ }).waitFor();
+  await page.locator('#tab-aplicatie').click();
+  await page.getByText('Push / Pull / Legs', { exact: false }).first().waitFor();
+  pas('comutarea între „Ale mele" și „Ale aplicației" funcționează');
 
   await page.getByText('Powerbuilding periodizat', { exact: false }).first().click();
   await page.getByText('Rutina 1 · Antrenamentul A', { exact: false }).first().waitFor();
@@ -169,6 +175,11 @@ try {
   await page.getByRole('button', { name: /Pauză/ }).waitFor({ timeout: 10000 });
   pas('sesiunea a pornit');
 
+  // antetul live: timp, calorii, apă, activ — toate la vedere de la început
+  await page.getByText('la sală de', { exact: false }).waitFor();
+  await page.locator('[data-testid="hud-cifre"]').waitFor();
+  pas('sumarul live e afișat permanent în antet');
+
   // primul exercițiu e cardio (pe timp) → sarim la unul cu repetări
   await page.getByText('Împins la piept la aparat').first().click();
   await page.getByRole('button', { name: /Am terminat setul/ }).click();
@@ -179,6 +190,21 @@ try {
   await page.getByRole('button', { name: '+250 ml' }).click();
   await page.getByText('250 /', { exact: false }).waitFor();
   pas('apa se contorizează');
+
+  // adăugarea unui exercițiu din mers îl face pe el activ
+  await page.getByRole('button', { name: /\+ Adaugă exercițiu/ }).click();
+  await page.locator('#alege-cauta').fill('Ramat la cablu');
+  await page.getByText('Ramat la cablu din așezat', { exact: false }).first().click();
+  await page.getByRole('button', { name: /Treci la el acum/ }).click();
+  await page.getByRole('heading', { name: /Ramat la cablu din așezat/ }).waitFor({ timeout: 5000 });
+  pas('exercițiul adăugat din mers devine cel activ');
+
+  // și te poți întoarce la unul început mai devreme (superseturi)
+  await page.getByText('Împins la piept la aparat').first().click();
+  await page.getByRole('heading', { name: /Împins la piept/ }).waitFor({ timeout: 5000 });
+  await page.getByRole('button', { name: /Am terminat setul/ }).click();
+  pas('comutarea liberă înapoi la un exercițiu început funcționează');
+  await page.getByRole('button', { name: 'Sar peste' }).click();
 
   // pauză/reluare
   await page.getByRole('button', { name: /Pauză/ }).click();
@@ -192,18 +218,82 @@ try {
   await page.getByText('BRAVO!').waitFor({ timeout: 10000 });
   await page.getByText('Primul pas').waitFor();
   pas('sesiune încheiată, sumar + realizarea „Primul pas"');
+
+  // timpul petrecut la sală, cu ora de intrare/ieșire și împărțirea activ/pauză
+  await page.getByText('la sală', { exact: false }).first().waitFor();
+  await page.getByText('timp activ', { exact: false }).first().waitFor();
+  await page.getByText('cât ai lucrat', { exact: false }).waitFor();
+  pas('rezumatul arată timpul la sală, activ vs pauză');
+
+  // salvarea sesiunii ca plan
+  await page.locator('#salveaza-plan').click();
+  await page.locator('#nume-plan').fill('Sesiunea mea liberă');
+  await page.getByRole('button', { name: /Salvează planul/ }).click();
+  await page.getByText('Salvat ca plan', { exact: false }).waitFor({ timeout: 5000 });
+  pas('sesiunea a fost salvată ca plan');
   await page.getByRole('button', { name: 'Acasă' }).click();
+
+  await page.goto(BASE + '#/antrenamente');
+  await page.getByText('Sesiunea mea liberă', { exact: false }).first().waitFor();
+  pas('planul salvat apare la Programe → Ale mele');
+
+  // ── mod liber, cu aparat Bluetooth simulat ──
+  await page.evaluate(() => localStorage.setItem('gym-noob-aparat-fals', 'banda'));
+  await page.goto(BASE + '#/sala');
+  await page.locator('#mod-liber').click();
+  await page.locator('#alege-cauta').fill('Alergare pe bandă');
+  await page.getByText('Alergare pe bandă', { exact: false }).first().click();
+  await page.getByRole('button', { name: /Începe cu ăsta/ }).click();
+  await page.getByRole('button', { name: /Pauză/ }).waitFor({ timeout: 10000 });
+  pas('modul liber pornește direct cu exercițiul ales');
+
+  // aparatul simulat trimite telemetrie în antet
+  await page.locator('[data-testid="hud-aparat"]').waitFor({ timeout: 10000 });
+  await page.getByText('Star Trac 8TR', { exact: false }).first().waitFor({ timeout: 10000 });
+  await page.getByText('km/h', { exact: false }).first().waitFor({ timeout: 10000 });
+  pas('datele live de la aparat apar în antet');
+
+  // înregistrăm un set de bandă ca să rămână modelul aparatului în jurnal
+  await page.getByRole('button', { name: /Pornește/ }).click();
+  await page.waitForTimeout(2500);
+  await page.getByRole('button', { name: /Am terminat \(/ }).click();
+  pas('setul de cardio s-a înregistrat cu datele aparatului');
+
+  await page.getByRole('button', { name: 'Oprește sesiunea' }).click();
+  await page.getByRole('button', { name: /Da, închei/ }).click();
+  await page.getByText('BRAVO!').waitFor({ timeout: 10000 });
+  await page.getByRole('button', { name: 'Acasă' }).click();
+
+  // „data trecută" își amintește aparatul și setările
+  await page.goto(BASE + '#/sala');
+  await page.locator('#mod-liber').click();
+  await page.locator('#alege-cauta').fill('Alergare pe bandă');
+  await page.getByText('Alergare pe bandă', { exact: false }).first().click();
+  await page.getByRole('button', { name: /Începe cu ăsta/ }).click();
+  await page.locator('[data-testid="ultima-data"]').waitFor({ timeout: 10000 });
+  await page.getByText('Star Trac 8TR', { exact: false }).first().waitFor();
+  pas('„data trecută" îmi amintește aparatul și cifrele de atunci');
+
+  await page.getByRole('button', { name: 'Oprește sesiunea' }).click();
+  await page.getByRole('button', { name: /Da, închei/ }).click();
+  await page.getByText('BRAVO!').waitFor({ timeout: 10000 });
+  await page.getByRole('button', { name: 'Acasă' }).click();
+  await page.evaluate(() => localStorage.removeItem('gym-noob-aparat-fals'));
 
   // ── statistici ──
   await page.goto(BASE + '#/statistici');
   await page.getByText('sesiuni', { exact: false }).first().waitFor();
   await page.getByText('kcal arse', { exact: false }).first().waitFor();
-  pas('statisticile se afișează');
+  await page.getByText('timp la sală', { exact: false }).first().waitFor();
+  await page.getByText('Ultimele sesiuni', { exact: false }).waitFor();
+  pas('statisticile arată timpul la sală și jurnalul sesiunilor');
 
   // ── ghid + realizări ──
   await page.goto(BASE + '#/realizari');
-  await page.getByText('1 din', { exact: false }).waitFor();
-  pas('pagina de realizări arată insigna deblocată');
+  // fără număr fix: câte insigne pică depinde de câte sesiuni face testul
+  await page.getByText('deblocate', { exact: false }).first().waitFor();
+  await page.getByText('Primul pas', { exact: false }).first().waitFor();
+  pas('pagina de realizări arată insignele deblocate');
 
   // ── manifest + service worker în build ──
   const manifest = await (await fetch(BASE + 'manifest.webmanifest')).json();

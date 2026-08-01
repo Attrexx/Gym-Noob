@@ -21,6 +21,7 @@ import { SectionTitle, StatTile, Sticker, formatNr } from '@/design/components';
 import { getExercise, numeGrupa } from '@/data/catalog/exercises';
 import { epley1Rm } from '@/domain/oneRm';
 import { weekKey } from '@/domain/achievements';
+import { fmtOra, impartireTimp } from '@/domain/sesiuni';
 import { fmtDurata } from '../session/useTick';
 
 type Interval = 7 | 30 | 90 | 9999;
@@ -61,8 +62,13 @@ export function AnalyticsPage() {
   // ── agregate ──
   const kcalTotal = Math.round(filtrat.sesiuni.reduce((a, s) => a + (s.kcal ?? 0), 0));
   const volumTotal = Math.round(filtrat.seturi.reduce((a, l) => a + (l.greutate ?? 0) * (l.repetari ?? 0), 0));
-  const timpTotal = filtrat.sesiuni.reduce((a, s) => a + s.durataActivaSec, 0);
   const apaTotal = filtrat.sesiuni.reduce((a, s) => a + (s.apaMl ?? 0), 0);
+
+  // timpul petrecut la sală: total de pe ceasul de perete vs. timp de lucru
+  const timpuri = filtrat.sesiuni.map((s) => impartireTimp(s));
+  const timpActiv = timpuri.reduce((a, t) => a + t.activSec, 0);
+  const timpLaSala = timpuri.reduce((a, t) => a + t.totalSec, 0);
+  const timpPauza = timpLaSala - timpActiv;
 
   // greutate + medie mobilă 7 zile
   const greutateData = date.metrici.map((m, i, arr) => {
@@ -91,12 +97,19 @@ export function AnalyticsPage() {
   }
   const radarData = [...grupe.entries()].map(([g, n]) => ({ grupa: numeGrupa(g as never), seturi: n }));
 
-  // kcal pe sesiune
+  // kcal + durată pe sesiune
   const kcalData = filtrat.sesiuni.slice(-15).map((s) => ({
     zi: s.inceput.slice(5, 10),
     kcal: Math.round(s.kcal ?? 0),
     apa: s.apaMl ?? 0,
+    minute: Math.round(impartireTimp(s).totalSec / 60),
   }));
+
+  // ultimele sesiuni, cu ora de intrare și de ieșire
+  const ultimeleSesiuni = [...filtrat.sesiuni]
+    .sort((a, b) => b.inceput.localeCompare(a.inceput))
+    .slice(0, 8)
+    .map((s) => ({ s, t: impartireTimp(s), seturi: filtrat.seturi.filter((l) => l.sessionId === s.id).length }));
 
   // progresie exercițiu selectat (1RM estimat pe sesiune)
   const exercitiiFolosite = [...new Set(date.seturi.map((l) => l.exerciseId))]
@@ -118,9 +131,25 @@ export function AnalyticsPage() {
 
   const exportaCsv = () => {
     const rows = [
-      'data,exercitiu,set,repetari,greutate_kg,durata_sec,rpe,kcal',
+      'data,exercitiu,set,repetari,greutate_kg,durata_sec,rpe,kcal,viteza_kmh,inclinatie_pct,aparat,distanta_m,putere_w,cadenta',
       ...date.seturi.map((l) =>
-        [l.data, l.exerciseId, l.setIndex, l.repetari ?? '', l.greutate ?? '', l.durataSec ?? '', l.rpe ?? '', l.kcal].join(','),
+        [
+          l.data,
+          l.exerciseId,
+          l.setIndex,
+          l.repetari ?? '',
+          l.greutate ?? '',
+          l.durataSec ?? '',
+          l.rpe ?? '',
+          l.kcal,
+          l.viteza ?? '',
+          l.inclinatie ?? '',
+          // modelul aparatului poate conține virgule — îl punem între ghilimele
+          l.aparatModel ? `"${l.aparatModel.replace(/"/g, '""')}"` : '',
+          l.distantaM ?? '',
+          l.putereMedieW ?? '',
+          l.cadentaMedie ?? '',
+        ].join(','),
       ),
     ].join('\n');
     const blob = new Blob([rows], { type: 'text/csv' });
@@ -162,12 +191,54 @@ export function AnalyticsPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <StatTile valoare={filtrat.sesiuni.length} eticheta="sesiuni" />
-        <StatTile valoare={fmtDurata(timpTotal)} eticheta="timp la sală" />
+        <StatTile
+          valoare={fmtDurata(timpLaSala)}
+          eticheta="timp la sală"
+          sub={timpLaSala > 0 ? `${Math.round((timpActiv / timpLaSala) * 100)}% lucrat` : undefined}
+        />
+        <StatTile valoare={fmtDurata(timpActiv)} eticheta="timp activ" sub={`pauze ${fmtDurata(timpPauza)}`} />
         <StatTile valoare={kcalTotal} eticheta="kcal arse" accent />
         <StatTile valoare={`${(volumTotal / 1000).toFixed(1)} t`} eticheta="volum ridicat" sub={`${volumTotal} kg`} />
         <StatTile valoare={filtrat.seturi.length} eticheta="seturi" />
         <StatTile valoare={`${(apaTotal / 1000).toFixed(1)} l`} eticheta="apă la sală" />
       </div>
+
+      {ultimeleSesiuni.length > 0 && (
+        <>
+          <SectionTitle supratitlu="jurnal">Ultimele sesiuni</SectionTitle>
+          <Sticker>
+            {ultimeleSesiuni.map(({ s, t, seturi }) => (
+              <div
+                key={s.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  gap: 8,
+                  padding: '7px 0',
+                  borderBottom: '2px solid var(--linie)',
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <b>{new Date(s.inceput).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' })}</b>{' '}
+                  <span className="mic estompat">
+                    {fmtOra(s.inceput)} → {fmtOra(s.sfarsit)}
+                  </span>
+                  <div className="mic estompat">
+                    {s.templateNume ?? 'sesiune liberă'} · {seturi} seturi
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <b>{fmtDurata(t.totalSec)}</b>
+                  <div className="mic estompat">
+                    activ {fmtDurata(t.activSec)} · pauză {fmtDurata(t.pauzaSec)}
+                  </div>
+                  <div className="mic estompat">{Math.round(s.kcal ?? 0)} kcal</div>
+                </div>
+              </div>
+            ))}
+          </Sticker>
+        </>
+      )}
 
       {greutateData.length > 1 && (
         <>
@@ -256,7 +327,7 @@ export function AnalyticsPage() {
 
       {kcalData.length > 0 && (
         <>
-          <SectionTitle supratitlu="pe sesiune">Calorii și apă</SectionTitle>
+          <SectionTitle supratitlu="pe sesiune">Calorii, apă și timp</SectionTitle>
           <Sticker>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={kcalData}>
@@ -266,6 +337,7 @@ export function AnalyticsPage() {
                 <Tooltip />
                 <Bar dataKey="kcal" fill="var(--rosu)" name="kcal" />
                 <Bar dataKey="apa" fill="#1565C0" name="apă (ml)" />
+                <Bar dataKey="minute" fill="var(--verde)" name="minute la sală" />
               </BarChart>
             </ResponsiveContainer>
           </Sticker>

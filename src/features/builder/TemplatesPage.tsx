@@ -1,21 +1,63 @@
+import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
-import { BigButton, pluralRo, Sticker } from '@/design/components';
+import { BigButton, Chip, pluralRo, Sticker } from '@/design/components';
 import { getExercise } from '@/data/catalog/exercises';
-import { getProgram } from '@/data/catalog/programs';
-import { saveTemplate } from '@/data/repo';
+import { getProgram, PROGRAME } from '@/data/catalog/programs';
+import { etichetaProgram, saveTemplate } from '@/data/repo';
 import type { Template } from '@/data/types';
 import { useSession } from '@/state/sessionStore';
+import { ProgrameAplicatie } from '../programs/ProgramsPage';
+
+/**
+ * Programe = planuri. Un singur loc, două rafturi.
+ *
+ * Înainte erau două pagini care spuneau același lucru: „Planuri" (ale tale)
+ * în bara de jos și „Programe celebre" ascunse în Mai mult. Proprietarul a
+ * spus-o simplu: *„Programe = Planuri. same stuff"* — deci le-am pus împreună,
+ * cu un tab pentru ale tale și unul pentru cele care vin cu aplicația.
+ */
+
+const PREFIX_PROGRAM = etichetaProgram('');
 
 /** Numele programului din care provine șablonul, dacă e cazul. */
 function numeleProgramului(t: Template): string | undefined {
-  const eticheta = t.etichete.find((e) => e.startsWith('program:'));
-  return eticheta ? getProgram(eticheta.slice(8))?.nume : undefined;
+  const eticheta = t.etichete.find((e) => e.startsWith(PREFIX_PROGRAM));
+  return eticheta ? getProgram(eticheta.slice(PREFIX_PROGRAM.length))?.nume : undefined;
 }
 
-export function TemplatesPage() {
+export function TemplatesPage(props: { tabInitial?: 'mele' | 'aplicatie' }) {
+  const [tab, setTab] = useState<'mele' | 'aplicatie'>(props.tabInitial ?? 'mele');
+
+  return (
+    <div className="pagina">
+      <div className="coperta">
+        <div className="supratitlu">planuri și programe</div>
+        <h1>Programe</h1>
+        <p className="mic estompat" style={{ margin: 0 }}>
+          Ale tale sunt cele pe care le-ai creat, importat sau salvate după o sesiune. Ale aplicației sunt{' '}
+          {pluralRo(PROGRAME.length, 'program celebru', 'programe celebre')}, gata de copiat.
+        </p>
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, padding: '4px 0 12px' }}>
+        <Chip id="tab-mele" activ={tab === 'mele'} onClick={() => setTab('mele')} nume="📋 Ale mele" />
+        <Chip
+          id="tab-aplicatie"
+          activ={tab === 'aplicatie'}
+          onClick={() => setTab('aplicatie')}
+          nume="📖 Ale aplicației"
+        />
+      </div>
+
+      {tab === 'mele' ? <PlanurileMele /> : <ProgrameAplicatie />}
+    </div>
+  );
+}
+
+function PlanurileMele() {
   const { profil } = useProfile();
   const nav = useNavigate();
   const statusSesiune = useSession((s) => s.status);
@@ -30,18 +72,9 @@ export function TemplatesPage() {
   };
 
   return (
-    <div className="pagina">
-      <div className="coperta">
-        <div className="supratitlu">planurile tale</div>
-        <h1>Antrenamente</h1>
-      </div>
-
+    <>
       <BigButton varianta="accent" mare onClick={() => nav('/antrenamente/nou')}>
-        + Antrenament nou
-      </BigButton>
-      <div style={{ height: 10 }} />
-      <BigButton mare onClick={() => nav('/programe')}>
-        📖 Programe celebre (PPL, 5/3/1, Full Body…)
+        + Plan nou
       </BigButton>
 
       <div style={{ height: 14 }} />
@@ -89,9 +122,11 @@ export function TemplatesPage() {
       })}
       {sabloane && sabloane.length === 0 && (
         <p className="estompat centrat">
-          Niciun antrenament salvat. Creează unul sau vezi <Link to="/biblioteca">biblioteca de exerciții</Link>.
+          Niciun plan salvat încă. Fă unul, ia-l pe-al aplicației din tabul de alături, sau pornește o sesiune în{' '}
+          <b>mod liber</b> și salveaz-o la final. Poți începe și din{' '}
+          <Link to="/biblioteca">biblioteca de exerciții</Link>.
         </p>
       )}
-    </div>
+    </>
   );
 }

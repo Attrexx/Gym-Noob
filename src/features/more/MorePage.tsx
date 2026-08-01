@@ -3,8 +3,8 @@ import { Sticker } from '@/design/components';
 import { Flexu } from '@/design/Flexu';
 import { useProfile } from '@/state/profileStore';
 
+// „Programe celebre" a plecat de aici: trăiește în tabul Programe → Ale aplicației
 const LINKURI = [
-  { la: '/programe', emoji: '📖', nume: 'Programe celebre', desc: 'PPL, 5/3/1, Upper/Lower, Full Body, calistenice' },
   { la: '/statistici', emoji: '📊', nume: 'Statistici', desc: 'grafice, volume, recorduri, calendar' },
   { la: '/greutate', emoji: '⚖️', nume: 'Greutate & obiectiv', desc: 'cântăriri, țintă, import Freefit' },
   { la: '/realizari', emoji: '🏅', nume: 'Realizări', desc: 'colecția de insigne' },

@@ -5,6 +5,7 @@ import { BigButton, SectionTitle, Sticker } from '@/design/components';
 import { downloadBackup, exportBackup, importBackup } from '@/data/backup';
 import { updateProfile } from '@/data/repo';
 import { ContSection } from './ContSection';
+import { AparateSection } from './AparateSection';
 import type { ActivityLevel, Settings } from '@/data/types';
 import { ACTIVITY_LABEL } from '@/domain/goals';
 import { spune } from '@/services/tts';
@@ -77,6 +78,8 @@ export function SettingsPage() {
           ceas. Se trezește la atingere sau la mișcarea telefonului. Ecranul nu se stinge niciodată în sesiune.
         </p>
       </Sticker>
+
+      <AparateSection setari={setari} onChange={set} />
 
       <SectionTitle supratitlu="despre tine">Profil</SectionTitle>
       <Sticker>

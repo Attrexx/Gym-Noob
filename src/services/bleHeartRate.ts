@@ -1,3 +1,11 @@
+import {
+  asteaptaSiConecteaza,
+  bleDisponibil,
+  dispozitivCunoscut,
+  EROARE_FARA_BLE,
+  reconectareAutomata,
+} from './ble';
+
 /**
  * Puls live prin Web Bluetooth — serviciul GATT standard „heart_rate".
  *
@@ -6,27 +14,27 @@
  * activează pe ceas la începutul unui antrenament. Cu ea pornită,
  * ceasul devine un senzor standard și poate fi citit de aici.
  *
+ * La începutul fiecărei sesiuni încercăm întâi reconectarea tăcută la
+ * ceasul știut; dacă browserul nu ne lasă, sesiunea afișează un buton
+ * „Conectează" la un singur tap. Vezi `ble.ts` pentru de ce.
+ *
  * Limitări: Web Bluetooth există doar în Chrome/Edge pe Android și
  * desktop — NU pe iOS. Verificăm și degradăm elegant.
  */
 
-export const bleDisponibil = typeof navigator !== 'undefined' && 'bluetooth' in navigator;
+export { bleDisponibil };
 
 export interface HrConnection {
   deviceName: string;
   deconecteaza: () => void;
 }
 
-export async function conecteazaPuls(
+/** Abonarea propriu-zisă — comună căii cu tap și celei tăcute. */
+async function ascultaPuls(
+  device: BluetoothDevice,
   onSample: (bpm: number) => void,
-  onDeconectat: () => void,
-): Promise<HrConnection> {
-  if (!bleDisponibil) throw new Error('Browserul acesta nu are Web Bluetooth (pe iPhone nu există, din păcate).');
-  const device = await navigator.bluetooth.requestDevice({
-    filters: [{ services: ['heart_rate'] }],
-    optionalServices: ['battery_service'],
-  });
-  const server = await device.gatt!.connect();
+): Promise<void> {
+  const server = device.gatt!.connected ? device.gatt! : await device.gatt!.connect();
   const service = await server.getPrimaryService('heart_rate');
   const ch = await service.getCharacteristic('heart_rate_measurement');
   await ch.startNotifications();
@@ -34,10 +42,22 @@ export async function conecteazaPuls(
     const dv = (ev.target as BluetoothRemoteGATTCharacteristic).value;
     if (dv) onSample(parseHeartRate(dv));
   });
-  device.addEventListener('gattserverdisconnected', onDeconectat);
+}
+
+function legatura(
+  device: BluetoothDevice,
+  onSample: (bpm: number) => void,
+  onDeconectat: () => void,
+): HrConnection {
+  const opresteAuto = reconectareAutomata(
+    device,
+    () => ascultaPuls(device, onSample),
+    onDeconectat,
+  );
   return {
     deviceName: device.name ?? 'Senzor puls',
     deconecteaza: () => {
+      opresteAuto();
       try {
         device.gatt?.disconnect();
       } catch {
@@ -45,6 +65,42 @@ export async function conecteazaPuls(
       }
     },
   };
+}
+
+/** Calea cu un tap: deschide fereastra de alegere a dispozitivului. */
+export async function conecteazaPuls(
+  onSample: (bpm: number) => void,
+  onDeconectat: () => void,
+): Promise<HrConnection> {
+  if (!bleDisponibil) throw new Error(EROARE_FARA_BLE);
+  const device = await navigator.bluetooth.requestDevice({
+    filters: [{ services: ['heart_rate'] }],
+    optionalServices: ['battery_service'],
+  });
+  await device.gatt!.connect();
+  await ascultaPuls(device, onSample);
+  return legatura(device, onSample, onDeconectat);
+}
+
+/**
+ * Calea tăcută: la începutul sesiunii, dacă browserul ne lasă, ne agățăm
+ * singuri de ceasul folosit data trecută. `null` = n-a mers, arată butonul.
+ */
+export async function reconectareSilentioasa(
+  onSample: (bpm: number) => void,
+  onDeconectat: () => void,
+  numeCunoscut?: string,
+): Promise<HrConnection | null> {
+  if (!bleDisponibil) return null;
+  const device = await dispozitivCunoscut((d) => (numeCunoscut ? d.name === numeCunoscut : true));
+  if (!device) return null;
+  try {
+    await asteaptaSiConecteaza(device);
+    await ascultaPuls(device, onSample);
+    return legatura(device, onSample, onDeconectat);
+  } catch {
+    return null; // ceasul nu difuzează acum — nu e o eroare de raportat
+  }
 }
 
 /** Parsare conform Bluetooth Heart Rate Measurement (flag-ul din primul octet). */

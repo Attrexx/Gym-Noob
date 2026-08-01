@@ -8,7 +8,6 @@ import { LibraryPage } from './features/library/LibraryPage';
 import { ExercisePage } from './features/library/ExercisePage';
 import { TemplatesPage } from './features/builder/TemplatesPage';
 import { TemplateEditorPage } from './features/builder/TemplateEditorPage';
-import { ProgramsPage } from './features/programs/ProgramsPage';
 import { ProgramPage } from './features/programs/ProgramPage';
 import { SessionPage } from './features/session/SessionPage';
 const AnalyticsPage = lazy(() => import('./features/analytics/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })));
@@ -41,9 +40,10 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/biblioteca" element={<LibraryPage />} />
             <Route path="/biblioteca/:id" element={<ExercisePage />} />
-            <Route path="/antrenamente" element={<TemplatesPage />} />
+            {/* aceeași pagină, două rafturi — „Programe = Planuri" */}
+            <Route path="/antrenamente" element={<TemplatesPage tabInitial="mele" />} />
             <Route path="/antrenamente/:id" element={<TemplateEditorPage />} />
-            <Route path="/programe" element={<ProgramsPage />} />
+            <Route path="/programe" element={<TemplatesPage tabInitial="aplicatie" />} />
             <Route path="/programe/:id" element={<ProgramPage />} />
             <Route path="/sala" element={<SessionPage />} />
             <Route
