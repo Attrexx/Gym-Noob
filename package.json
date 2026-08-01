@@ -13,11 +13,14 @@
     "api:dev": "node server/src/main.ts",
     "smoke": "node scripts/smoke.mjs",
     "capturi": "node scripts/screenshots.mjs",
+    "mascota": "node scripts/mascota.mjs",
+    "iconite": "node scripts/iconite.mjs",
     "deploy": "npm test && npm run build && git add dist && git commit -m \"Publicare: build nou in dist\" && git push"
   },
   "dependencies": {
     "@fontsource/archivo-black": "^5.1.0",
     "@fontsource/inter": "^5.1.0",
+    "@fontsource/rammetto-one": "^5.3.0",
     "canvas-confetti": "^1.9.3",
     "date-fns": "^4.1.0",
     "dexie": "^4.0.10",

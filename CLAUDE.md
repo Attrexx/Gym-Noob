@@ -19,6 +19,9 @@ Deep context, decisions and roadmap: see `docs/CONTEXT.md`. Read it before large
 - `npm run capturi` — UI screenshots of the built `dist/` into a fresh versioned folder
   (`capturi/vNN_YYYY-MM-DD/`, index + per-shot README written automatically). Same `CHROMIUM_PATH`
   requirement as `smoke`; takes ~2.5 min because it waits out the 45 s screensaver.
+- `npm run mascota` — re-imports Flexu's artwork from `Images/Vectorized/` into
+  `src/assets/mascota/` (+ `public/sticker.svg`). Only needed when the drawings change.
+- `npm run iconite` — regenerates the PWA icons from `Icon-Mascot-Large.svg`. Needs `CHROMIUM_PATH`.
 - `npm run deploy` — **the publish button**: test + build + commit `dist/` + push
 
 ## Deployment model (unusual — do not "fix" it)
@@ -81,7 +84,15 @@ reset: **`docs/OPS.md`**. The API lives at `https://gym-api.lessgo.city` on the 
   during a running set, display-only). Never put GATT handles in `sessionStore` — it persists
   everything to `gym-noob-sesiune`.
 - `src/features/<area>/` — pages. `src/design/` — tokens (`global.css`), shared components
-  (`components.tsx`: Sticker, BigButton, Stepper, Modal, StatTile…), and the mascot `Flexu.tsx`.
+  (`components.tsx`: Sticker, BigButton, Stepper, Modal, StatTile…), the mascot `Flexu.tsx` and
+  the wordmark `Sigla.tsx`.
+- **Brand artwork is drawn, not coded.** Flexu and the wordmark are SVG illustrations in
+  `src/assets/mascota/`, produced from `Images/Vectorized/` by `scripts/mascota.mjs`. That script
+  is the only place they're touched: it adds the missing `viewBox`, strips the opaque background
+  (two layers — a `<rect>` *and* a full-canvas `<path>`), and snaps the auto-traced near-black /
+  yellow / red / cream fills onto the exact palette codes, deliberately leaving skin shading and
+  the yellow splash alone. Don't hand-edit the files in `src/assets/mascota/` — rerun the script.
+  They're loaded by URL (`<img>`), never inlined: ~55 KB each, 214 KB gzipped for all ten.
 - `src/services/` — audio beeps/metronome (Web Audio), TTS (ro), wake lock, BLE heart rate,
   BLE fitness machines (FTMS), achievements aggregation. `ble.ts` holds the shared reconnect
   logic for both HR and machines.
@@ -154,7 +165,26 @@ out of sync. `planDinSeturi` builds a plan from what was actually logged (median
 - New achievements: add def + condition in `src/domain/achievements.ts` (unique id, Romanian,
   humor welcome); evaluation context builds in `src/services/achievementService.ts`.
 - Mascot: use `<Flexu poza=… />` / `<FlexuSpune>`; poses: salut, explica, sarbatoreste,
-  avertizeaza, obosit, hidratare, flex, ganditor.
+  avertizeaza, obosit, hidratare, flex, ganditor. There are only **six drawings for eight poses** —
+  the mapping table at the top of `Flexu.tsx` is the single source of truth (ganditor reuses
+  explica's art, obosit reuses flex's). `<FlexuBula text="…">` is the third variant: the *drawn*
+  speech bubble with arbitrary text, which shrinks itself until it fits — meant for short lines,
+  not paragraphs. `FlexuSpune`'s bubble is CSS, not SVG, on purpose: Romanian body text has to
+  reflow at any width.
+- **Colour comes from one place.** The six brand codes in `global.css` (#F5C518 / #FFF8E0 /
+  #171310 / #D0342C / #2E7D32 / #1565C0) are the same ones baked into the artwork, so the
+  mascot's tank top is literally the page's yellow. `--panou` is the cream, not a separate white.
+- **Type is two-tier.** `--font-afis` (Rammetto One) is the loud voice — `h1` only, matching the
+  drawn logo. `--font-titlu` (Archivo Black) stays on buttons, stat values and h2/h3, where a
+  rounded display face would jitter numbers and shout. Rammetto One was picked because it's the
+  closest match to the logo lettering that **has Ș and Ț**: Luckiest Guy and Titan One look nearer
+  but lack the Romanian comma-below letters, so "Exerciții" would fall back mid-word.
+  Its accents are extreme — Î reaches 1.17em above the baseline (cap height is 0.78em) and Ț drops
+  0.5em — so `h1` carries `padding-top: .3em` and a roomy `margin-bottom`, and `FlexuBula`'s text
+  has vertical padding. Tighten either and "ÎNCEPE SESIUNEA" collides with the supratitlu above it.
+- The startup screen lives in `index.html` (`#pornire`), not React, so the logo shows before the
+  bundle parses; `App.tsx` fades and removes it once the profile is read. It uses
+  `public/sticker.svg` — a fixed path, since pre-hydration HTML can't reference a hashed import.
 - Tone of all copy: encouraging, funny, zero judgement — Flexu was a noob too.
 
 ## Definition of done for a change

@@ -28,6 +28,17 @@ export default function App() {
     void incarca();
   }, [incarca]);
 
+  // Ecranul de pornire din `index.html` rămâne pe ecran până e citit profilul, apoi
+  // se stinge. Se scoate din DOM după tranziție, ca să nu stea degeaba peste pagină.
+  useEffect(() => {
+    if (!incarcat) return;
+    const pornire = document.getElementById('pornire');
+    if (!pornire) return;
+    pornire.classList.add('gata');
+    const ceas = setTimeout(() => pornire.remove(), 260);
+    return () => clearTimeout(ceas);
+  }, [incarcat]);
+
   if (!incarcat) return null;
 
   return (

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BigButton, ProgressBar, Sticker, StatTile, formatNr } from '@/design/components';
-import { Flexu, FlexuSpune } from '@/design/Flexu';
+import { FlexuBula, FlexuSpune } from '@/design/Flexu';
+import { Sigla } from '@/design/Sigla';
 import type { ActivityLevel, Sex } from '@/data/types';
 import {
   ACTIVITY_LABEL,
@@ -92,23 +93,18 @@ export function OnboardingPage() {
         <div className="centrat pop">
           <div className="coperta" style={{ padding: '26px 18px', marginTop: 24 }}>
             <div className="supratitlu">Ghidul complet al începătorului absolut</div>
-            <h1 style={{ fontSize: '3rem', margin: '6px 0' }}>
-              GYM
-              <br />
-              NOOB
-            </h1>
-            <div style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
-              <Flexu poza="flex" marime={150} />
+            <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0 14px' }}>
+              <Sigla latime={340} />
             </div>
             <p className="estompat mic">
-              Antrenamente, jurnal de greutăți, calorii și încurajări — totul în română, totul pe telefonul tău.
+              <b>Eu sunt Flexu</b> — am fost cel mai noob noob din sală, așa că știu exact prin ce treci.
+              Antrenamente, jurnal de greutăți, calorii și încurajări: totul în română, totul pe telefonul tău.
               Cont opțional, doar dacă vrei datele pe mai multe dispozitive.
             </p>
           </div>
-          <FlexuSpune poza="salut">
-            <b>Salut! Eu sunt Flexu</b> — am fost cel mai noob noob din sală, așa că știu exact prin ce treci.
-            Hai să te cunosc în 2 minute și îți pregătesc totul.
-          </FlexuSpune>
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 16px' }}>
+            <FlexuBula text="Nu trebuie să fii perfect. Trebuie doar să începi!" latime={360} />
+          </div>
           <BigButton varianta="accent" mare onClick={() => setPas(1)}>
             Să începem! 💪
           </BigButton>

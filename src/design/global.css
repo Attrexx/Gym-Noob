@@ -1,19 +1,25 @@
 /* ── Gym Noob — sistemul de design „carte de anii '90" ────── */
 
 :root {
-  /* paleta „zi" — coperta clasică galbenă */
+  /* ── paleta de brand ──────────────────────────────────────────────
+     Exact codurile de pe plansa de identitate a lui Flexu. Aceleași șase
+     culori sunt fixate și în desenele din `src/assets/mascota/`
+     (vezi `scripts/mascota.mjs`) — mascota și interfața folosesc un
+     singur set de coduri, ca galbenul maioului să fie galbenul paginii. */
   --galben: #f5c518;
-  --galben-inchis: #e0b010;
+  --crem: #fff8e0;
   --negru: #171310;
   --rosu: #d0342c;
-  --alb: #fffdf5;
-  --crem: #fff8e0;
   --verde: #2e7d32;
   --albastru: #1565c0;
 
+  /* nuanțe derivate din cele șase de mai sus */
+  --galben-inchis: #e0b010;
+  --rosu-pal: #eaa4a0; /* roșul de brand, 45% peste alb */
+
   --bg: var(--galben);
   --fg: var(--negru);
-  --panou: var(--alb);
+  --panou: var(--crem);
   --panou-fg: var(--negru);
   --accent: var(--rosu);
   --accent-fg: #ffffff;
@@ -23,6 +29,12 @@
   --linie: rgba(23, 19, 16, 0.15);
   --dot: rgba(23, 19, 16, 0.08);
 
+  /* `--font-afis` e vocea tare: doar titlurile cele mai mari (h1) și coperta.
+     Rammetto One e cea mai apropiată de literele desenate din logo care are
+     și diacritice românești complete — Luckiest Guy / Titan One seamănă mai
+     bine, dar n-au Ș și Ț, iar „Exerciții" ar cădea pe alt font.
+     `--font-titlu` rămâne Archivo Black pentru butoane, cifre și titluri mici. */
+  --font-afis: 'Rammetto One', 'Archivo Black', 'Arial Black', sans-serif;
   --font-titlu: 'Archivo Black', 'Arial Black', sans-serif;
   --font-text: 'Inter', system-ui, sans-serif;
 
@@ -80,7 +92,22 @@ h3 {
   margin: 0 0 0.5rem;
 }
 
-h1 { font-size: 1.9rem; }
+/* Titlul cel mai mare vorbește cu vocea de pe copertă. Rammetto One are literele
+   mai late și mai grase decât Archivo Black, așa că aceeași impresie de mărime
+   se obține cu vreo 0,15rem mai puțin — altfel „Ghidul Noobului" iese din ecran.
+
+   Aerul de sus și de jos nu e decorativ: în Rammetto One accentul lui Î și Ă urcă
+   la 1,17em peste linia de bază (majuscula are doar 0,78em), iar virgula lui Ț
+   coboară 0,5em. Fără rezerva asta, „ÎNCEPE SESIUNEA" intră peste supratitlul roșu
+   de deasupra, iar „EXERCIȚII" e retezat de `overflow: hidden` al copertei. */
+h1 {
+  font-family: var(--font-afis);
+  font-size: 1.75rem;
+  letter-spacing: 0;
+  line-height: 1.2;
+  padding-top: 0.3em;
+  margin-bottom: 0.45em;
+}
 h2 { font-size: 1.3rem; }
 h3 { font-size: 1.05rem; }
 

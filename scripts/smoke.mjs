@@ -103,10 +103,36 @@ page.on('pageerror', (e) => {
 
 const pas = (nume) => console.log('✔', nume);
 
+/**
+ * Verifică faptul că toate imaginile de pe ecran chiar s-au încărcat. Desenele lui
+ * Flexu vin din `dist/assets/` și din `public/`, cu `base` `/Gym-Noob/` — o cale
+ * greșită n-ar strica nimic vizibil în teste, doar ar lăsa pagina fără mascotă.
+ */
+const imaginiIntregi = async (unde) => {
+  const stricate = await page.evaluate(() =>
+    [...document.images]
+      .filter((i) => !i.complete || i.naturalWidth === 0)
+      .map((i) => i.currentSrc || i.src),
+  );
+  if (stricate.length) throw new Error(`imagini neîncărcate (${unde}): ${stricate.join(', ')}`);
+};
+
 try {
   await page.goto(BASE);
-  await page.getByText('GYM', { exact: false }).first().waitFor({ timeout: 10000 });
-  pas('aplicația se încarcă (coperta)');
+
+  // ecranul de pornire e scris direct în index.html, ca să se vadă înainte de React,
+  // și e scos din DOM de App.tsx după ce profilul e citit
+  const htmlBrut = await (await fetch(BASE)).text();
+  if (!htmlBrut.includes('id="pornire"')) throw new Error('index.html n-are ecranul de pornire');
+  if (!htmlBrut.includes('sticker.svg')) throw new Error('ecranul de pornire n-are sigla');
+  await page.locator('#pornire').waitFor({ state: 'detached', timeout: 15000 });
+  pas('ecranul de pornire apare și se stinge');
+
+  // coperta arată sigla desenată, nu textul „GYM NOOB" cules cu font
+  const sigla = page.getByAltText(/Gym Noob/i).first();
+  await sigla.waitFor({ timeout: 10000 });
+  await imaginiIntregi('coperta');
+  pas('aplicația se încarcă (coperta cu sigla și cu Flexu)');
 
   // ── onboarding ──
   await page.getByRole('button', { name: /Să începem/ }).click();
