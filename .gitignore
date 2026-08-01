@@ -7,3 +7,8 @@ coverage/
 server/dist/
 server/*.db
 server/*.db-*
+
+# clonă imbricată rămasă dintr-o sesiune veche — NU e submodul, nu o comite
+Gym-Noob/
+# imagini de lucru generate (capturile versionate stau în capturi/)
+Images/
