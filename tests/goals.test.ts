@@ -34,8 +34,9 @@ describe('TDEE', () => {
 describe('BMI', () => {
   it('calculează și clasifică', () => {
     expect(bmi(100, 180)).toBe(30.9);
-    expect(bmiCategorie(30.9)).toBe('Obezitate gr. I');
-    expect(bmiCategorie(22)).toBe('Greutate normală');
+    // clasificatorul întoarce id-uri; textul îl pune interfața prin t()
+    expect(bmiCategorie(30.9)).toBe('obezitate1');
+    expect(bmiCategorie(22)).toBe('normal');
   });
 });
 

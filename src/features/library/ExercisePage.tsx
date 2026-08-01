@@ -3,14 +3,17 @@ import { Link, useParams } from 'react-router-dom';
 import { DIFICULTATE_LABEL, getExercise, numeGrupa } from '@/data/catalog/exercises';
 import { SectionTitle, StatTile, Sticker } from '@/design/components';
 import { data, nr } from '@/i18n/format';
+import { useT } from '@/i18n';
 import { FlexuSpune } from '@/design/Flexu';
 import { MuscleDiagram } from './MuscleDiagram';
 import { ExerciseAnim } from './ExerciseAnim';
 import { useProfile } from '@/state/profileStore';
 import { setLogsForExercise } from '@/data/repo';
-import { bestRecords, PR_LABEL, type PrType } from '@/domain/pr';
+import { bestRecords, type PrType } from '@/domain/pr';
 
 export function ExercisePage() {
+  // `t` e deja luat de bucla peste tipurile de record, deci traducătorul e `tr`
+  const { t: tr } = useT();
   const { id } = useParams();
   const { profil } = useProfile();
   const ex = id ? getExercise(id) : undefined;
@@ -128,7 +131,7 @@ export function ExercisePage() {
                 <StatTile
                   key={t}
                   valoare={`${nr(recorduri[t]!.valoare)}${t === 'repetari' ? '' : ' kg'}`}
-                  eticheta={PR_LABEL[t]}
+                  eticheta={tr(`domeniu.pr.${t}`)}
                   sub={data(recorduri[t]!.data)}
                 />
               ))}

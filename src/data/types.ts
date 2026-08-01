@@ -303,10 +303,12 @@ export interface AchievementUnlock extends SyncMeta {
   data: string;
 }
 
+/**
+ * Partea invariantă a unei realizări. Numele și descrierea (glumele!) sunt
+ * mesaje: `realizari.<id>.nume` / `realizari.<id>.descriere`.
+ */
 export interface AchievementDef {
   id: string;
-  nume: string;
-  descriere: string;
   emoji: string;
   /** categoria pentru afișare */
   categorie: 'inceput' | 'consecventa' | 'volum' | 'greutate' | 'hidratare' | 'recorduri';

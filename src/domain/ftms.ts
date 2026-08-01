@@ -28,14 +28,8 @@ export const CARACTERISTICI_DATE: { uuid: number; tip: TipAparat }[] = [
   { uuid: 0x2ad0, tip: 'stepper' },
 ];
 
-export const NUME_APARAT: Record<TipAparat, string> = {
-  banda: 'Bandă de alergare',
-  rower: 'Rower',
-  bicicleta: 'Bicicletă',
-  eliptica: 'Eliptică',
-  stepper: 'Stepper',
-};
-
+// Numele aparatelor sunt acum mesaje: `t(`domeniu.aparat.${tip}`)`.
+// Emoji-urile rămân aici — nu depind de limbă.
 export const EMOJI_APARAT: Record<TipAparat, string> = {
   banda: '🏃',
   rower: '🚣',
@@ -281,16 +275,5 @@ export function fmtPas(secPe500m: number): string {
   return `${m}:${String(s).padStart(2, '0')}/500m`;
 }
 
-/** Rândul de telemetrie din antet: „9,5 km/h · 2% · 1,25 km". */
-export function descrieAparat(tip: TipAparat, d: DateAparat): string {
-  const p: string[] = [];
-  if (d.vitezaKmh !== undefined) p.push(`${d.vitezaKmh.toFixed(1).replace('.', ',')} km/h`);
-  if (d.pasSec !== undefined && d.pasSec > 0) p.push(fmtPas(d.pasSec));
-  if (d.inclinatieProcent !== undefined) p.push(`${d.inclinatieProcent}%`);
-  if (d.cadenta !== undefined) p.push(`${Math.round(d.cadenta)} ${tip === 'bicicleta' ? 'rpm' : 'spm'}`);
-  if (d.putereW !== undefined && d.putereW > 0) p.push(`${Math.round(d.putereW)} W`);
-  if (d.distantaM !== undefined) {
-    p.push(d.distantaM >= 1000 ? `${(d.distantaM / 1000).toFixed(2).replace('.', ',')} km` : `${d.distantaM} m`);
-  }
-  return p.join(' · ');
-}
+// `descrieAparat` a plecat în `src/i18n/descrieri.ts`, lângă `t()` și `nr()`.
+// `fmtPas` rămâne aici: „2:05/500m" arată la fel în orice limbă.

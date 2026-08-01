@@ -128,26 +128,8 @@ export function ultimaPerformanta(logs: SetLog[], sessionIdCurent?: number): Ult
   };
 }
 
-/**
- * Rezumatul de o linie al unui set, pentru banda „data trecută".
- * Pentru cardio spunem minutele și setările; pentru forță, kg × repetări.
- */
-export function descrieSetLog(l: SetLog): string {
-  const p: string[] = [];
-  if (l.repetari !== undefined) p.push(`${l.repetari} rep.`);
-  else if (l.durataSec === undefined) p.push('maxim');
-  if (l.greutate !== undefined && l.greutate > 0) p.push(`${String(l.greutate).replace('.', ',')} kg`);
-  if (l.durataSec !== undefined && l.repetari === undefined) p.push(`${Math.round(l.durataSec / 60)} min`);
-  if (l.viteza !== undefined) p.push(`${String(l.viteza).replace('.', ',')} km/h`);
-  if (l.inclinatie !== undefined && l.inclinatie > 0) p.push(`${l.inclinatie}%`);
-  if (l.distantaM !== undefined) {
-    p.push(l.distantaM >= 1000 ? `${(l.distantaM / 1000).toFixed(2).replace('.', ',')} km` : `${l.distantaM} m`);
-  }
-  if (l.putereMedieW !== undefined) p.push(`${Math.round(l.putereMedieW)} W`);
-  if (l.cadentaMedie !== undefined) p.push(`${Math.round(l.cadentaMedie)} spm`);
-  if (l.rpe !== undefined) p.push(`RPE ${l.rpe}`);
-  return p.join(' · ');
-}
+// `descrieSetLog` a plecat în `src/i18n/descrieri.ts` — lipea text, nu calcula
+// nimic, iar `domain/` rămâne matematică pură, fără dependențe de limbă.
 
 /**
  * Setările de reluat data viitoare: exact ce a mers ultima dată, ca să nu

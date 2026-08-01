@@ -1,12 +1,19 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import {
-  descrieAparat,
   fmtPas,
   parseBanda,
   parseBicicleta,
   parseDateAparat,
   parseRower,
 } from '@/domain/ftms';
+// `descrieAparat` a plecat din domain/ în i18n/. Aserțiile rămân identice —
+// dovada că trecerea pe Intl nu a schimbat ieșirea în română.
+import { descrieAparat } from '@/i18n/descrieri';
+import { incarcaLimba } from '@/i18n/store';
+
+beforeAll(async () => {
+  await incarcaLimba('ro');
+});
 
 /**
  * Construiește un pachet FTMS din bucăți, ca să scriem fixture-urile în

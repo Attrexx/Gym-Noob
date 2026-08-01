@@ -15,7 +15,7 @@ import { fmtDurata, useTick } from './useTick';
 import { kcalSet, metBanda, metDinPutere, metMediuBanda, type SegmentBanda } from '@/domain/calories';
 import { fmtOra, planDinSeturi } from '@/domain/sesiuni';
 import { varstaDinData } from '@/domain/goals';
-import { EMOJI_APARAT, NUME_APARAT } from '@/domain/ftms';
+import { EMOJI_APARAT } from '@/domain/ftms';
 import { Screensaver } from './Screensaver';
 import { SumarHud } from './SumarHud';
 import { UltimaData } from './UltimaData';
@@ -24,7 +24,9 @@ import { Metronom, sunete, vibreaza } from '@/services/audio';
 import { spune } from '@/services/tts';
 import { elibereazaEcranul, reactiveazaLaRevenire, tineEcranAprins } from '@/services/wakeLock';
 import { aleator, INCURAJARI_FINAL, INCURAJARI_SET } from '@/data/catalog/tips';
-import { PR_LABEL, type PrHit } from '@/domain/pr';
+import { type PrHit } from '@/domain/pr';
+import { descrieMotiv, descriereRealizare, numeRealizare } from '@/i18n/descrieri';
+import { t as tr } from '@/i18n';
 import { suggestNext, type Suggestion } from '@/domain/suggestions';
 import { verificaRealizari } from '@/services/achievementService';
 import { ACHIEVEMENTS } from '@/domain/achievements';
@@ -377,7 +379,7 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
       {sugestieAuto && (
         <Sticker className="pop">
           <FlexuSpune poza="ganditor" marime={60}>
-            {sugestieAuto.motiv} Ce zici de <b>{sugestieAuto.exercise.nume}</b>?
+            {descrieMotiv(sugestieAuto.motiv)} Ce zici de <b>{sugestieAuto.exercise.nume}</b>?
           </FlexuSpune>
           <div className="rand">
             <BigButton
@@ -535,7 +537,7 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
               <div className="rand">
                 <span>
                   {EMOJI_APARAT[aparatCon.tip]} <b>{aparatCon.model}</b>{' '}
-                  <span className="mic estompat">({NUME_APARAT[aparatCon.tip]})</span>
+                  <span className="mic estompat">({tr(`domeniu.aparat.${aparatCon.tip}`)})</span>
                 </span>
                 <BigButton
                   varianta="contur"
@@ -583,7 +585,7 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
           <Flexu poza="sarbatoreste" marime={110} />
           {(prCelebration ?? []).map((pr) => (
             <p key={pr.tip} style={{ fontWeight: 800 }}>
-              {PR_LABEL[pr.tip]}: <b>{nr(pr.valoare)}</b>
+              {tr(`domeniu.pr.${pr.tip}`)}: <b>{nr(pr.valoare)}</b>
               {pr.valoareVeche ? <span className="estompat mic"> (vechiul record: {nr(pr.valoareVeche)})</span> : null}
             </p>
           ))}
@@ -970,9 +972,9 @@ function SummaryScreen(props: { sumar: Sumar }) {
             return a ? (
               <Sticker key={id} accent inclinat>
                 <b style={{ fontSize: '1.1rem' }}>
-                  {a.emoji} {a.nume}
+                  {a.emoji} {numeRealizare(a.id)}
                 </b>
-                <div className="mic">{a.descriere}</div>
+                <div className="mic">{descriereRealizare(a.id)}</div>
               </Sticker>
             ) : null;
           })}

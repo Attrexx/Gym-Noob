@@ -1,7 +1,8 @@
 import { BigButton, Sticker } from '@/design/components';
 import { secundeActive, secundeTotale, useSession } from '@/state/sessionStore';
 import { useLive } from '@/state/liveStore';
-import { descrieAparat, EMOJI_APARAT } from '@/domain/ftms';
+import { EMOJI_APARAT } from '@/domain/ftms';
+import { descrieAparat } from '@/i18n/descrieri';
 import { fmtDurata } from './useTick';
 
 /**

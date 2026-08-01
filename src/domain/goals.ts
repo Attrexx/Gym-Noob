@@ -11,13 +11,11 @@ export const ACTIVITY_FACTOR: Record<ActivityLevel, number> = {
   foarte_activ: 1.9,
 };
 
-export const ACTIVITY_LABEL: Record<ActivityLevel, string> = {
-  sedentar: 'Sedentar (birou, fără mișcare)',
-  usor: 'Ușor activ (plimbări, 1-2 antrenamente/săpt.)',
-  moderat: 'Moderat activ (3-5 antrenamente/săpt.)',
-  activ: 'Activ (muncă fizică sau sport zilnic)',
-  foarte_activ: 'Foarte activ (muncă grea + sport)',
-};
+/**
+ * Nivelurile, în ordinea de afișat. Etichetele sunt mesaje
+ * (`t(`domeniu.activitate.${nivel}`)`) — aici păstrăm doar ordinea și factorii.
+ */
+export const NIVELURI: ActivityLevel[] = ['sedentar', 'usor', 'moderat', 'activ', 'foarte_activ'];
 
 export function varstaDinData(dataNasterii: string, azi = new Date()): number {
   const n = new Date(dataNasterii);
@@ -43,13 +41,22 @@ export function bmi(greutateKg: number, inaltimeCm: number): number {
   return Math.round((greutateKg / (m * m)) * 10) / 10;
 }
 
-export function bmiCategorie(v: number): string {
-  if (v < 18.5) return 'Subponderal';
-  if (v < 25) return 'Greutate normală';
-  if (v < 30) return 'Supraponderal';
-  if (v < 35) return 'Obezitate gr. I';
-  if (v < 40) return 'Obezitate gr. II';
-  return 'Obezitate gr. III';
+export type CategorieImc =
+  | 'subponderal'
+  | 'normal'
+  | 'supraponderal'
+  | 'obezitate1'
+  | 'obezitate2'
+  | 'obezitate3';
+
+/** Clasificarea OMS. Întoarce un id — textul îl pune interfața, prin `t()`. */
+export function bmiCategorie(v: number): CategorieImc {
+  if (v < 18.5) return 'subponderal';
+  if (v < 25) return 'normal';
+  if (v < 30) return 'supraponderal';
+  if (v < 35) return 'obezitate1';
+  if (v < 40) return 'obezitate2';
+  return 'obezitate3';
 }
 
 /**

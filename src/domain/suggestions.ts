@@ -22,9 +22,21 @@ const ANTAGONIST: Partial<Record<MuscleGroup, MuscleGroup>> = {
   lombari: 'abdomen',
 };
 
+/**
+ * De ce propunem exercițiul. Structurat, nu propoziție gata făcută: motorul
+ * ăsta e matematică pură, iar textul (și grupa musculară, care are și ea nume
+ * traduse) îl compune interfața cu `t()`.
+ */
+export type MotivSugestie =
+  | { tip: 'antagonist'; grupa: MuscleGroup; anti: MuscleGroup; seturi: number }
+  | { tip: 'neatins'; grupa: MuscleGroup }
+  | { tip: 'finalAbdomen' }
+  | { tip: 'finalCardio' }
+  | { tip: 'incalzire' };
+
 export interface Suggestion {
   exercise: ExerciseDef;
-  motiv: string;
+  motiv: MotivSugestie;
 }
 
 export function suggestNext(params: {
@@ -56,7 +68,7 @@ export function suggestNext(params: {
     for (const g of ex.muschi) seturiPeGrupa.set(g, (seturiPeGrupa.get(g) ?? 0) + 1);
   }
 
-  const adauga = (ex: ExerciseDef | undefined, motiv: string) => {
+  const adauga = (ex: ExerciseDef | undefined, motiv: MotivSugestie) => {
     if (ex && !propuse.has(ex.id)) {
       propuse.add(ex.id);
       out.push({ exercise: ex, motiv });
@@ -68,10 +80,7 @@ export function suggestNext(params: {
     if (seturi < 3) continue;
     const anti = ANTAGONIST[grupa];
     if (!anti || (seturiPeGrupa.get(anti) ?? 0) > 0) continue;
-    adauga(
-      disponibile.find((e) => e.muschi[0] === anti),
-      `Ai lucrat ${seturi} seturi de ${grupa}, dar deloc ${anti}. Echilibrul contează!`,
-    );
+    adauga(disponibile.find((e) => e.muschi[0] === anti), { tip: 'antagonist', grupa, anti, seturi });
   }
 
   // 2. grupă neatinsă în sesiunile recente
@@ -79,30 +88,18 @@ export function suggestNext(params: {
   for (const g of toateGrupele) {
     if (out.length >= 3) break;
     if (grupeRecente.includes(g) || (seturiPeGrupa.get(g) ?? 0) > 0) continue;
-    adauga(
-      disponibile.find((e) => e.muschi[0] === g),
-      `Grupa „${g}" nu a mai fost lucrată de ceva vreme.`,
-    );
+    adauga(disponibile.find((e) => e.muschi[0] === g), { tip: 'neatins', grupa: g });
   }
 
   // 3. final de sesiune → core / cardio ușor
   if (minuteScurse >= 40 && out.length < 3) {
-    adauga(
-      disponibile.find((e) => e.muschi[0] === 'abdomen'),
-      'Final de sesiune — un pic de abdomen și ai închis ziua frumos.',
-    );
-    adauga(
-      disponibile.find((e) => e.tip === 'cardio' && e.dificultate === 1),
-      '10 minute de cardio ușor la final ajută recuperarea și mai arde ceva calorii.',
-    );
+    adauga(disponibile.find((e) => e.muschi[0] === 'abdomen'), { tip: 'finalAbdomen' });
+    adauga(disponibile.find((e) => e.tip === 'cardio' && e.dificultate === 1), { tip: 'finalCardio' });
   }
 
   // fallback: măcar o propunere pentru începutul sesiunii
   if (out.length === 0) {
-    adauga(
-      disponibile.find((e) => e.tip === 'cardio' && e.dificultate === 1),
-      'Începe cu 5-10 minute de încălzire pe cardio ușor.',
-    );
+    adauga(disponibile.find((e) => e.tip === 'cardio' && e.dificultate === 1), { tip: 'incalzire' });
   }
 
   return out.slice(0, 3);

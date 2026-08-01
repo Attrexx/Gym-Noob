@@ -3,6 +3,7 @@ import { BigButton, Chip, Modal, Sticker, Stepper } from '@/design/components';
 import { areCategorie, CATEGORII, EXERCITII, getExercise, numeGrupa } from '@/data/catalog/exercises';
 import type { ExerciseCategory, TemplateItem } from '@/data/types';
 import type { Suggestion } from '@/domain/suggestions';
+import { descrieMotiv } from '@/i18n/descrieri';
 
 /**
  * Alegerea unui exercițiu + reglarea lui, într-un singur loc.
@@ -91,7 +92,7 @@ export function AlegeExercitiu(props: {
           {props.sugestii.map((sg) => (
             <Sticker key={sg.exercise.id} onClick={() => setAles(itemNou(sg.exercise.id))} style={{ padding: 10 }}>
               <b>{sg.exercise.nume}</b>
-              <div className="mic estompat">{sg.motiv}</div>
+              <div className="mic estompat">{descrieMotiv(sg.motiv)}</div>
             </Sticker>
           ))}
           <div style={{ height: 12 }} />

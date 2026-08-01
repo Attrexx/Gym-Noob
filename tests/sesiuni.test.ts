@@ -1,13 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import type { SetLog, TemplateItem } from '@/data/types';
 import {
-  descrieSetLog,
   fmtOra,
   impartireTimp,
   planDinSeturi,
   setariDeReluat,
   ultimaPerformanta,
 } from '@/domain/sesiuni';
+// `descrieSetLog` a plecat din domain/ în i18n/ — lipea text, nu calcula nimic.
+// Aserțiile de mai jos au rămas identice octet cu octet: ele sunt dovada că
+// mutarea nu a schimbat româna.
+import { descrieSetLog } from '@/i18n/descrieri';
+import { incarcaLimba } from '@/i18n/store';
+
+beforeAll(async () => {
+  await incarcaLimba('ro');
+});
 
 function log(p: Partial<SetLog> & { exerciseId: string; data: string }): SetLog {
   return {

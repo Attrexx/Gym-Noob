@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { secundeTotale, useSession } from '@/state/sessionStore';
 import { useLive } from '@/state/liveStore';
 import { getExercise } from '@/data/catalog/exercises';
-import { descrieAparat } from '@/domain/ftms';
+import { descrieAparat } from '@/i18n/descrieri';
 import { fmtDurata, useTick } from './useTick';
 
 const PRAG_INACTIVITATE_MS = 45_000;

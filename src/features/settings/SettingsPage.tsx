@@ -7,10 +7,12 @@ import { updateProfile } from '@/data/repo';
 import { ContSection } from './ContSection';
 import { AparateSection } from './AparateSection';
 import type { ActivityLevel, Settings } from '@/data/types';
-import { ACTIVITY_LABEL } from '@/domain/goals';
+import { NIVELURI } from '@/domain/goals';
+import { useT } from '@/i18n';
 import { spune } from '@/services/tts';
 
 export function SettingsPage() {
+  const { t } = useT();
   const { profil, setari, actualizeazaSetari, reincarcaProfil, incarca } = useProfile();
   const nav = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -44,9 +46,13 @@ export function SettingsPage() {
       <SectionTitle supratitlu="aspect">Temă</SectionTitle>
       <Sticker>
         <div className="rand">
-          {(['zi', 'noapte', 'auto'] as const).map((t) => (
-            <BigButton key={t} varianta={setari.tema === t ? 'accent' : 'contur'} onClick={() => set({ tema: t })}>
-              {t === 'zi' ? '☀️ Zi' : t === 'noapte' ? '🌙 Noapte' : '🌗 Auto'}
+          {(['zi', 'noapte', 'auto'] as const).map((tema) => (
+            <BigButton
+              key={tema}
+              varianta={setari.tema === tema ? 'accent' : 'contur'}
+              onClick={() => set({ tema })}
+            >
+              {tema === 'zi' ? '☀️ Zi' : tema === 'noapte' ? '🌙 Noapte' : '🌗 Auto'}
             </BigButton>
           ))}
         </div>
@@ -108,9 +114,9 @@ export function SettingsPage() {
           value={profil.activitate}
           onChange={(e) => void updateProfile(profil.id!, { activitate: e.target.value as ActivityLevel }).then(reincarcaProfil)}
         >
-          {Object.entries(ACTIVITY_LABEL).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v}
+          {NIVELURI.map((nivel) => (
+            <option key={nivel} value={nivel}>
+              {t(`domeniu.activitate.${nivel}`)}
             </option>
           ))}
         </select>

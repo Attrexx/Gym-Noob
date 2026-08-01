@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BigButton, ProgressBar, Sticker, StatTile } from '@/design/components';
 import { data, nr } from '@/i18n/format';
+import { useT } from '@/i18n';
 import { FlexuBula, FlexuSpune } from '@/design/Flexu';
 import { Sigla } from '@/design/Sigla';
 import type { ActivityLevel, Sex } from '@/data/types';
 import {
-  ACTIVITY_LABEL,
+  NIVELURI,
   bmi,
   bmiCategorie,
   bmr,
@@ -26,6 +27,7 @@ const PASI = 5;
 
 export function OnboardingPage() {
   const nav = useNavigate();
+  const { t } = useT();
   const { incarca } = useProfile();
   const [pas, setPas] = useState(0);
   const [arataLogin, setArataLogin] = useState(false);
@@ -190,9 +192,9 @@ export function OnboardingPage() {
             />
             <label htmlFor="ob-activitate">Cât de activ ești în afara sălii?</label>
             <select id="ob-activitate" value={activitate} onChange={(e) => setActivitate(e.target.value as ActivityLevel)}>
-              {Object.entries(ACTIVITY_LABEL).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
+              {NIVELURI.map((nivel) => (
+                <option key={nivel} value={nivel}>
+                  {t(`domeniu.activitate.${nivel}`)}
                 </option>
               ))}
             </select>

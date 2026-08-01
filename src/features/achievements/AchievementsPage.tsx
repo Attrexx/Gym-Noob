@@ -5,6 +5,8 @@ import { ACHIEVEMENTS } from '@/domain/achievements';
 import { Sticker } from '@/design/components';
 import { FlexuSpune } from '@/design/Flexu';
 import { data } from '@/i18n/format';
+import { descriereRealizare, numeRealizare } from '@/i18n/descrieri';
+import { useT } from '@/i18n';
 
 const CATEGORII: Record<string, string> = {
   inceput: 'Începuturi',
@@ -16,6 +18,7 @@ const CATEGORII: Record<string, string> = {
 };
 
 export function AchievementsPage() {
+  useT(); // abonament la limbă — numele insignelor vin din mesaje
   const { profil } = useProfile();
   const deblocate = useLiveQuery(async () => {
     if (!profil?.id) return new Map<string, string>();
@@ -63,9 +66,9 @@ export function AchievementsPage() {
                     accent={!!cand}
                   >
                     <div style={{ fontSize: '1.9rem' }}>{cand ? a.emoji : '🔒'}</div>
-                    <b style={{ fontSize: '0.9rem' }}>{a.nume}</b>
+                    <b style={{ fontSize: '0.9rem' }}>{numeRealizare(a.id)}</b>
                     <div className="mic" style={{ opacity: 0.85 }}>
-                      {a.descriere}
+                      {descriereRealizare(a.id)}
                     </div>
                     {cand && <div className="mic" style={{ marginTop: 4, fontWeight: 800 }}>{data(cand)}</div>}
                   </Sticker>

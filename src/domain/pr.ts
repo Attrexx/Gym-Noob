@@ -3,12 +3,8 @@ import { epley1Rm } from './oneRm';
 
 export type PrType = 'greutate' | 'volum_set' | 'repetari' | '1rm';
 
-export const PR_LABEL: Record<PrType, string> = {
-  greutate: 'Greutate maximă',
-  volum_set: 'Volum maxim pe set',
-  repetari: 'Cele mai multe repetări',
-  '1rm': '1RM estimat',
-};
+/** Tipurile, în ordinea de afișat. Etichetele sunt mesaje: `t(`domeniu.pr.${tip}`)`. */
+export const TIPURI_PR: PrType[] = ['greutate', 'volum_set', 'repetari', '1rm'];
 
 export interface PrHit {
   tip: PrType;

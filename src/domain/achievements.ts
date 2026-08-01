@@ -20,45 +20,53 @@ export interface AchievementContext {
   oreLaSala: number;
 }
 
-export const ACHIEVEMENTS: (AchievementDef & { conditie: (c: AchievementContext) => boolean })[] = [
+/**
+ * Numele și descrierile (adică glumele) stau în mesaje, la
+ * `realizari.<id>.nume` / `realizari.<id>.descriere`. Aici rămân doar id-ul,
+ * emoji-ul, categoria și condiția — adică partea care nu depinde de limbă.
+ */
+export const ACHIEVEMENTS = [
   // ── Început ──
-  { id: 'prima-sesiune', nume: 'Primul pas', descriere: 'Ai terminat prima sesiune de antrenament. De aici începe totul!', emoji: '🐣', categorie: 'inceput', conditie: (c) => c.sesiuniTerminate >= 1 },
-  { id: 'trei-sesiuni', nume: 'Nu a fost un accident', descriere: '3 sesiuni terminate. Începe să semene a obicei.', emoji: '🌱', categorie: 'inceput', conditie: (c) => c.sesiuniTerminate >= 3 },
-  { id: 'zece-sesiuni', nume: 'Abonat serios', descriere: '10 sesiuni terminate. Recepția te salută deja.', emoji: '💳', categorie: 'inceput', conditie: (c) => c.sesiuniTerminate >= 10 },
-  { id: 'douazecicinci-sesiuni', nume: 'Mobilier al sălii', descriere: '25 de sesiuni. Faci parte din peisaj.', emoji: '🏋️', categorie: 'inceput', conditie: (c) => c.sesiuniTerminate >= 25 },
-  { id: 'cincizeci-sesiuni', nume: 'Jumătate de sută', descriere: '50 de sesiuni terminate. Cine mai e noob acum?', emoji: '🎖️', categorie: 'inceput', conditie: (c) => c.sesiuniTerminate >= 50 },
-  { id: 'o-suta-sesiuni', nume: 'Centurion', descriere: '100 de sesiuni. Legendă locală.', emoji: '🏛️', categorie: 'inceput', conditie: (c) => c.sesiuniTerminate >= 100 },
+  { id: 'prima-sesiune', emoji: '🐣', categorie: 'inceput', conditie: (c: AchievementContext) => c.sesiuniTerminate >= 1 },
+  { id: 'trei-sesiuni', emoji: '🌱', categorie: 'inceput', conditie: (c: AchievementContext) => c.sesiuniTerminate >= 3 },
+  { id: 'zece-sesiuni', emoji: '💳', categorie: 'inceput', conditie: (c: AchievementContext) => c.sesiuniTerminate >= 10 },
+  { id: 'douazecicinci-sesiuni', emoji: '🏋️', categorie: 'inceput', conditie: (c: AchievementContext) => c.sesiuniTerminate >= 25 },
+  { id: 'cincizeci-sesiuni', emoji: '🎖️', categorie: 'inceput', conditie: (c: AchievementContext) => c.sesiuniTerminate >= 50 },
+  { id: 'o-suta-sesiuni', emoji: '🏛️', categorie: 'inceput', conditie: (c: AchievementContext) => c.sesiuniTerminate >= 100 },
 
   // ── Consecvență ──
-  { id: 'streak-2', nume: 'Două la rând', descriere: '2 săptămâni consecutive cu antrenamente.', emoji: '🔥', categorie: 'consecventa', conditie: (c) => c.streakSaptamani >= 2 },
-  { id: 'streak-4', nume: 'Luna de foc', descriere: '4 săptămâni consecutive cu antrenamente.', emoji: '🔥🔥', categorie: 'consecventa', conditie: (c) => c.streakSaptamani >= 4 },
-  { id: 'streak-12', nume: 'Trimestrul de oțel', descriere: '12 săptămâni consecutive. Disciplina bate motivația.', emoji: '⚙️', categorie: 'consecventa', conditie: (c) => c.streakSaptamani >= 12 },
-  { id: 'zile-30', nume: '30 de zile la sală', descriere: '30 de zile distincte cu antrenament.', emoji: '📅', categorie: 'consecventa', conditie: (c) => c.zileAntrenament.length >= 30 },
-  { id: 'ore-24', nume: 'O zi din viață', descriere: '24 de ore cumulate de antrenament activ.', emoji: '⏰', categorie: 'consecventa', conditie: (c) => c.oreLaSala >= 24 },
+  { id: 'streak-2', emoji: '🔥', categorie: 'consecventa', conditie: (c: AchievementContext) => c.streakSaptamani >= 2 },
+  { id: 'streak-4', emoji: '🔥🔥', categorie: 'consecventa', conditie: (c: AchievementContext) => c.streakSaptamani >= 4 },
+  { id: 'streak-12', emoji: '⚙️', categorie: 'consecventa', conditie: (c: AchievementContext) => c.streakSaptamani >= 12 },
+  { id: 'zile-30', emoji: '📅', categorie: 'consecventa', conditie: (c: AchievementContext) => c.zileAntrenament.length >= 30 },
+  { id: 'ore-24', emoji: '⏰', categorie: 'consecventa', conditie: (c: AchievementContext) => c.oreLaSala >= 24 },
 
   // ── Volum ──
-  { id: 'volum-1t', nume: 'Prima tonă', descriere: 'Ai ridicat în total 1.000 kg. O tonă întreagă!', emoji: '🚗', categorie: 'volum', conditie: (c) => c.volumTotalKg >= 1_000 },
-  { id: 'volum-10t', nume: 'Camionagiu', descriere: '10 tone ridicate în total. Cam cât un camion.', emoji: '🚚', categorie: 'volum', conditie: (c) => c.volumTotalKg >= 10_000 },
-  { id: 'volum-100t', nume: 'Locomotiva', descriere: '100 de tone ridicate în total. Șșș-șșș.', emoji: '🚂', categorie: 'volum', conditie: (c) => c.volumTotalKg >= 100_000 },
-  { id: 'kcal-1000', nume: 'Cuptor pornit', descriere: '1.000 kcal arse la antrenamente.', emoji: '🕯️', categorie: 'volum', conditie: (c) => c.kcalTotal >= 1_000 },
-  { id: 'kcal-10000', nume: 'Furnal', descriere: '10.000 kcal arse la antrenamente.', emoji: '🌋', categorie: 'volum', conditie: (c) => c.kcalTotal >= 10_000 },
-  { id: 'explorator', nume: 'Explorator', descriere: 'Ai încercat 15 exerciții diferite.', emoji: '🧭', categorie: 'volum', conditie: (c) => c.exercitiiDistincte >= 15 },
+  { id: 'volum-1t', emoji: '🚗', categorie: 'volum', conditie: (c: AchievementContext) => c.volumTotalKg >= 1_000 },
+  { id: 'volum-10t', emoji: '🚚', categorie: 'volum', conditie: (c: AchievementContext) => c.volumTotalKg >= 10_000 },
+  { id: 'volum-100t', emoji: '🚂', categorie: 'volum', conditie: (c: AchievementContext) => c.volumTotalKg >= 100_000 },
+  { id: 'kcal-1000', emoji: '🕯️', categorie: 'volum', conditie: (c: AchievementContext) => c.kcalTotal >= 1_000 },
+  { id: 'kcal-10000', emoji: '🌋', categorie: 'volum', conditie: (c: AchievementContext) => c.kcalTotal >= 10_000 },
+  { id: 'explorator', emoji: '🧭', categorie: 'volum', conditie: (c: AchievementContext) => c.exercitiiDistincte >= 15 },
 
   // ── Greutate corporală ──
-  { id: 'slabit-1', nume: 'Primul kilogram', descriere: 'Primul kilogram dat jos. S-a urnit trenul!', emoji: '📉', categorie: 'greutate', conditie: (c) => c.kgSlabite >= 1 },
-  { id: 'slabit-5', nume: 'Minus 5', descriere: '5 kg date jos. Se vede deja.', emoji: '🎯', categorie: 'greutate', conditie: (c) => c.kgSlabite >= 5 },
-  { id: 'slabit-10', nume: 'Minus 10', descriere: '10 kg date jos. Garderobă nouă?', emoji: '👕', categorie: 'greutate', conditie: (c) => c.kgSlabite >= 10 },
+  { id: 'slabit-1', emoji: '📉', categorie: 'greutate', conditie: (c: AchievementContext) => c.kgSlabite >= 1 },
+  { id: 'slabit-5', emoji: '🎯', categorie: 'greutate', conditie: (c: AchievementContext) => c.kgSlabite >= 5 },
+  { id: 'slabit-10', emoji: '👕', categorie: 'greutate', conditie: (c: AchievementContext) => c.kgSlabite >= 10 },
 
   // ── Hidratare ──
-  { id: 'apa-prima', nume: 'Buretele', descriere: 'Prima sesiune cu ținta de apă atinsă.', emoji: '💧', categorie: 'hidratare', conditie: (c) => c.sesiuniCuApaLaTinta >= 1 },
-  { id: 'apa-10', nume: 'Fântâna arteziană', descriere: '10 sesiuni cu ținta de apă atinsă.', emoji: '⛲', categorie: 'hidratare', conditie: (c) => c.sesiuniCuApaLaTinta >= 10 },
-  { id: 'apa-total', nume: 'Lacul Vidraru', descriere: '20 de litri de apă băuți la sală, în total.', emoji: '🌊', categorie: 'hidratare', conditie: (c) => c.apaTotalMl >= 20_000 },
+  { id: 'apa-prima', emoji: '💧', categorie: 'hidratare', conditie: (c: AchievementContext) => c.sesiuniCuApaLaTinta >= 1 },
+  { id: 'apa-10', emoji: '⛲', categorie: 'hidratare', conditie: (c: AchievementContext) => c.sesiuniCuApaLaTinta >= 10 },
+  { id: 'apa-total', emoji: '🌊', categorie: 'hidratare', conditie: (c: AchievementContext) => c.apaTotalMl >= 20_000 },
 
   // ── Recorduri ──
-  { id: 'pr-primul', nume: 'Recordman', descriere: 'Primul record personal doborât.', emoji: '🥇', categorie: 'recorduri', conditie: (c) => c.prCount >= 1 },
-  { id: 'pr-10', nume: 'Vânător de recorduri', descriere: '10 recorduri personale doborâte.', emoji: '🏹', categorie: 'recorduri', conditie: (c) => c.prCount >= 10 },
-  { id: 'pr-25', nume: 'Mașina de PR-uri', descriere: '25 de recorduri personale doborâte.', emoji: '🤖', categorie: 'recorduri', conditie: (c) => c.prCount >= 25 },
-];
+  { id: 'pr-primul', emoji: '🥇', categorie: 'recorduri', conditie: (c: AchievementContext) => c.prCount >= 1 },
+  { id: 'pr-10', emoji: '🏹', categorie: 'recorduri', conditie: (c: AchievementContext) => c.prCount >= 10 },
+  { id: 'pr-25', emoji: '🤖', categorie: 'recorduri', conditie: (c: AchievementContext) => c.prCount >= 25 },
+] as const satisfies readonly (AchievementDef & { conditie: (c: AchievementContext) => boolean })[];
+
+/** Id-urile realizărilor, ca uniune — testul de paritate se plimbă pe ele. */
+export type AchievementId = (typeof ACHIEVEMENTS)[number]['id'];
 
 export function evaluateAchievements(ctx: AchievementContext): string[] {
   return ACHIEVEMENTS.filter((a) => a.conditie(ctx)).map((a) => a.id);
