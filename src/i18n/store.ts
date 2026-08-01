@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { LIMBI, TAG, type Limba, type LimbaSetare } from './types';
 import type { Pachet } from './types-pachet';
 import { PACHETE } from './messages';
+import { aplicaTextCatalog } from '@/data/catalog/exercises';
 import { construiesteFormatoare } from './format';
 
 /**
@@ -55,6 +56,8 @@ export async function incarcaLimba(limba: Limba): Promise<void> {
 
   // formatoarele Intl sunt scumpe de construit — o dată per limbă
   construiesteFormatoare(TAG[limba]);
+  // catalogul își ia numele și cues-urile din pachet
+  aplicaTextCatalog(pachet.catalog);
 
   useI18n.setState((s) => ({ limba, versiune: s.versiune + 1, gata: true }));
 }

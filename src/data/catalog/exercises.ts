@@ -2,79 +2,109 @@ import type { ExerciseCategory, ExerciseDef, MuscleGroup } from '../types';
 import { EXERCITII_1 } from './exercises-cardio-impins-tras';
 import { EXERCITII_2 } from './exercises-umeri-brate-picioare-core';
 import { EXERCITII_3 } from './exercises-haltera-calistenice';
+import type { ExerciseCore, PachetCatalog } from './text/types';
 
-export const EXERCITII: ExerciseDef[] = [...EXERCITII_1, ...EXERCITII_2, ...EXERCITII_3];
+/**
+ * Punctul unde structura se împreunează cu textul limbii active.
+ *
+ * `EXERCITII` era o constantă; acum e `exercitii()`, o funcție. Schimbarea e
+ * intenționată: pune „lucrul ăsta depinde de limbă" chiar la locul apelului,
+ * în loc să ascundă asta într-un binding ESM care se schimbă pe tăcute.
+ *
+ * `getExercise()` rămâne sincron — sessionStore citește din el doar `met`,
+ * un număr, și nu vrem să-l facem async pentru atât.
+ */
 
-const byId = new Map(EXERCITII.map((e) => [e.id, e]));
+const CORE: ExerciseCore[] = [...EXERCITII_1, ...EXERCITII_2, ...EXERCITII_3];
 
-export function getExercise(id: string): ExerciseDef | undefined {
-  return byId.get(id);
+let lista: ExerciseDef[] = [];
+let index = new Map<string, ExerciseDef>();
+let categoriiCache = new Map<string, ExerciseCategory[]>();
+let text: PachetCatalog | null = null;
+
+/** Chemat de `incarcaLimba()` — singura cale prin care catalogul își ia textul. */
+export function aplicaTextCatalog(pachet: PachetCatalog): void {
+  text = pachet;
+  lista = CORE.map((c) => ({ ...c, ...pachet.exercitii[c.id] }));
+  index = new Map(lista.map((e) => [e.id, e]));
+  categoriiCache = new Map(lista.map((e) => [e.id, categoriiExercitiu(e)]));
 }
 
-export const GRUPE_MUSCHI: { id: MuscleGroup; nume: string }[] = [
-  { id: 'piept', nume: 'Piept' },
-  { id: 'spate', nume: 'Spate' },
-  { id: 'umeri', nume: 'Umeri' },
-  { id: 'biceps', nume: 'Biceps' },
-  { id: 'triceps', nume: 'Triceps' },
-  { id: 'abdomen', nume: 'Abdomen' },
-  { id: 'fesieri', nume: 'Fesieri' },
-  { id: 'cvadriceps', nume: 'Cvadriceps' },
-  { id: 'ischiogambieri', nume: 'Ischiogambieri' },
-  { id: 'gambe', nume: 'Gambe' },
-  { id: 'lombari', nume: 'Lombari' },
-  { id: 'antebrate', nume: 'Antebrațe' },
-  { id: 'cardio', nume: 'Cardio' },
+function pachet(): PachetCatalog {
+  if (!text) throw new Error('catalog: nicio limbă încărcată — cheamă incarcaLimba() înainte');
+  return text;
+}
+
+export function exercitii(): ExerciseDef[] {
+  return lista;
+}
+
+export function getExercise(id: string): ExerciseDef | undefined {
+  return index.get(id);
+}
+
+// ── Taxonomie (grupe, dificultăți, categorii) ───────────────────────
+
+/** Grupele musculare, în ordinea de afișare. Numele vin din pachetul de limbă. */
+export const GRUPE_MUSCHI_IDS: MuscleGroup[] = [
+  'piept',
+  'spate',
+  'umeri',
+  'biceps',
+  'triceps',
+  'abdomen',
+  'fesieri',
+  'cvadriceps',
+  'ischiogambieri',
+  'gambe',
+  'lombari',
+  'antebrate',
+  'cardio',
 ];
 
 export function numeGrupa(id: MuscleGroup): string {
-  return GRUPE_MUSCHI.find((g) => g.id === id)?.nume ?? id;
+  return pachet().grupeMuschi[id] ?? id;
 }
 
-export const DIFICULTATE_LABEL: Record<number, string> = {
-  1: 'Pentru noobi',
-  2: 'Intermediar',
-  3: 'Avansat',
-};
+export function grupeMuschi(): { id: MuscleGroup; nume: string }[] {
+  return GRUPE_MUSCHI_IDS.map((id) => ({ id, nume: numeGrupa(id) }));
+}
 
-// ── Categorii (subcategorii de filtrare în bibliotecă) ──────────────
+export function numeDificultate(nivel: number): string {
+  return pachet().dificultate[nivel as 1 | 2 | 3] ?? String(nivel);
+}
 
-export const CATEGORII: { id: ExerciseCategory; nume: string; emoji: string; descriere: string }[] = [
-  {
-    id: 'calistenice',
-    nume: 'Calistenice',
-    emoji: '🤸',
-    descriere: 'Doar greutatea corpului: bara fixă, paralele, sol. Zero abonament necesar.',
-  },
-  {
-    id: 'greutati_libere',
-    nume: 'Greutăți libere',
-    emoji: '🏋️',
-    descriere: 'Haltere, gantere, kettlebell, mingi, benzi. Mai greu de învățat, mai mult mușchi la final.',
-  },
-  {
-    id: 'aparate',
-    nume: 'Aparate & cabluri',
-    emoji: '⚙️',
-    descriere: 'Traseu ghidat, risc mic — locul unde începe orice noob.',
-  },
-  {
-    id: 'powerlifting',
-    nume: 'Ridicările mari',
-    emoji: '💪',
-    descriere: 'Genuflexiuni, îndreptări, împins, presă militară — baza tuturor programelor celebre.',
-  },
-  { id: 'cardio', nume: 'Cardio', emoji: '🏃', descriere: 'Inimă, plămâni, calorii arse.' },
-  {
-    id: 'mobilitate',
-    nume: 'Mobilitate',
-    emoji: '🧘',
-    descriere: 'Încălzire și întinderi — 5 minute care îți salvează lunile următoare.',
-  },
+export const CATEGORII_IDS: ExerciseCategory[] = [
+  'calistenice',
+  'greutati_libere',
+  'aparate',
+  'powerlifting',
+  'cardio',
+  'mobilitate',
 ];
 
+/** Emoji-urile categoriilor — nu depind de limbă, deci stau aici. */
+export const EMOJI_CATEGORIE: Record<ExerciseCategory, string> = {
+  calistenice: '🤸',
+  greutati_libere: '🏋️',
+  aparate: '⚙️',
+  powerlifting: '💪',
+  cardio: '🏃',
+  mobilitate: '🧘',
+};
+
 export function numeCategorie(id: ExerciseCategory): string {
-  return CATEGORII.find((c) => c.id === id)?.nume ?? id;
+  return pachet().categorii[id]?.nume ?? id;
+}
+
+export function categorii(): { id: ExerciseCategory; nume: string; emoji: string; descriere: string }[] {
+  const p = pachet();
+  return CATEGORII_IDS.map((id) => ({
+    id,
+    nume: p.categorii[id].nume,
+    emoji: EMOJI_CATEGORIE[id],
+    descriere: p.categorii[id].descriere,
+  }));
 }
 
 /**
@@ -82,7 +112,7 @@ export function numeCategorie(id: ExerciseCategory): string {
  * declarate explicit pe exercițiu. Deducerea ține catalogul curat —
  * `categorii` se scrie doar unde nu e evident (ex. „ridicările mari").
  */
-export function categoriiExercitiu(e: ExerciseDef): ExerciseCategory[] {
+export function categoriiExercitiu(e: ExerciseDef | ExerciseCore): ExerciseCategory[] {
   const set = new Set<ExerciseCategory>(e.categorii ?? []);
   if (e.tip === 'cardio') set.add('cardio');
   if (e.tip === 'mobilitate') set.add('mobilitate');
@@ -110,8 +140,6 @@ export function categoriiExercitiu(e: ExerciseDef): ExerciseCategory[] {
   }
   return [...set];
 }
-
-const categoriiCache = new Map(EXERCITII.map((e) => [e.id, categoriiExercitiu(e)]));
 
 export function areCategorie(e: ExerciseDef, c: ExerciseCategory): boolean {
   return (categoriiCache.get(e.id) ?? categoriiExercitiu(e)).includes(c);

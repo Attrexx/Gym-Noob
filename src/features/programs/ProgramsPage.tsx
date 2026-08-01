@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DIFICULTATE_LABEL } from '@/data/catalog/exercises';
+import { numeDificultate } from '@/data/catalog/exercises';
 import { numaraExercitii, numeObiectiv, OBIECTIVE, PROGRAME } from '@/data/catalog/programs';
 import type { ProgramGoal } from '@/data/types';
 import { Chip, Sticker } from '@/design/components';
@@ -45,7 +45,7 @@ export function ProgrameAplicatie() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
               <b style={{ fontSize: '1.08rem' }}>{p.nume}</b>
               <span className="eticheta-mica" style={{ flexShrink: 0 }}>
-                {DIFICULTATE_LABEL[p.nivel]}
+                {numeDificultate(p.nivel)}
               </span>
             </div>
             <p className="mic" style={{ margin: '6px 0' }}>

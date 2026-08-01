@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useParams } from 'react-router-dom';
-import { DIFICULTATE_LABEL, getExercise, numeGrupa } from '@/data/catalog/exercises';
+import { getExercise, numeDificultate, numeGrupa } from '@/data/catalog/exercises';
 import { SectionTitle, StatTile, Sticker } from '@/design/components';
 import { data, nr } from '@/i18n/format';
 import { useT } from '@/i18n';
@@ -44,7 +44,7 @@ export function ExercisePage() {
         <div className="supratitlu">{ex.echipamentNume}</div>
         <h1 style={{ fontSize: '1.5rem' }}>{ex.nume}</h1>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <span className="eticheta-mica">{DIFICULTATE_LABEL[ex.dificultate]}</span>
+          <span className="eticheta-mica">{numeDificultate(ex.dificultate)}</span>
           {ex.muschi.map((m) => (
             <span key={m} className="eticheta-mica" style={{ background: 'var(--accent)', color: 'var(--accent-fg)' }}>
               {numeGrupa(m)}
@@ -111,7 +111,7 @@ export function ExercisePage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
                   <b>{v.nume}</b>
                   <span className="eticheta-mica" style={{ flexShrink: 0 }}>
-                    {DIFICULTATE_LABEL[v.dificultate]}
+                    {numeDificultate(v.dificultate)}
                   </span>
                 </div>
                 <div className="mic estompat">{v.echipamentNume}</div>

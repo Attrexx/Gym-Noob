@@ -5,7 +5,8 @@
  * singură stare de încărcare, fără cadre pe jumătate traduse. Textul
  * catalogului se adaugă aici la etapa 4 (`@/data/catalog/text/ro`).
  */
+import { catalogRo } from '@/data/catalog/text/ro';
 import { ro } from './ro';
 import type { Pachet } from '../types-pachet';
 
-export const pachet: Pachet = { mesaje: ro };
+export const pachet: Pachet = { mesaje: ro, catalog: catalogRo };

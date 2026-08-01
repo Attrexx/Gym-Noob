@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { BigButton, Chip, Modal, Sticker, Stepper } from '@/design/components';
-import { areCategorie, CATEGORII, EXERCITII, getExercise, numeGrupa } from '@/data/catalog/exercises';
+import { areCategorie, categorii, exercitii, getExercise, numeGrupa } from '@/data/catalog/exercises';
 import type { ExerciseCategory, TemplateItem } from '@/data/types';
 import type { Suggestion } from '@/domain/suggestions';
 import { descrieMotiv } from '@/i18n/descrieri';
@@ -36,14 +36,15 @@ export function AlegeExercitiu(props: {
   const [categorie, setCategorie] = useState<ExerciseCategory | 'toate'>('toate');
   const [ales, setAles] = useState<TemplateItem | null>(null);
 
+  const toate = exercitii();
   const lista = useMemo(() => {
     const q = cauta.trim().toLowerCase();
-    return EXERCITII.filter(
+    return toate.filter(
       (e) =>
         (categorie === 'toate' || areCategorie(e, categorie)) &&
         (!q || e.nume.toLowerCase().includes(q) || e.echipamentNume.toLowerCase().includes(q)),
     );
-  }, [cauta, categorie]);
+  }, [toate, cauta, categorie]);
 
   const inchide = () => {
     setAles(null);
@@ -109,7 +110,7 @@ export function AlegeExercitiu(props: {
       />
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8 }}>
         <Chip activ={categorie === 'toate'} onClick={() => setCategorie('toate')} nume="Toate" />
-        {CATEGORII.map((c) => (
+        {categorii().map((c) => (
           <Chip key={c.id} activ={categorie === c.id} onClick={() => setCategorie(c.id)} nume={`${c.emoji} ${c.nume}`} />
         ))}
       </div>

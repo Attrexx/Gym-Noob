@@ -253,9 +253,9 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
       const logs = await setLogsForSession(ses.id!);
       for (const l of logs) getExercise(l.exerciseId)?.muschi.forEach((m) => grupeRecente.add(m));
     }
-    const { EXERCITII } = await import('@/data/catalog/exercises');
+    const { exercitii } = await import('@/data/catalog/exercises');
     return suggestNext({
-      catalog: EXERCITII,
+      catalog: exercitii(),
       seturiAzi,
       inPlan: s.plan.map((i) => i.exerciseId),
       grupeRecente: [...grupeRecente] as never[],

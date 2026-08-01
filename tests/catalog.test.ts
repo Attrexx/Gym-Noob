@@ -1,23 +1,29 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import {
   areCategorie,
-  CATEGORII,
+  categorii,
   categoriiExercitiu,
-  EXERCITII,
+  exercitii,
   getExercise,
-  GRUPE_MUSCHI,
+  grupeMuschi,
 } from '../src/data/catalog/exercises';
 import { PROGRAME, getProgram, minuteEstimate, numaraExercitii } from '../src/data/catalog/programs';
 import { starterTemplates } from '../src/data/catalog/starterTemplates';
+import { incarcaLimba } from '../src/i18n/store';
+
+// catalogul își ia textul din pachetul limbii, deci trebuie încărcată una
+beforeAll(async () => {
+  await incarcaLimba('ro');
+});
 
 describe('catalogul de exerciții', () => {
   it('are id-uri unice', () => {
-    const ids = EXERCITII.map((e) => e.id);
+    const ids = exercitii().map((e) => e.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('are conținut complet pe fiecare exercițiu', () => {
-    for (const e of EXERCITII) {
+    for (const e of exercitii()) {
       expect(e.nume.length, e.id).toBeGreaterThan(2);
       expect(e.echipamentNume.length, e.id).toBeGreaterThan(2);
       expect(e.muschi.length, e.id).toBeGreaterThan(0);
@@ -30,8 +36,8 @@ describe('catalogul de exerciții', () => {
   });
 
   it('folosește doar grupe musculare cunoscute', () => {
-    const grupe = new Set(GRUPE_MUSCHI.map((g) => g.id));
-    for (const e of EXERCITII) {
+    const grupe = new Set(grupeMuschi().map((g) => g.id));
+    for (const e of exercitii()) {
       for (const m of [...e.muschi, ...(e.muschiSecundari ?? [])]) {
         expect(grupe.has(m), `${e.id} → ${m}`).toBe(true);
       }
@@ -39,7 +45,7 @@ describe('catalogul de exerciții', () => {
   });
 
   it('are variante care trimit spre exerciții existente și nu spre ele însele', () => {
-    for (const e of EXERCITII) {
+    for (const e of exercitii()) {
       for (const v of e.variante ?? []) {
         expect(getExercise(v), `${e.id} → ${v}`).toBeDefined();
         expect(v, `${e.id} se referă la sine`).not.toBe(e.id);
@@ -48,8 +54,8 @@ describe('catalogul de exerciții', () => {
   });
 
   it('pune fiecare exercițiu în cel puțin o categorie cunoscută', () => {
-    const cunoscute = new Set(CATEGORII.map((c) => c.id));
-    for (const e of EXERCITII) {
+    const cunoscute = new Set(categorii().map((c) => c.id));
+    for (const e of exercitii()) {
       const cat = categoriiExercitiu(e);
       expect(cat.length, e.id).toBeGreaterThan(0);
       for (const c of cat) expect(cunoscute.has(c), `${e.id} → ${c}`).toBe(true);
@@ -72,8 +78,8 @@ describe('catalogul de exerciții', () => {
   });
 
   it('are cel puțin un exercițiu în fiecare categorie', () => {
-    for (const c of CATEGORII) {
-      expect(EXERCITII.some((e) => areCategorie(e, c.id)), c.id).toBe(true);
+    for (const c of categorii()) {
+      expect(exercitii().some((e) => areCategorie(e, c.id)), c.id).toBe(true);
     }
   });
 });

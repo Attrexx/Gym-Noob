@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   areCategorie,
-  CATEGORII,
-  DIFICULTATE_LABEL,
-  EXERCITII,
-  GRUPE_MUSCHI,
+  categorii,
+  exercitii,
+  grupeMuschi,
+  numeDificultate,
   numeGrupa,
 } from '@/data/catalog/exercises';
 import type { ExerciseCategory, MuscleGroup } from '@/data/types';
@@ -13,22 +13,24 @@ import { Chip, Sticker } from '@/design/components';
 import { useT } from '@/i18n';
 
 export function LibraryPage() {
-  const { t } = useT();
+  const { t, limba } = useT();
   const [categorie, setCategorie] = useState<ExerciseCategory | 'toate'>('toate');
   const [grupa, setGrupa] = useState<MuscleGroup | 'toate'>('toate');
   const [cauta, setCauta] = useState('');
 
+  const toate = exercitii();
   const lista = useMemo(() => {
     const q = cauta.trim().toLowerCase();
-    return EXERCITII.filter(
+    return toate.filter(
       (e) =>
         (categorie === 'toate' || areCategorie(e, categorie)) &&
         (grupa === 'toate' || e.muschi.includes(grupa) || e.muschiSecundari?.includes(grupa)) &&
         (!q || e.nume.toLowerCase().includes(q) || e.echipamentNume.toLowerCase().includes(q)),
     );
-  }, [categorie, grupa, cauta]);
+    // `limba` e în dependențe fiindcă numele după care se caută se traduc
+  }, [toate, categorie, grupa, cauta, limba]);
 
-  const catActiva = CATEGORII.find((c) => c.id === categorie);
+  const catActiva = categorii().find((c) => c.id === categorie);
 
   return (
     <div className="pagina">
@@ -36,7 +38,7 @@ export function LibraryPage() {
         <div className="supratitlu">biblioteca de mișcări</div>
         <h1>Exerciții</h1>
         <p className="mic estompat" style={{ margin: 0 }}>
-          {t('comun.exercitii', { n: EXERCITII.length })} cu sfaturi de formă, utilizare a aparatelor și
+          {t('comun.exercitii', { n: toate.length })} cu sfaturi de formă, utilizare a aparatelor și
           demonstrații.
         </p>
       </div>
@@ -55,7 +57,7 @@ export function LibraryPage() {
       </div>
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8 }}>
         <Chip activ={categorie === 'toate'} onClick={() => setCategorie('toate')} nume="Toate" />
-        {CATEGORII.map((c) => (
+        {categorii().map((c) => (
           <Chip
             key={c.id}
             activ={categorie === c.id}
@@ -75,7 +77,7 @@ export function LibraryPage() {
       </div>
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 8 }}>
         <Chip activ={grupa === 'toate'} onClick={() => setGrupa('toate')} nume="Toate" />
-        {GRUPE_MUSCHI.map((g) => (
+        {grupeMuschi().map((g) => (
           <Chip key={g.id} activ={grupa === g.id} onClick={() => setGrupa(g.id)} nume={g.nume} />
         ))}
       </div>
@@ -90,7 +92,7 @@ export function LibraryPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
               <b style={{ fontSize: '1.02rem' }}>{e.nume}</b>
               <span className="eticheta-mica" style={{ flexShrink: 0 }}>
-                {DIFICULTATE_LABEL[e.dificultate]}
+                {numeDificultate(e.dificultate)}
               </span>
             </div>
             <div className="mic estompat">

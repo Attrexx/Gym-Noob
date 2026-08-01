@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { db } from '@/data/db';
-import { DIFICULTATE_LABEL, getExercise } from '@/data/catalog/exercises';
+import { getExercise, numeDificultate } from '@/data/catalog/exercises';
 import { getProgram, minuteEstimate, numeObiectiv } from '@/data/catalog/programs';
 import { etichetaProgram, importaProgram } from '@/data/repo';
 import type { ProgramWorkout, TemplateItem } from '@/data/types';
@@ -49,7 +49,7 @@ export function ProgramPage() {
   return (
     <div className="pagina">
       <div className="coperta">
-        <div className="supratitlu">program · {DIFICULTATE_LABEL[program.nivel].toLowerCase()}</div>
+        <div className="supratitlu">program · {numeDificultate(program.nivel).toLowerCase()}</div>
         <h1 style={{ fontSize: '1.45rem' }}>{program.nume}</h1>
         <p className="mic" style={{ margin: '4px 0 0' }}>
           {program.subtitlu}
