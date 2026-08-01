@@ -212,6 +212,8 @@ label {
   0%, 100% { transform: rotate(-1.2deg); }
   50% { transform: rotate(1.2deg); }
 }
+/* atrage privirea fără să țipe — ex. butonul „conectează ceasul" din antet */
+.tresarire { animation: tresarire 1.6s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
