@@ -3,6 +3,7 @@ import { secundeTotale, useSession } from '@/state/sessionStore';
 import { useLive } from '@/state/liveStore';
 import { getExercise } from '@/data/catalog/exercises';
 import { descrieAparat } from '@/i18n/descrieri';
+import { useT } from '@/i18n';
 import { fmtDurata, useTick } from './useTick';
 
 const PRAG_INACTIVITATE_MS = 45_000;
@@ -16,6 +17,7 @@ const PRAG_MISCARE = 4; // m/s² diferență față de citirea anterioară
  * și nu mănâncă bateria cu fundalul galben la luminozitate maximă.
  */
 export function Screensaver(props: { activ: boolean }) {
+  const { t } = useT();
   const [adormit, setAdormit] = useState(false);
   const ultimaAtingere = useRef(Date.now());
   const ultimaAcc = useRef<number | null>(null);
@@ -66,7 +68,7 @@ export function Screensaver(props: { activ: boolean }) {
     <div
       onPointerDown={() => setAdormit(false)}
       role="button"
-      aria-label="Atinge pentru a reveni"
+      aria-label={t('economizor.aria')}
       style={{
         position: 'fixed',
         inset: 0,
@@ -84,7 +86,7 @@ export function Screensaver(props: { activ: boolean }) {
       {restRamas !== null && restRamas > 0 ? (
         <>
           <div style={{ color: 'rgba(245,197,24,0.55)', fontSize: '0.8rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700 }}>
-            pauză
+            {t('economizor.pauza')}
           </div>
           <div style={{ fontFamily: 'var(--font-titlu)', fontSize: '5.5rem', color: 'rgba(245,197,24,0.85)', lineHeight: 1 }}>
             {fmtDurata(restRamas)}
@@ -109,10 +111,10 @@ export function Screensaver(props: { activ: boolean }) {
         <span>🔥 {Math.round(s.kcal + kcalParial)} kcal</span>
         <span>💧 {s.apaMl} ml</span>
         {s.hrUltim ? <span>♥ {s.hrUltim}</span> : null}
-        {s.status === 'pauza' ? <span>⏸ pauză</span> : null}
+        {s.status === 'pauza' ? <span>{t('economizor.pauzaScurt')}</span> : null}
       </div>
       <div style={{ position: 'absolute', bottom: 28, color: 'rgba(255,255,255,0.22)', fontSize: '0.75rem' }}>
-        atinge sau mișcă telefonul pentru a reveni
+        {t('economizor.reveni')}
       </div>
     </div>
   );

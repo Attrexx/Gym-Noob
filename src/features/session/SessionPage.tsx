@@ -27,7 +27,7 @@ import { elibereazaEcranul, reactiveazaLaRevenire, tineEcranAprins } from '@/ser
 import { aleator, incurajariFinal, incurajariSet } from '@/data/catalog/tips';
 import { type PrHit } from '@/domain/pr';
 import { descrieMotiv, descriereRealizare, numeRealizare } from '@/i18n/descrieri';
-import { t as tr } from '@/i18n';
+import { T, t as tr, useT } from '@/i18n';
 import { suggestNext, type Suggestion } from '@/domain/suggestions';
 import { verificaRealizari } from '@/services/achievementService';
 import { ACHIEVEMENTS } from '@/domain/achievements';
@@ -51,6 +51,7 @@ export function SessionPage() {
 // ─────────────────────────── ECRANUL DE START ───────────────────────────
 
 function StartScreen() {
+  const { t } = useT();
   const { profil } = useProfile();
   const loc = useLocation();
   const porneste = useSession((st) => st.porneste);
@@ -75,59 +76,59 @@ function StartScreen() {
 
   const start = async () => {
     if (alesId === null) return;
-    const t = (sabloane ?? []).find((x) => x.id === alesId);
-    if (!t) return;
+    const sablon = (sabloane ?? []).find((x) => x.id === alesId);
+    if (!sablon) return;
     await porneșteCu(
-      t.items.map((i) => ({ ...i })),
-      { templateId: t.id, templateNume: numeSablon(t) },
+      sablon.items.map((i) => ({ ...i })),
+      { templateId: sablon.id, templateNume: numeSablon(sablon) },
     );
   };
 
   return (
     <div className="pagina">
       <div className="coperta">
-        <div className="supratitlu">e ora de sală</div>
-        <h1>Începe sesiunea</h1>
+        <div className="supratitlu">{t('sesiune.start.supratitlu')}</div>
+        <h1>{t('sesiune.start.titlu')}</h1>
       </div>
       <FlexuSpune poza="flex">
-        Ai un plan? Alege-l. N-ai? <b>Mod liber</b> — alegi exercițiul, îi pui cifrele și ai pornit. Adaugi altele
-        pe parcurs, iar la final poți salva tot ca plan. Cronometrul, apa și caloriile le țin eu.
+        <T k="sesiune.start.flexu" />
       </FlexuSpune>
 
       {/* calea rapidă: de la ușa sălii la primul set în trei atingeri */}
       <Sticker accent inclinat onClick={() => setModLiber(true)} style={{ marginBottom: 14 }}>
         <b id="mod-liber" style={{ fontSize: '1.15rem' }}>
-          🔥 MOD LIBER — începe acum
+          {t('sesiune.start.modLiber')}
         </b>
-        <div className="mic">alegi exercițiul pe loc, fără plan dinainte</div>
+        <div className="mic">{t('sesiune.start.modLiberSub')}</div>
       </Sticker>
 
-      {(sabloane ?? []).length > 0 && <h2 style={{ marginTop: 4 }}>Planurile tale</h2>}
-      {(sabloane ?? []).map((t: Template) => (
+      {(sabloane ?? []).length > 0 && <h2 style={{ marginTop: 4 }}>{t('sesiune.start.planurile')}</h2>}
+      {(sabloane ?? []).map((sablon: Template) => (
         <Sticker
-          key={t.id}
-          onClick={() => setAlesId(t.id!)}
-          style={alesId === t.id ? { outline: '4px solid var(--accent)' } : undefined}
+          key={sablon.id}
+          onClick={() => setAlesId(sablon.id!)}
+          style={alesId === sablon.id ? { outline: '4px solid var(--accent)' } : undefined}
         >
-          <b>{numeSablon(t)}</b> {t.predefinit && <span className="eticheta-mica">de la Flexu</span>}
-          <div className="mic estompat">{t.items.length} exerciții</div>
+          <b>{numeSablon(sablon)}</b>{' '}
+          {sablon.predefinit && <span className="eticheta-mica">{t('planuri.deLaFlexu')}</span>}
+          <div className="mic estompat">{t('comun.exercitii', { n: sablon.items.length })}</div>
         </Sticker>
       ))}
 
       <BigButton varianta="accent" mare disabled={alesId === null} onClick={() => void start()}>
-        ▶ START
+        {t('sesiune.start.buton')}
       </BigButton>
 
       <AlegeExercitiu
         deschis={modLiber}
         onInchide={() => setModLiber(false)}
-        actiune="▶ Începe cu ăsta"
+        actiune={t('sesiune.start.incepeCuAsta')}
         onAlege={(item) => {
           setModLiber(false);
           void porneșteCu([item]);
         }}
         extra={{
-          text: 'Pornesc gol, mă hotărăsc acolo',
+          text: t('sesiune.start.pornescGol'),
           onClick: () => {
             setModLiber(false);
             void porneșteCu([]);
@@ -141,6 +142,7 @@ function StartScreen() {
 // ─────────────────────────── ECRANUL LIVE ───────────────────────────
 
 function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
+  const { t } = useT();
   const s = useSession();
   const { profil, setari } = useProfile();
   const nav = useNavigate();
@@ -228,7 +230,7 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
       restNotificat.current = true;
       if (setari?.sunete) sunete.gata();
       if (setari?.vibratii) vibreaza([200, 100, 200]);
-      if (setari?.vocale) spune('Pauza s-a terminat. Următorul set!');
+      if (setari?.vocale) spune(t('sesiune.vocal.pauzaTerminata'));
       s.stopRest();
     }
   }, [restRamas, setari, s]);
@@ -275,7 +277,7 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
       setPrCelebration(prs);
       if (setari?.sunete) sunete.record();
       if (setari?.vibratii) vibreaza([100, 50, 100, 50, 300]);
-      if (setari?.vocale) spune('Record personal! Felicitări!');
+      if (setari?.vocale) spune(t('sesiune.vocal.record'));
       void confetti({ particleCount: 120, spread: 75, origin: { y: 0.6 } });
     } else if (setari?.vocale) {
       spune(aleator(incurajariSet()));
@@ -364,13 +366,13 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
         <Sticker accent className="pop">
           <div className="centrat">
             <div className="supratitlu-mic" style={{ color: 'inherit' }}>
-              pauză între seturi
+              {t('sesiune.pauzaIntre')}
             </div>
             <div style={{ fontFamily: 'var(--font-titlu)', fontSize: '3rem', lineHeight: 1.1 }}>{fmtDurata(restRamas)}</div>
             <ProgressBar procent={(1 - restRamas / s.restTotalSec) * 100} />
             <div className="rand" style={{ marginTop: 10 }}>
-              <BigButton onClick={() => s.startRest(restRamas + 30)}>+30s</BigButton>
-              <BigButton onClick={() => s.stopRest()}>Sar peste</BigButton>
+              <BigButton onClick={() => s.startRest(restRamas + 30)}>{t('sesiune.plus30')}</BigButton>
+              <BigButton onClick={() => s.stopRest()}>{t('sesiune.sarPeste')}</BigButton>
             </div>
           </div>
         </Sticker>
@@ -380,7 +382,10 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
       {sugestieAuto && (
         <Sticker className="pop">
           <FlexuSpune poza="ganditor" marime={60}>
-            {descrieMotiv(sugestieAuto.motiv)} Ce zici de <b>{sugestieAuto.exercise.nume}</b>?
+            <T
+              k="sesiune.sugestie.ceZici"
+              p={{ motiv: descrieMotiv(sugestieAuto.motiv), exercitiu: sugestieAuto.exercise.nume }}
+            />
           </FlexuSpune>
           <div className="rand">
             <BigButton
@@ -390,10 +395,10 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
                 setSugestieAuto(null);
               }}
             >
-              Adaugă
+              {t('sesiune.sugestie.adauga')}
             </BigButton>
             <BigButton varianta="contur" onClick={() => setSugestieAuto(null)}>
-              Nu acum
+              {t('sesiune.sugestie.nuAcum')}
             </BigButton>
           </div>
         </Sticker>
@@ -404,19 +409,16 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
         <ExercitiuCurent key={s.exIndex} planIdx={s.exIndex} onSet={dupaSet} />
       ) : (
         <>
-          <FlexuSpune poza="explica">
-            Încă n-ai ales nimic. Apasă butonul de mai jos, caută aparatul sau exercițiul și dă-i drumul —
-            nu trebuie să știi de la început tot ce faci azi.
-          </FlexuSpune>
+          <FlexuSpune poza="explica">{t('sesiune.golFlexu')}</FlexuSpune>
           <BigButton varianta="accent" mare onClick={() => setAdaugExercitiu(true)}>
-            + Alege primul exercițiu
+            {t('sesiune.alegePrimul')}
           </BigButton>
         </>
       )}
 
       {/* ── planul sesiunii ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 16 }}>
-        <h2 style={{ margin: 0 }}>Planul de azi</h2>
+        <h2 style={{ margin: 0 }}>{t('sesiune.planAzi')}</h2>
         <button
           onClick={() => {
             setAdaugExercitiu(true);
@@ -424,7 +426,7 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
           }}
           style={{ background: 'none', border: 'none', fontWeight: 800, textDecoration: 'underline', color: 'inherit', fontSize: '0.85rem' }}
         >
-          💡 Ce urmează?
+          {t('sesiune.ceUrmeaza')}
         </button>
       </div>
       {s.plan.map((it, idx) => {
@@ -444,11 +446,11 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
               <div>
                 <b>{gata ? '✅ ' : ''}{ex.nume}</b>{' '}
-                {idx === s.exIndex && <span className="eticheta-mica">▶ activ</span>}
+                {idx === s.exIndex && <span className="eticheta-mica">{t('sesiune.activ')}</span>}
                 <div className="mic estompat">
-                  {s.seturiFacute[idx]}/{it.seturi} seturi
+                  {t('sesiune.seturiFacute', { facute: s.seturiFacute[idx], total: it.seturi })}
                   {ex.masura === 'repetari'
-                    ? ` · ${it.repetari ? `${it.repetari} rep.` : 'maxim'} @ ${nr(it.greutate ?? 0)} kg`
+                    ? ` · ${it.repetari ? t('descriere.repetari', { n: it.repetari }) : t('sesiune.repMaxim')} @ ${nr(it.greutate ?? 0)} kg`
                     : ` · ${Math.round((it.durataSec ?? 0) / 60)} min`}
                 </div>
                 {it.notite && (
@@ -463,7 +465,7 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
                     e.stopPropagation();
                     s.scoateDinPlan(idx);
                   }}
-                  aria-label={`Scoate ${ex.nume} din plan`}
+                  aria-label={t('sesiune.scoateDinPlan', { exercitiu: ex.nume })}
                   style={{ background: 'none', border: 'none', fontSize: '1.1rem', color: 'inherit' }}
                 >
                   ✕
@@ -480,24 +482,24 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
           void construiesteSugestii().then(setSugestii);
         }}
       >
-        + Adaugă exercițiu
+        {t('sesiune.adaugaExercitiu')}
       </BigButton>
       <p className="mic estompat centrat" style={{ margin: '6px 0 0' }}>
-        Exercițiul adăugat devine cel activ. Poți sări oricând înapoi la altul apăsând pe el în listă.
+        {t('sesiune.notaAdaugare')}
       </p>
 
       {/* ── apă ── */}
-      <h2 style={{ marginTop: 18 }}>💧 Apă</h2>
+      <h2 style={{ marginTop: 18 }}>{t('sesiune.apa.titlu')}</h2>
       <Sticker>
         <ProgressBar
           procent={(s.apaMl / (profil?.tintaApaSesiune ?? 700)) * 100}
-          eticheta={`${s.apaMl} / ${profil?.tintaApaSesiune ?? 700} ml`}
+          eticheta={t('sesiune.apa.progres', { bauti: s.apaMl, tinta: profil?.tintaApaSesiune ?? 700 })}
           culoare="#1565C0"
         />
         <div className="rand" style={{ marginTop: 10 }}>
           {[150, 250, 500].map((ml) => (
             <BigButton key={ml} onClick={() => void s.bea(ml)}>
-              +{ml} ml
+              {t('sesiune.apa.buton', { ml })}
             </BigButton>
           ))}
         </div>
@@ -506,7 +508,7 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
       {/* ── ceas și aparat ── */}
       {bleDisponibil && (
         <>
-          <h2 style={{ marginTop: 18 }}>📡 Ceas și aparat</h2>
+          <h2 style={{ marginTop: 18 }}>{t('sesiune.ble.titlu')}</h2>
           <Sticker>
             {hrCon ? (
               <div className="rand">
@@ -514,20 +516,19 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
                   ♥ <b>{s.hrUltim ?? '—'} bpm</b> <span className="mic estompat">({hrCon.deviceName})</span>
                 </span>
                 <BigButton varianta="contur" onClick={() => { hrCon.deconecteaza(); setHrCon(null); }}>
-                  Deconectează
+                  {t('sesiune.ble.deconecteaza')}
                 </BigButton>
               </div>
             ) : (
               <>
                 <div className="rand">
                   <span className="mic">
-                    {cautCeas ? 'Caut ceasul…' : 'Ceas cu difuzare de puls (ex. Huawei GT4)?'}
+                    {t(cautCeas ? 'sesiune.ble.cautCeasul' : 'sesiune.ble.ceasIntrebare')}
                   </span>
-                  <BigButton onClick={() => void conectezCeasul()}>♥ Conectează</BigButton>
+                  <BigButton onClick={() => void conectezCeasul()}>{t('sesiune.ble.conecteazaCeas')}</BigButton>
                 </div>
                 <p className="mic estompat" style={{ margin: '6px 0 0' }}>
-                  Pe ceas: pornește un antrenament și activează „Difuzare ritm cardiac". Îl caut singur la
-                  începutul sesiunii, dar dacă browserul nu mă lasă, un tap aici rezolvă.
+                  {t('sesiune.ble.ceasExplicatie')}
                 </p>
               </>
             )}
@@ -548,20 +549,21 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
                     useLive.getState().setAparat(null);
                   }}
                 >
-                  Deconectează
+                  {t('sesiune.ble.deconecteaza')}
                 </BigButton>
               </div>
             ) : (
               <>
                 <div className="rand">
-                  <span className="mic">{cautAparat ? 'Caut aparatul…' : 'Bandă sau rower cu Bluetooth?'}</span>
+                  <span className="mic">
+                    {t(cautAparat ? 'sesiune.ble.cautAparatul' : 'sesiune.ble.aparatIntrebare')}
+                  </span>
                   <BigButton id="conecteaza-aparat" onClick={() => void conectezAparatul()}>
-                    🔌 Conectează
+                    {t('sesiune.ble.conecteazaAparat')}
                   </BigButton>
                 </div>
                 <p className="mic estompat" style={{ margin: '6px 0 0' }}>
-                  Pornește Bluetooth-ul de pe consola aparatului, apoi apasă aici. Preiau viteza, distanța și
-                  puterea direct de la el. Dacă nu-l găsesc, e în Setări un scaner care spune ce vorbește aparatul.
+                  {t('sesiune.ble.aparatExplicatie')}
                 </p>
               </>
             )}
@@ -574,39 +576,55 @@ function LiveScreen(props: { onSumar: (s: Sumar) => void }) {
         deschis={adaugExercitiu}
         onInchide={() => setAdaugExercitiu(false)}
         sugestii={sugestii}
-        actiune="▶ Treci la el acum"
+        actiune={t('sesiune.treciLaEl')}
         onAlege={(it) => {
           setAdaugExercitiu(false);
           adaugaSiTreciLa(it);
         }}
       />
 
-      <Modal deschis={!!prCelebration} onInchide={() => setPrCelebration(null)} titlu="🏆 RECORD PERSONAL!">
+      <Modal deschis={!!prCelebration} onInchide={() => setPrCelebration(null)} titlu={t('sesiune.pr.titlu')}>
         <div className="centrat">
           <Flexu poza="sarbatoreste" marime={110} />
           {(prCelebration ?? []).map((pr) => (
             <p key={pr.tip} style={{ fontWeight: 800 }}>
-              {tr(`domeniu.pr.${pr.tip}`)}: <b>{nr(pr.valoare)}</b>
-              {pr.valoareVeche ? <span className="estompat mic"> (vechiul record: {nr(pr.valoareVeche)})</span> : null}
+              <T
+                k="sesiune.pr.linie"
+                p={{ tip: t(`domeniu.pr.${pr.tip}`), valoare: nr(pr.valoare) }}
+              />
+              {pr.valoareVeche ? (
+                <span className="estompat mic">
+                  {' '}
+                  ({t('sesiune.pr.vechiul', { valoare: nr(pr.valoareVeche) })})
+                </span>
+              ) : null}
             </p>
           ))}
           <BigButton varianta="accent" mare onClick={() => setPrCelebration(null)}>
-            Mergem mai departe! 🚀
+            {t('sesiune.pr.maiDeparte')}
           </BigButton>
         </div>
       </Modal>
 
-      <Modal deschis={confirmStop} onInchide={() => setConfirmStop(false)} titlu="Închei sesiunea?">
+      <Modal deschis={confirmStop} onInchide={() => setConfirmStop(false)} titlu={t('sesiune.stop.titlu')}>
         <p>
-          Ai {fmtDurata(sec)} de antrenament activ și {s.seturiFacute.reduce((a, b) => a + b, 0)} seturi înregistrate.
+          {t('sesiune.stop.rezumat', {
+            timp: fmtDurata(sec),
+            seturi: t('comun.seturi', { n: s.seturiFacute.reduce((a, b) => a + b, 0) }),
+          })}
         </p>
         <div style={{ display: 'grid', gap: 10 }}>
           <BigButton varianta="accent" mare onClick={() => void opresteSesiunea(false)}>
-            ✅ Da, închei — salvează tot
+            {t('sesiune.stop.da')}
           </BigButton>
-          <BigButton onClick={() => setConfirmStop(false)}>Nu, mă întorc la treabă</BigButton>
-          <BigButton varianta="pericol" onClick={() => { if (confirm('Sigur? Sesiunea va fi marcată ca abandonată.')) void opresteSesiunea(true); }}>
-            Abandonez sesiunea
+          <BigButton onClick={() => setConfirmStop(false)}>{t('sesiune.stop.nu')}</BigButton>
+          <BigButton
+            varianta="pericol"
+            onClick={() => {
+              if (confirm(t('sesiune.stop.abandonConfirmare'))) void opresteSesiunea(true);
+            }}
+          >
+            {t('sesiune.stop.abandon')}
           </BigButton>
         </div>
       </Modal>
@@ -625,7 +643,8 @@ export function discuriPeParte(total: number): string {
       ramas -= d;
     }
   }
-  return folosite.length ? folosite.map((d) => nr(d)).join(' + ') + ' kg' : 'nimic';
+  // nu e componentă, deci `tr` sincron; „+" și „kg" sunt simboluri, rămân în cod
+  return folosite.length ? folosite.map((d) => nr(d)).join(' + ') + ' kg' : tr('sesiune.discuriNimic');
 }
 
 // ─────────────────────── CARDUL EXERCIȚIULUI CURENT ───────────────────────
@@ -645,6 +664,7 @@ function ExercitiuCurent(props: {
   planIdx: number;
   onSet: (planIdx: number, date: DateSet) => Promise<void>;
 }) {
+  const { t } = useT();
   const s = useSession();
   const { profil } = useProfile();
   const item = s.plan[props.planIdx];
@@ -764,11 +784,15 @@ function ExercitiuCurent(props: {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
         <h2 style={{ margin: 0 }}>{ex.nume}</h2>
         <a href={`#/biblioteca/${ex.id}`} className="mic" style={{ fontWeight: 700, flexShrink: 0 }}>
-          cum se face? →
+          {t('sesiune.cumSeFace')}
         </a>
       </div>
       <div className="mic estompat" style={{ marginBottom: item.notite ? 4 : 10 }}>
-        Setul {Math.min(s.seturiFacute[props.planIdx] + 1, item.seturi)} din {item.seturi} · {ex.echipamentNume}
+        {t('sesiune.setulDin', {
+          n: Math.min(s.seturiFacute[props.planIdx] + 1, item.seturi),
+          total: item.seturi,
+          echipament: ex.echipamentNume,
+        })}
       </div>
       {item.notite && (
         <div
@@ -801,17 +825,31 @@ function ExercitiuCurent(props: {
 
       {gata ? (
         <FlexuSpune poza="sarbatoreste" marime={64}>
-          Toate seturile bifate la exercițiul ăsta! Alege următorul din plan. 💪
+          {t('sesiune.toateSeturile')}
         </FlexuSpune>
       ) : ex.masura === 'repetari' ? (
         <>
           <div className="rand" style={{ alignItems: 'flex-start' }}>
-            <Stepper eticheta="Greutate" valoare={greutate} pas={2.5} unitate="kg" onChange={setGreutate} max={500} />
-            <Stepper eticheta="Repetări" valoare={repetari} pas={1} onChange={setRepetari} min={1} max={100} />
+            <Stepper
+              eticheta={t('parametri.greutate')}
+              valoare={greutate}
+              pas={2.5}
+              unitate="kg"
+              onChange={setGreutate}
+              max={500}
+            />
+            <Stepper
+              eticheta={t('parametri.repetari')}
+              valoare={repetari}
+              pas={1}
+              onChange={setRepetari}
+              min={1}
+              max={100}
+            />
           </div>
           <div style={{ margin: '10px 0' }}>
             <div className="stepper-eticheta" style={{ textAlign: 'center', fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase' }}>
-              Cât de greu a fost? (RPE {rpe})
+              {t('sesiune.rpe.intrebare', { rpe })}
             </div>
             <input
               type="range"
@@ -819,45 +857,62 @@ function ExercitiuCurent(props: {
               max={10}
               value={rpe}
               onChange={(e) => setRpe(Number(e.target.value))}
-              aria-label="Efort perceput"
+              aria-label={t('sesiune.rpe.aria')}
               style={{ width: '100%' }}
             />
             <div className="rand mic estompat" style={{ justifyContent: 'space-between' }}>
-              <span>lejer</span>
-              <span>maxim</span>
+              <span>{t('sesiune.rpe.lejer')}</span>
+              <span>{t('sesiune.rpe.maxim')}</span>
             </div>
           </div>
           {item.tempo && (
             <div className="rand" style={{ marginBottom: 10 }}>
               <BigButton varianta={metronomActiv ? 'accent' : 'contur'} onClick={toggleMetronom}>
-                🎵 Tempo {item.tempo} {metronomActiv && fazaTempo ? `— ${fazaTempo}` : ''}
+                {metronomActiv && fazaTempo
+                  ? t('sesiune.tempo.cuFaza', { tempo: item.tempo, faza: fazaTempo })
+                  : t('sesiune.tempo.buton', { tempo: item.tempo })}
               </BigButton>
             </div>
           )}
           {ex.echipament === 'haltera' && greutate > 20 && (
             <p className="mic estompat centrat" style={{ margin: '0 0 10px' }}>
-              🏋️ {nr(greutate)} kg = bara (20 kg) + <b>{discuriPeParte(greutate)}</b> pe fiecare parte
+              <T k="sesiune.discuri" p={{ greutate, discuri: discuriPeParte(greutate) }} />
             </p>
           )}
           <BigButton varianta="accent" mare onClick={() => void props.onSet(props.planIdx, { repetari, greutate, rpe })}>
-            ✔ Am terminat setul
+            {t('sesiune.amTerminatSetul')}
           </BigButton>
         </>
       ) : (
         <>
           <div className="centrat" style={{ margin: '8px 0' }}>
             <div style={{ fontFamily: 'var(--font-titlu)', fontSize: '3rem' }}>{fmtDurata(cronoSec)}</div>
-            <div className="mic estompat">țintă: {fmtDurata(item.durataSec ?? 300)}</div>
+            <div className="mic estompat">{t('sesiune.tinta', { timp: fmtDurata(item.durataSec ?? 300) })}</div>
           </div>
           {banda && (
             <div style={{ border: '2px dashed var(--linie)', borderRadius: 10, padding: '10px 6px', margin: '0 0 10px' }}>
               <div style={{ display: 'grid', gap: 10 }}>
-                <Stepper eticheta="Viteză" valoare={viteza} pas={0.5} min={0.5} max={22} unitate="km/h" onChange={(v) => schimbaBanda(v, inclinatie)} />
-                <Stepper eticheta="Înclinație" valoare={inclinatie} pas={1} min={0} max={20} unitate="%" onChange={(v) => schimbaBanda(viteza, v)} />
+                <Stepper
+                  eticheta={t('sesiune.banda.viteza')}
+                  valoare={viteza}
+                  pas={0.5}
+                  min={0.5}
+                  max={22}
+                  unitate="km/h"
+                  onChange={(v) => schimbaBanda(v, inclinatie)}
+                />
+                <Stepper
+                  eticheta={t('sesiune.banda.inclinatie')}
+                  valoare={inclinatie}
+                  pas={1}
+                  min={0}
+                  max={20}
+                  unitate="%"
+                  onChange={(v) => schimbaBanda(viteza, v)}
+                />
               </div>
               <p className="mic estompat centrat" style={{ margin: '6px 0 0' }}>
-                Schimbă-le din mers, exact cum le schimbi pe bandă — caloriile țin cont de fiecare porțiune.
-                Intensitate acum: <b>{metBanda(viteza, inclinatie).toFixed(1)} MET</b>
+                <T k="sesiune.banda.explicatie" p={{ met: metBanda(viteza, inclinatie).toFixed(1) }} />
               </p>
             </div>
           )}
@@ -871,7 +926,7 @@ function ExercitiuCurent(props: {
                   setCronoActiv(true);
                 }}
               >
-                ▶ {crono > 0 ? 'Continuă' : 'Pornește'}
+                {t(crono > 0 ? 'sesiune.crono.continua' : 'sesiune.crono.porneste')}
               </BigButton>
             ) : (
               <BigButton
@@ -880,11 +935,11 @@ function ExercitiuCurent(props: {
                   setCronoActiv(false);
                 }}
               >
-                ⏸ Oprește
+                {t('sesiune.crono.opreste')}
               </BigButton>
             )}
             <BigButton varianta="contur" onClick={() => { setCrono(0); setCronoActiv(false); segmente.current = []; }}>
-              ↺ Reset
+              {t('sesiune.crono.reset')}
             </BigButton>
           </div>
           <div style={{ margin: '10px 0' }}>
@@ -894,12 +949,12 @@ function ExercitiuCurent(props: {
               max={10}
               value={rpe}
               onChange={(e) => setRpe(Number(e.target.value))}
-              aria-label="Efort perceput"
+              aria-label={t('sesiune.rpe.aria')}
               style={{ width: '100%' }}
             />
             <div className="rand mic estompat" style={{ justifyContent: 'space-between' }}>
-              <span>lejer</span>
-              <span>maxim (RPE {rpe})</span>
+              <span>{t('sesiune.rpe.lejer')}</span>
+              <span>{t('sesiune.rpe.maximCu', { rpe })}</span>
             </div>
           </div>
           <BigButton
@@ -927,7 +982,7 @@ function ExercitiuCurent(props: {
               });
             }}
           >
-            ✔ Am terminat ({fmtDurata(cronoSec)})
+            {t('sesiune.amTerminat', { timp: fmtDurata(cronoSec) })}
           </BigButton>
         </>
       )}
@@ -938,28 +993,33 @@ function ExercitiuCurent(props: {
 // ─────────────────────────── REZUMATUL FINAL ───────────────────────────
 
 function SummaryScreen(props: { sumar: Sumar }) {
+  const { t } = useT();
   const nav = useNavigate();
   const { sumar } = props;
   return (
     <div className="pagina pop">
       <div className="coperta centrat">
-        <div className="supratitlu">sesiune încheiată</div>
-        <h1>BRAVO! 🎉</h1>
+        <div className="supratitlu">{t('sesiune.rezumat.supratitlu')}</div>
+        <h1>{t('sesiune.rezumat.titlu')}</h1>
         <Flexu poza="sarbatoreste" marime={130} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
         <StatTile
           valoare={fmtDurata(sumar.totalSec)}
-          eticheta="la sală"
+          eticheta={t('sesiune.rezumat.laSala')}
           sub={`${fmtOra(sumar.inceput)} → ${fmtOra(sumar.sfarsit)}`}
         />
-        <StatTile valoare={sumar.kcal} eticheta="kcal arse" accent />
-        <StatTile valoare={fmtDurata(sumar.activSec)} eticheta="timp activ" sub={`pauze ${fmtDurata(sumar.pauzaSec)}`} />
-        <StatTile valoare={sumar.seturi} eticheta="seturi" />
-        <StatTile valoare={`${sumar.apaMl} ml`} eticheta="apă băută" />
+        <StatTile valoare={sumar.kcal} eticheta={t('sesiune.rezumat.kcal')} accent />
+        <StatTile
+          valoare={fmtDurata(sumar.activSec)}
+          eticheta={t('sesiune.rezumat.timpActiv')}
+          sub={t('sesiune.rezumat.pauze', { timp: fmtDurata(sumar.pauzaSec) })}
+        />
+        <StatTile valoare={sumar.seturi} eticheta={t('sesiune.rezumat.seturi')} />
+        <StatTile valoare={`${sumar.apaMl} ml`} eticheta={t('sesiune.rezumat.apa')} />
         <StatTile
           valoare={sumar.totalSec > 0 ? `${Math.round((sumar.activSec / sumar.totalSec) * 100)}%` : '—'}
-          eticheta="cât ai lucrat"
+          eticheta={t('sesiune.rezumat.catAiLucrat')}
         />
       </div>
 
@@ -967,7 +1027,7 @@ function SummaryScreen(props: { sumar: Sumar }) {
 
       {sumar.realizariNoi.length > 0 && (
         <>
-          <h2>Realizări deblocate!</h2>
+          <h2>{t('sesiune.rezumat.realizari')}</h2>
           {sumar.realizariNoi.map((id) => {
             const a = ACHIEVEMENTS.find((x) => x.id === id);
             return a ? (
@@ -983,7 +1043,7 @@ function SummaryScreen(props: { sumar: Sumar }) {
       )}
       <FlexuSpune poza="obosit">{aleator(incurajariFinal())}</FlexuSpune>
       <BigButton varianta="accent" mare onClick={() => nav('/')}>
-        Acasă
+        {t('sesiune.rezumat.acasa')}
       </BigButton>
     </div>
   );
@@ -995,10 +1055,11 @@ function SummaryScreen(props: { sumar: Sumar }) {
  * salvat spune 45. Din planul original păstrăm doar pauzele și notițele.
  */
 function SalveazaCaPlan(props: { sumar: Sumar }) {
+  const { t } = useT();
   const { profil } = useProfile();
   const [deschis, setDeschis] = useState(false);
   const [nume, setNume] = useState(
-    `Sesiune ${data(props.sumar.inceput, 'ziLunaLung')}`,
+    t('sesiune.numePlanImplicit', { data: data(props.sumar.inceput, 'ziLunaLung') }),
   );
   const [salvat, setSalvat] = useState(false);
 
@@ -1012,7 +1073,9 @@ function SalveazaCaPlan(props: { sumar: Sumar }) {
     await saveTemplate({
       profileId: profil.id,
       nume: nume.trim(),
-      descriere: 'Salvat dintr-o sesiune la sală',
+      // planul e al utilizatorului din start (n-are `sursaText`), deci textul
+      // rămâne cum a fost scris acum — vezi rezolva.ts
+      descriere: t('sesiune.salvatDescriere'),
       etichete: [],
       items,
       creatLa: '',
@@ -1026,8 +1089,8 @@ function SalveazaCaPlan(props: { sumar: Sumar }) {
   if (salvat) {
     return (
       <Sticker accent inclinat style={{ marginBottom: 14 }}>
-        <b>✅ Salvat ca plan!</b>
-        <div className="mic">Îl găsești la Programe → Ale mele, gata de repetat.</div>
+        <b>{t('sesiune.salvat.titlu')}</b>
+        <div className="mic">{t('sesiune.salvat.unde')}</div>
       </Sticker>
     );
   }
@@ -1035,18 +1098,15 @@ function SalveazaCaPlan(props: { sumar: Sumar }) {
   return (
     <>
       <BigButton id="salveaza-plan" onClick={() => setDeschis(true)} style={{ marginBottom: 14 }}>
-        💾 Salvează sesiunea ca plan
+        {t('sesiune.salveazaPlan.buton')}
       </BigButton>
-      <Modal deschis={deschis} onInchide={() => setDeschis(false)} titlu="Salvezi ca plan?">
-        <p className="mic">
-          Fac un plan din exercițiile și cifrele pe care le-ai bifat azi. Data viitoare îl pornești dintr-o
-          atingere, fără să te mai gândești.
-        </p>
-        <label htmlFor="nume-plan">Cum îl numim?</label>
+      <Modal deschis={deschis} onInchide={() => setDeschis(false)} titlu={t('sesiune.salveazaPlan.titlu')}>
+        <p className="mic">{t('sesiune.salveazaPlan.explicatie')}</p>
+        <label htmlFor="nume-plan">{t('sesiune.salveazaPlan.nume')}</label>
         <input id="nume-plan" value={nume} onChange={(e) => setNume(e.target.value)} />
         <div style={{ height: 12 }} />
         <BigButton varianta="accent" mare disabled={!nume.trim()} onClick={() => void salveaza()}>
-          💾 Salvează planul
+          {t('sesiune.salveazaPlan.salveaza')}
         </BigButton>
       </Modal>
     </>

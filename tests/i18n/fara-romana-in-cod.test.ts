@@ -22,13 +22,11 @@ import { describe, expect, it } from 'vitest';
 const DIACRITICE = /[ăâîșțĂÂÎȘȚ]/;
 const RADACINI = ['src/features', 'src/app', 'src/design'];
 
-/** Fișiere care încă nu au fost trecute prin i18n. Trebuie să ajungă listă goală. */
-const RAMASE: string[] = [
-  'src/features/session/Screensaver.tsx',
-  'src/features/session/SessionPage.tsx',
-  'src/features/session/SumarHud.tsx',
-  'src/features/session/UltimaData.tsx',
-];
+/**
+ * Restanțele etapei 6. Lista e goală — etapa e încheiată, iar de acum testul
+ * apără starea asta: orice text românesc nou într-o componentă cade aici.
+ */
+const RAMASE: string[] = [];
 
 /**
  * Texte care au voie să rămână în cod. Autonimele nu se traduc niciodată
@@ -138,8 +136,12 @@ function textJsx(cod: string): Bucata[] {
 function romanaDin(cale: string): string[] {
   const src = readFileSync(cale, 'utf8');
   const { literale, cod } = imparte(src);
+  const rand = src.split('\n');
+  // mesajele de consolă sunt pentru programator, nu pentru utilizator: rămân
+  // în română, ca restul comentariilor
+  const consola = (b: Bucata) => (rand[b.linie - 1] ?? '').includes('console.');
   return [...literale, ...textJsx(cod)]
-    .filter((b) => DIACRITICE.test(b.text) && !PERMISE.some((p) => b.text.includes(p)))
+    .filter((b) => DIACRITICE.test(b.text) && !PERMISE.some((p) => b.text.includes(p)) && !consola(b))
     .map((b) => `${cale.replace(/\\/g, '/')}:${b.linie}  ${b.text.replace(/\s+/g, ' ').slice(0, 80)}`);
 }
 

@@ -3,6 +3,7 @@ import { secundeActive, secundeTotale, useSession } from '@/state/sessionStore';
 import { useLive } from '@/state/liveStore';
 import { EMOJI_APARAT } from '@/domain/ftms';
 import { descrieAparat } from '@/i18n/descrieri';
+import { useT } from '@/i18n';
 import { fmtDurata } from './useTick';
 
 /**
@@ -21,6 +22,7 @@ export function SumarHud(props: {
   onConecteazaPuls: () => void;
   onStop: () => void;
 }) {
+  const { t } = useT();
   const s = useSession();
   const aparat = useLive((l) => l.aparat);
   const ultim = useLive((l) => l.ultim);
@@ -36,19 +38,19 @@ export function SumarHud(props: {
     <Sticker style={{ position: 'sticky', top: 8, zIndex: 20, padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="supratitlu-mic">la sală de</div>
+          <div className="supratitlu-mic">{t('hud.laSalaDe')}</div>
           <div style={{ fontFamily: 'var(--font-titlu)', fontSize: '2rem', lineHeight: 1 }}>{fmtDurata(total)}</div>
         </div>
         {s.status === 'activa' ? (
-          <BigButton onClick={() => void s.pauza()} ariaLabel="Pauză">
-            ⏸ Pauză
+          <BigButton onClick={() => void s.pauza()} ariaLabel={t('hud.pauzaAria')}>
+            {t('hud.pauza')}
           </BigButton>
         ) : (
-          <BigButton varianta="accent" onClick={() => void s.reia()} ariaLabel="Reia">
-            ▶ Reia
+          <BigButton varianta="accent" onClick={() => void s.reia()} ariaLabel={t('hud.reiaAria')}>
+            {t('hud.reia')}
           </BigButton>
         )}
-        <BigButton varianta="pericol" onClick={props.onStop} ariaLabel="Oprește sesiunea">
+        <BigButton varianta="pericol" onClick={props.onStop} ariaLabel={t('hud.opresteAria')}>
           ⏹
         </BigButton>
       </div>
@@ -71,7 +73,7 @@ export function SumarHud(props: {
         ) : (
           <button
             onClick={props.onConecteazaPuls}
-            aria-label="Conectează ceasul cu puls"
+            aria-label={t('hud.conecteazaAria')}
             className={props.cautaCeas ? '' : 'tresarire'}
             style={{
               border: '2px solid var(--accent)',
@@ -85,11 +87,15 @@ export function SumarHud(props: {
               textTransform: 'uppercase',
             }}
           >
-            {props.cautaCeas ? '♥ caut…' : '♥ conectează'}
+            {t(props.cautaCeas ? 'hud.caut' : 'hud.conecteaza')}
           </button>
         )}
         <Cifra emoji="💧" valoare={`${s.apaMl}`} unitate="ml" />
-        <Cifra emoji="⚡" valoare={fmtDurata(activ)} unitate={pauza > 0 ? `+${fmtDurata(pauza)} pauză` : 'activ'} />
+        <Cifra
+          emoji="⚡"
+          valoare={fmtDurata(activ)}
+          unitate={pauza > 0 ? t('hud.pauzaUnitate', { timp: fmtDurata(pauza) }) : t('hud.activ')}
+        />
       </div>
 
       {/* telemetria aparatului — bară inversată, ca pe un display de aparat */}
@@ -114,13 +120,13 @@ export function SumarHud(props: {
         >
           <span>{EMOJI_APARAT[aparat.tip]}</span>
           <span style={{ opacity: 0.75 }}>{aparat.model}</span>
-          <span>{telemetrie || 'aștept date…'}</span>
+          <span>{telemetrie || t('hud.asteptDate')}</span>
         </div>
       )}
 
       {s.status === 'pauza' && (
         <p className="mic centrat" style={{ margin: '8px 0 0', fontWeight: 800 }}>
-          ⏸ SESIUNE ÎN PAUZĂ — cronometrul de lucru stă pe loc
+          {t('hud.inPauza')}
         </p>
       )}
     </Sticker>

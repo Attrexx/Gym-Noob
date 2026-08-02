@@ -57,7 +57,7 @@ export function UltimaData(props: {
         color: 'var(--negru)',
       }}
     >
-      <div className="supratitlu-mic">data trecută · {cand}</div>
+      <div className="supratitlu-mic">{t('ultimaData.cand', { cand })}</div>
       {u.aparatModel && (
         <div className="mic" style={{ fontWeight: 800 }}>
           🔌 {u.aparatModel}
@@ -72,13 +72,14 @@ export function UltimaData(props: {
       </div>
       {tinta && tinta > (celMaiBun?.g ?? 0) && (
         <div className="mic" style={{ marginTop: 4, fontWeight: 800 }}>
-          🎯 Dacă azi merge ușor: încearcă {String(tinta).replace('.', ',')} kg × {celMaiBun!.r}
+          {/* `nr()`, nu un `replace` de virgulă scris de mână: separatorul e al limbii */}
+          {t('ultimaData.tinta', { kg: fmt.nr(tinta), reps: celMaiBun!.r })}
         </div>
       )}
       {props.onReia && (
         <div style={{ marginTop: 8 }}>
           <BigButton varianta="contur" onClick={() => props.onReia!(setariDeReluat(u))}>
-            ↩ Reia setările
+            {t('ultimaData.reia')}
           </BigButton>
         </div>
       )}
