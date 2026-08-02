@@ -92,6 +92,35 @@ the way they are, what was consciously left out, and what the owner wants next.
    scanner in Setări reports what a machine actually exposes. Tests 92 → 141 client; smoke covers
    mod liber, free switching, a simulated Bluetooth treadmill, save-as-plan and the program tabs.
 
+7. **Engleză + arhitectură multilingvă** (August 2, 2026) — the owner asked for English, which
+   deliberately reverses the old "single language by design" decision. Built as ten stages, each
+   shipped green on its own, and the first seven were pure refactors with **byte-identical Romanian
+   output** — provable by the existing Romanian suite and smoke run before a single English word
+   existed. `src/i18n/` is a hand-rolled runtime (~250 lines, zero new dependencies): a Zustand
+   store separate from `profileStore` (because ~10 non-React call sites need `t()` synchronously,
+   and `profileStore → repo → catalog → i18n` would close an import cycle), `Intl` for every locale
+   rule (plurals, numbers, dates, relative time), and a 35-line `<T>` instead of `<Trans>`. The
+   catalogue split into **structure + text**: MET/muscles/equipment exist once in the cores, prose
+   comes per-language keyed by id, and every `Record<XId, …>` is exhaustive, so a new exercise
+   breaks all languages at compile time until filled. `messages/ro.ts` is the source of truth and
+   `en.ts` ends `satisfies Traducere<Mesaje>` — it compiled first try, which was the whole point of
+   the type. Frozen catalogue text in user data is **resolved, not rewritten** (`sursaText` +
+   `textEditat`), because row-level last-write-wins sync would otherwise have a Romanian phone and
+   an English tablet overwriting each other's templates forever. Content: 637 message keys and
+   ~11,900 words of catalogue — 98 exercises in real British gym vernacular (lat pulldown, leg
+   press, pec deck, cross-trainer) and ~80 Flexu lines written as English jokes rather than
+   translated ones. Tests 141 → 237 client, in a new `tests/i18n/` suite: parity of keys, params,
+   `<0>` slots and plural categories (computed from `Intl`, not hardcoded); catalogue coverage with
+   four anti-laziness checks (no Romanian diacritics left, names actually differ, no Romanian
+   decimal commas, positional `notite` aligned with the structure); and
+   `fara-romana-in-cod.test.ts`, which reads the component tree with `node:fs` and fails on any
+   Romanian text that reappears — the check that drove the extraction to completion and now guards
+   it. Smoke keeps its Romanian pass byte-identical (those ~75 accessible-name selectors are the
+   proof nothing changed for Romanian) and adds a 7-step English pass. Two live bugs surfaced on the
+   way: `bmiCategorie` had started returning ids in stage 3 but two screens still printed them raw
+   ("obezitate1" instead of "Obezitate gr. I"), and `UltimaData` was hand-rolling a Romanian decimal
+   comma with `String(x).replace('.', ',')`.
+
 ## 3. Decisions & rationale (don't relitigate casually)
 
 | Decision | Why |
@@ -121,6 +150,14 @@ the way they are, what was consciously left out, and what the owner wants next.
 | Programe and Planuri are ONE page with two tabs, not two entities | The owner's answer when asked what a "custom program" should be: *"Programe = Planuri. same stuff."* No new grouping entity, no schema change — just stop pretending they're different things. |
 | The big session timer shows WALL-CLOCK time, not active time | Req was literally "time elapsed since session start". Activ/pauză moved to the row below, where the split is more useful than the raw number. |
 | Machine fields on `SetLog`, no Dexie bump, no server change | They're optional and unindexed, so Dexie's `stores()` string is untouched; `payloadDin()` strips a denylist, so new keys sync for free. Caveat: LWW is whole-row, so a device left on an old build can push a stale row and drop them — update both devices together. |
+| Hand-rolled i18n, zero new dependencies | The catalogue is *structured data* (objects with `string[]` fields), which fits a locale-keyed overlay far better than 1,180 flat i18next keys; each pack is ~70 KB and must lazy-load, which one `import()` gives free; and `satisfies` buys compile-time key parity at zero runtime cost. The repo has 11 runtime deps and hand-rolls everything else. |
+| Message keys stay Romanian (`sesiune.stop.da`) | The rest of the codebase already uses Romanian identifiers, the zones *are* the Romanian route names, and `ro.ts` is the source of truth — so the keys sit next to their own prose. |
+| Adopt CLDR plurals wholesale, including n=0 | `Intl.PluralRules('ro')` reproduces the old `pluralRo` exactly for every integer except 0, where CLDR says `"0 exerciții"` and the old code said `"0 de exerciții"`. One word on one screen, and it keeps `Intl` an unmodified single source of truth — which is what makes "add a language = add a file" actually true. |
+| English = en-GB, metric. Imperial explicitly out of scope | Imperial needs a second setting plus conversion *inside* `src/domain/`, which breaks the goals/calories/strength tests and the 20 kg-bar plate calculator. Unit symbols come from the packs so a future locale can localise them; there is no conversion layer and none should be built. |
+| Both locales extracted, Romanian included — not "English overlays Romanian" | Symmetry is what makes adding a language a file rather than a refactor, and it collapses the definition files to pure structured data. |
+| Language names are autonyms, never translated | "Română" stays "Română" in the English UI. That is what lets someone who switched by accident find their way back. Same reason the selector uses `#limba-<code>` ids: the button has to be usable by someone who cannot read the screen. |
+| CSV export headers stay untranslated | It is a machine-interchange schema and already writes `exerciseId` slugs; a locale-dependent header would break anyone's spreadsheet on language switch. |
+| One manifest, bilingual `description` line | A manifest has a single `lang`, and Chrome snapshots it at install time, so two manifests buy nothing. The in-app `<meta name="description">` is swapped at runtime instead. |
 | A connected treadmill feeds the EXISTING `SegmentBanda` list | The machine just replaces the thumb on the steppers; ACSM integration, tests and calorie math stay exactly as they were. Steppers remain authoritative when nothing is connected. |
 | Rower/bike calories from power at 22% efficiency, +1 MET resting | Concept2's own formula (4×W + 300 kcal/h) is markedly more generous. We'd rather under-promise calories than inflate them. Machine-reported MET wins when the machine sends one; the watch's HR still beats everything. |
 | Generic FTMS + a diagnostic scanner, not a Star Trac driver | The StairMaster rower is confirmed FTMS; the Star Trac 8TR is confirmed Bluetooth but NOT confirmed FTMS. Writing a proprietary decoder blind is guesswork — the scanner brings back facts first. |
@@ -148,6 +185,16 @@ the way they are, what was consciously left out, and what the owner wants next.
   `reset-password` script on the server (docs/OPS.md); the UI is honest about it.
 - Sync accounts are open-signup, guarded by per-IP auth rate limits + a 25 MB/account quota
   (~15+ years of sets) — a DoS guard more than a real limit.
+- **An existing profile with no `limba` setting follows the phone, which can mean it switches to
+  English on first load after the update.** `limba` is deliberately absent from `SETARI_IMPLICITE`
+  (`undefined ?? 'auto'`, same as `pulsAuto`/`aparatAuto`), and "auto" negotiates with
+  `navigator.languages` — correct for a new user, but every profile that existed before this change
+  never actually chose Romanian, it was simply the only option. On a phone set to English the app
+  will now open in English. The fix, if it is unwanted, is one tap in Setări → Limba → 🇷🇴 Română,
+  which then syncs to every device like `tema`. Deliberately not migrated: writing a language into
+  everyone's settings row would be a sync write on behalf of a user who never asked for it. This is
+  also why `scripts/smoke.mjs` runs its contexts with `locale: 'ro-RO'` — otherwise Chromium's
+  `en-US` default makes the Romanian pass boot in English, which is the app behaving correctly.
 
 ## 5. Roadmap / ideas the owner may ask for next
 
@@ -170,6 +217,12 @@ the way they are, what was consciously left out, and what the owner wants next.
   PWA scope today).
 - Body measurements tracking beyond weight (talie/gât already captured; chart them).
 - Export/print a workout as PDF "carte de sală".
+- ~~English + multilingual architecture~~ — **built (timeline #7)**. Follow-ups it opened:
+  a third language is now genuinely one message file + one catalogue file + one registry line
+  (Hungarian would be the obvious candidate for Romania); English screenshots via a
+  `GYM_NOOB_LIMBA=en` hook in `scripts/screenshots.mjs` (noted, not built — `npm run capturi`
+  stays Romanian because those feed the owner's own docs); and a `lang`-aware TTS voice picker if
+  a device turns out to have no en-GB voice (the `Map` keyed by BCP-47 tag is already in place).
 
 ## 6. Working agreements
 

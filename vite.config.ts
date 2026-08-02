@@ -20,7 +20,12 @@ export default defineConfig({
         id: '/Gym-Noob/',
         name: 'Gym Noob',
         short_name: 'Gym Noob',
-        description: 'Ghidul complet al începătorului absolut la sală. Antrenamente, jurnale, calorii și statistici — totul în română.',
+        // Un manifest are UN singur `lang`, iar Chrome îl fotografiază la
+        // instalare — două manifeste n-ar aduce nimic. Descrierea rămâne deci
+        // bilingvă pe o linie, ca magazinul să spună adevărul în ambele limbi.
+        // În aplicație, `<meta name="description">` se schimbă la runtime.
+        description:
+          'Ghidul complet al începătorului absolut la sală — în română și engleză. Antrenamente, jurnale, calorii și statistici. · The complete guide for the absolute gym beginner, in Romanian and English.',
         lang: 'ro',
         dir: 'ltr',
         start_url: BASE,
@@ -38,10 +43,10 @@ export default defineConfig({
         ],
         shortcuts: [
           {
-            name: 'Începe antrenamentul',
+            name: 'Începe antrenamentul · Start your workout',
             short_name: 'La sală!',
             url: `${BASE}#/sala`,
-            description: 'Pornește direct o sesiune de antrenament',
+            description: 'Pornește direct o sesiune de antrenament · Go straight into a session',
           },
         ],
       },

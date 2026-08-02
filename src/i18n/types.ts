@@ -10,7 +10,7 @@
  * `messages/index.ts`. Nicio componentă nu se schimbă.
  */
 
-export const LIMBI = ['ro'] as const;
+export const LIMBI = ['ro', 'en'] as const;
 export type Limba = (typeof LIMBI)[number];
 
 /** Ce se salvează în `Settings.limba`; „auto" = urmează browserul. */
@@ -18,10 +18,11 @@ export type LimbaSetare = Limba | 'auto';
 
 /**
  * Eticheta BCP-47 folosită pentru `Intl.*` și pentru vocea TTS.
- * Engleza va fi `en-GB` (metric, ca restul aplicației).
+ * Engleza e `en-GB` (metric, ca restul aplicației).
  */
 export const TAG: Record<Limba, string> = {
   ro: 'ro-RO',
+  en: 'en-GB',
 };
 
 /**

@@ -8,14 +8,19 @@ Deep context, decisions and roadmap: see `docs/CONTEXT.md`. Read it before large
 ## Commands
 
 - `npm run dev` — dev server at `http://localhost:5173/Gym-Noob/` (note the base path)
-- `npm test` — Vitest: domain math + catalog integrity + data-layer/sync tests (fake-indexeddb),
-  THEN the API suite in `server/` (chained via `npm --prefix server test`). First checkout needs
-  a one-time `npm install` inside `server/` too. Keep both green.
+- `npm test` — Vitest: domain math + catalog integrity + data-layer/sync tests (fake-indexeddb) +
+  the i18n suite in `tests/i18n/` (key/param/plural parity across languages, catalog coverage, and
+  the no-Romanian-in-components check), THEN the API suite in `server/` (chained via
+  `npm --prefix server test`). First checkout needs a one-time `npm install` inside `server/` too.
+  Keep both green.
 - `npm run build` — tsc + vite build + service worker → `dist/`
 - `npm run api:dev` — run the sync API locally (`node server/src/main.ts`, Node ≥24, port 8787)
 - `npm run smoke` — Playwright e2e against the built `dist/` (needs Chromium; set `CHROMIUM_PATH`
   on Windows, e.g. `C:\Program Files\Google\Chrome\Application\chrome.exe`). Also spawns the sync
   API on :8788 with a throwaway DB and runs a TWO-device account/sync flow (second browser context).
+  The main pass stays **Romanian** on purpose — its ~75 accessible-name selectors are the proof the
+  Romanian app is unchanged. English gets a short 7-step pass (`#limba-en` → back to `#limba-ro`)
+  placed before the account block so it cannot perturb the two-device flow.
 - `npm run capturi` — UI screenshots of the built `dist/` into a fresh versioned folder
   (`capturi/vNN_YYYY-MM-DD/`, index + per-shot README written automatically). Same `CHROMIUM_PATH`
   requirement as `smoke`; takes ~2.5 min because it waits out the 45 s screensaver.
@@ -62,9 +67,16 @@ reset: **`docs/OPS.md`**. The API lives at `https://gym-api.lessgo.city` on the 
   Server: Hono + built-in `node:sqlite` (Node ≥24, zero native deps), generic row store — client
   schema changes need NO server migration. NEVER add the API origin to the service worker's
   `runtimeCaching`.
-- **Exercise catalog is static TS**, not in DB: `src/data/catalog/exercises*.ts` (~100 exercises in
-  three files, merged + indexed by `exercises.ts`), plus `programs.ts`, `starterTemplates.ts`,
-  `articles.ts`, `tips.ts`.
+- **Exercise catalog is static TS**, not in DB, and **split into structure + text**:
+  `src/data/catalog/exercises*.ts` hold `ExerciseCore`s (98 exercises in three files, merged +
+  indexed by `exercises.ts`) — MET, muscles, equipment kind, difficulty, animation. All the prose
+  lives per-language in `catalog/text/<lang>*.ts` and is keyed by id. The numbers exist **once**, so
+  they cannot drift between languages; every `Record<XId, …>` is exhaustive, so a new exercise id
+  breaks *every* language at compile time until it is filled in. `ids.ts` is the registry.
+  `aplicaTextCatalog(pack)` (called by `incarcaLimba`) rebuilds `lista`, the `Map` index and the
+  `categoriiExercitiu()` cache — which is why `EXERCITII → exercitii()` and `PROGRAME → programe()`
+  are functions: "this depends on the active language" should be visible, not hidden behind an ESM
+  live binding.
 - **Library categories** (`ExerciseCategory`) are mostly *derived* from `echipament`/`tip` in
   `categoriiExercitiu()`; write `categorii` on an exercise only when derivation isn't enough
   (e.g. tagging the big lifts `powerlifting`). New equipment kinds must land in a category branch
@@ -73,9 +85,32 @@ reset: **`docs/OPS.md`**. The API lives at `https://gym-api.lessgo.city` on the 
   PPL, Upper/Lower, Wendler 5/3/1 BBB, calistenice) are static `ProgramDef`s shown at `/programe`.
   Importing one copies its workouts into the user's templates, tagged `program:<id>` in `etichete`
   — re-importing replaces those rows instead of duplicating them.
-- A `TemplateItem` with `repetari: undefined` means **AMRAP** ("cât poți") and must carry a
-  `notite` explaining it; `notite` is shown in the session and in the plan editor.
-- `src/domain/` — pure, unit-tested math (see formulas below). No React/Dexie imports here.
+- A `TemplateItem` with `repetari: undefined` means **AMRAP** ("cât poți") and must carry an
+  explanation; `notite` is shown in the session and in the plan editor. Generated AMRAP notes use
+  `notaKey` (a catalog id) rather than prose, so they translate — `notite` stays as the fallback.
+- **Catalog text copied into user data is resolved, never rewritten.** Templates and sessions born
+  from a starter/programme carry `sursaText` (`'starter:<id>'` / `'program:<pid>/<wid>'`); the
+  resolver in `catalog/text/rezolva.ts` returns live catalog text for those and the stored `nume`
+  for anything the user made or renamed (`textEditat`). **Never retranslate stored rows**: sync is
+  row-level last-write-wins, so a Romanian phone and an English tablet would rewrite each other's
+  templates forever.
+- `src/domain/` — pure, unit-tested math (see formulas below). No React/Dexie imports here, and
+  **it never imports `src/i18n/` either**: domain returns ids and numbers, prose lives in messages,
+  and string assemblers live outside `domain/` (`descrieSetLog`/`descrieAparat` → `src/i18n/
+  descrieri.ts`). Classifiers return union ids (`bmiCategorie()` → `'obezitate1'`), which the UI
+  resolves with `` t(`domeniu.imc.${…}`) ``.
+- **i18n** (`src/i18n/`): hand-rolled, zero dependencies. `messages/ro.ts` is the SOURCE OF TRUTH;
+  `messages/en.ts` ends `satisfies Traducere<Mesaje>`, so a missing key or a string where Romanian
+  has a plural is a compile error. Keys are flat and dotted (`<zonă>.<secțiune>.<rol>`) and stay
+  Romanian, like the rest of the identifiers. Plural comes from `Intl.PluralRules` per language —
+  Romanian needs `one/few/other`, English only `one/other`; never hardcode the category list.
+  `<T k="…" />` (`rich.tsx`) is the `<Trans>` replacement for mid-sentence bold or links; a ternary
+  must select a **key**, never a sentence fragment. Locale lives in its own Zustand store, not in
+  `profileStore`, because ~10 non-React call sites need `t()` synchronously.
+  **Adding a language = `messages/<code>.ts` + `data/catalog/text/<code>.ts` + `pachet-<code>.ts` +
+  one line each in `LIMBI`, `TAG` and `PACHETE`. Zero component changes.**
+  Both packs load as ONE `import()` per language (messages + catalog together), so there is never a
+  half-translated frame; `versiune` in the store only bumps after the pack is fully applied.
 - `src/state/profileStore.ts` — active profile + settings (Zustand); applies theme.
   `src/state/sessionStore.ts` — live workout session; persisted to localStorage so it survives
   reloads; set/water logs still write straight to IndexedDB.
@@ -123,8 +158,11 @@ out of sync. `planDinSeturi` builds a plan from what was actually logged (median
 
 ## Conventions & gotchas
 
-- UI strings are **inline Romanian** — no i18n framework, single language by design. Domain/UI
-  identifiers use Romanian words (greutate, sesiune, realizari); keep that consistent.
+- **Bilingual: Romanian + English (en-GB), metric in both.** No i18n library — a hand-rolled
+  runtime under `src/i18n/` (see the i18n section below). There are **no UI strings in components**;
+  `tests/i18n/fara-romana-in-cod.test.ts` fails on any Romanian text that reappears in
+  `src/features|app|design`. Domain/UI *identifiers* stay Romanian words (greutate, sesiune,
+  realizari) — that has not changed and should stay consistent.
 - TypeScript strict; path alias `@/` → `src/`; tests only under `tests/`.
 - **Dexie schema changes require a version bump** in `db.ts` (`this.version(2).stores(...)` + an
   upgrade fn). Users have real data — never wipe or clear tables outside explicit backup/restore.
@@ -135,8 +173,9 @@ out of sync. `planDinSeturi` builds a plan from what was actually logged (median
   `setari.economizor !== false` fallback pattern. Same for sync metadata (`uid?`, `updatedAt?`,
   `dirty?`) — optional in types, backfilled by the v2 upgrade.
 - localStorage keys: `gym-noob-profil-activ` (active profile id), `gym-noob-sesiune` (live
-  session), `gym-noob-api-url` (dev/smoke override of the sync API base URL — lets the committed
-  production build talk to a local server without rebuilding).
+  session), `gym-noob-limba` (boot hint for the language, so the first paint is never in the wrong
+  one — written by `aplicaLimba`), `gym-noob-api-url` (dev/smoke override of the sync API base URL —
+  lets the committed production build talk to a local server without rebuilding).
 - Restoring a backup while an account is linked is AUTHORITATIVE for the cloud: same-uid profile →
   `/sync/replace`; missing/re-uid'd profile (v1 files) or replace failure → the link is dropped
   with a clear message (no silent merge). See `dupaRestaurareBackup` in `src/data/sync/engine.ts`.

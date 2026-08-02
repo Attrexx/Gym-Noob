@@ -93,7 +93,18 @@ await new Promise((res, rej) => {
 });
 
 const browser = await chromium.launch({ executablePath: exe });
-const page = await browser.newPage({ viewport: { width: 400, height: 850 } });
+
+/**
+ * Contextul se prezintă ca un telefon românesc.
+ *
+ * De când engleza e înregistrată, setarea implicită („auto") negociază cu
+ * `navigator.languages`, iar Chromium pornește pe `en-US` — adică aplicația s-ar
+ * deschide în engleză și tot pasul românesc ar cădea. Asta e comportamentul
+ * corect al produsului, nu un bug: pe un telefon setat pe engleză, Gym Noob
+ * pornește în engleză. Aici declarăm doar ce telefon simulăm.
+ */
+const CA_TELEFON_RO = { viewport: { width: 400, height: 850 }, locale: 'ro-RO' };
+const page = await browser.newPage(CA_TELEFON_RO);
 // build-ul de producție arată spre gym-api.lessgo.city — îl îndreptăm spre API-ul local
 await page.addInitScript(`localStorage.setItem('gym-noob-api-url', '${API_URL}')`);
 page.on('pageerror', (e) => {
@@ -328,6 +339,44 @@ try {
   if (!sw.ok) throw new Error('sw.js lipsește');
   pas('manifest PWA + service worker prezente');
 
+  // ── comutarea pe engleză ──
+  // Stă ÎNAINTEA blocului de cont ca să nu perturbe fluxul cu două dispozitive,
+  // și se închide cu întoarcerea la română, ca restul testului să nu se schimbe.
+  // Selectorul e `#limba-en`, nu un text: butonul de limbă trebuie să poată fi
+  // apăsat și de cineva care nu înțelege ce scrie pe ecran.
+  await page.goto(BASE + '#/setari');
+  await page.locator('#limba-en').click();
+  await page.getByRole('heading', { name: 'Settings' }).waitFor();
+  const lang = await page.evaluate(() => document.documentElement.lang);
+  if (lang !== 'en') throw new Error(`<html lang> a rămas „${lang}"`);
+  pas('comutarea pe engleză schimbă interfața și <html lang>');
+
+  await page.goto(BASE + '#/');
+  await page.getByText("Today's budget").waitFor();
+  pas('acasă e în engleză (pachetul de mesaje)');
+
+  await page.goto(BASE + '#/biblioteca');
+  await page.locator('input[type="search"]').fill('leg press');
+  await page.getByText('Leg press', { exact: false }).first().waitFor();
+  pas('biblioteca găsește „Leg press" (suprapunerea de catalog)');
+
+  await page.goto(BASE + '#/antrenamente');
+  await page.getByText('First day at the gym', { exact: false }).first().waitFor();
+  pas('șablonul de start apare tradus (rezolvarea prin sursaText)');
+
+  await page.goto(BASE + '#/ghid/eticheta');
+  await page.getByText('Gym etiquette', { exact: false }).first().waitFor();
+  pas('ghidul e tradus (articolele din catalog)');
+
+  await page.reload();
+  await page.getByText('Gym etiquette', { exact: false }).first().waitFor();
+  pas('după reîncărcare rămâne engleza, fără cadru în limba greșită');
+
+  await page.goto(BASE + '#/setari');
+  await page.locator('#limba-ro').click();
+  await page.getByRole('heading', { name: 'Setări' }).waitFor();
+  pas('întoarcerea la română funcționează');
+
   // ── cont + sincronizare: dispozitivul 1 creează contul ──
   await page.goto(BASE + '#/setari');
   await page.getByText('Cont și sincronizare').waitFor();
@@ -338,7 +387,7 @@ try {
   pas('cont creat + profilul urcat în cloud (Sincronizat)');
 
   // ── „dispozitivul 2": context proaspăt, login, datele coboară ──
-  const ctx2 = await browser.newContext({ viewport: { width: 400, height: 850 } });
+  const ctx2 = await browser.newContext(CA_TELEFON_RO);
   await ctx2.addInitScript(`localStorage.setItem('gym-noob-api-url', '${API_URL}')`);
   const page2 = await ctx2.newPage();
   page2.on('pageerror', (e) => {

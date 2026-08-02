@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   fmtPas,
   parseBanda,
@@ -176,5 +176,23 @@ describe('afișare', () => {
 
   it('sub un kilometru rămâne în metri', () => {
     expect(descrieAparat('rower', { distantaM: 800 })).toBe('800 m');
+  });
+
+  describe('în engleză', () => {
+    beforeAll(async () => {
+      await incarcaLimba('en');
+    });
+    afterAll(async () => {
+      await incarcaLimba('ro');
+    });
+
+    it('același rând, cu punct zecimal', () => {
+      const text = descrieAparat('banda', { vitezaKmh: 9.5, inclinatieProcent: 2, distantaM: 1250 });
+      expect(text).toBe('9.5 km/h · 2% · 1.25 km');
+    });
+
+    it('ritmul de rower e locale-invariant, deci nu se schimbă', () => {
+      expect(fmtPas(125)).toBe('2:05/500m');
+    });
   });
 });

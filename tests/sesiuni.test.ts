@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { SetLog, TemplateItem } from '@/data/types';
 import {
   fmtOra,
@@ -225,5 +225,34 @@ describe('descrierea unui set', () => {
     expect(text).toContain('25 min');
     expect(text).toContain('9,5 km/h');
     expect(text).toContain('3,10 km');
+  });
+});
+
+/**
+ * Aceleași cifre, în engleză. Rostul e separatorul zecimal: aceeași funcție,
+ * fără nicio ramură pe limbă în cod, scrie „9.5" în loc de „9,5" — dovada că
+ * formatarea vine din `Intl`, nu din text scris de mână.
+ */
+describe('descrierea unui set, în engleză', () => {
+  beforeAll(async () => {
+    await incarcaLimba('en');
+  });
+  afterAll(async () => {
+    await incarcaLimba('ro');
+  });
+
+  it('la fier: reps, kilograme și efortul', () => {
+    expect(descrieSetLog(log({ exerciseId: 'x', data: 'd', repetari: 10, greutate: 40, rpe: 7 }))).toBe(
+      '10 reps · 40 kg · RPE 7',
+    );
+  });
+
+  it('la aparat: punctul zecimal, nu virgula', () => {
+    const text = descrieSetLog(
+      log({ exerciseId: 'banda', data: 'd', durataSec: 1500, viteza: 9.5, inclinatie: 2, distantaM: 3100 }),
+    );
+    expect(text).toContain('25 min');
+    expect(text).toContain('9.5 km/h');
+    expect(text).toContain('3.10 km');
   });
 });
