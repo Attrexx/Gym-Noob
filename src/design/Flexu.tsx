@@ -11,6 +11,8 @@
  * unde se decide ce desen primește fiecare.
  */
 import { useLayoutEffect, useRef } from 'react';
+import { useT } from '@/i18n';
+import type { CheieMesaj } from '@/i18n/types';
 import atentie from '@/assets/mascota/Gesture-Attention.svg';
 import ridica from '@/assets/mascota/Gesture-Exercise.svg';
 import aproba from '@/assets/mascota/Gesture-Like.svg';
@@ -29,28 +31,29 @@ export type FlexuPose =
   | 'flex'
   | 'ganditor';
 
-const DESENE: Record<FlexuPose, { src: string; descriere: string }> = {
-  salut: { src: saluta, descriere: 'Flexu face cu mâna' },
-  explica: { src: arata, descriere: 'Flexu arată cu degetul' },
+const DESENE: Record<FlexuPose, { src: string; cheie: CheieMesaj }> = {
+  salut: { src: saluta, cheie: 'flexu.alt.salut' },
+  explica: { src: arata, cheie: 'flexu.alt.explica' },
   // „gânditor" împrumută desenul de la „explică" — tot o idee pusă pe masă e
-  ganditor: { src: arata, descriere: 'Flexu se gândește' },
-  sarbatoreste: { src: castiga, descriere: 'Flexu ridică pumnul de bucurie' },
-  avertizeaza: { src: atentie, descriere: 'Flexu e alarmat' },
-  flex: { src: ridica, descriere: 'Flexu ridică o gantere' },
+  ganditor: { src: arata, cheie: 'flexu.alt.ganditor' },
+  sarbatoreste: { src: castiga, cheie: 'flexu.alt.sarbatoreste' },
+  avertizeaza: { src: atentie, cheie: 'flexu.alt.avertizeaza' },
+  flex: { src: ridica, cheie: 'flexu.alt.flex' },
   // „obosit" tot cu gantera — efortul se vede, nu lâncezeala
-  obosit: { src: ridica, descriere: 'Flexu trage din greu' },
-  hidratare: { src: aproba, descriere: 'Flexu arată degetul mare' },
+  obosit: { src: ridica, cheie: 'flexu.alt.obosit' },
+  hidratare: { src: aproba, cheie: 'flexu.alt.hidratare' },
 };
 
 export function Flexu(props: { poza?: FlexuPose; marime?: number; decorativ?: boolean }) {
+  const { t } = useT();
   const poza = props.poza ?? 'salut';
   const inaltime = props.marime ?? 110;
-  const { src, descriere } = DESENE[poza];
+  const { src, cheie } = DESENE[poza];
 
   return (
     <img
       src={src}
-      alt={props.decorativ ? '' : descriere}
+      alt={props.decorativ ? '' : t(cheie)}
       height={inaltime}
       draggable={false}
       decoding="async"

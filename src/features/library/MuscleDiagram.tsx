@@ -1,10 +1,12 @@
 import type { MuscleGroup } from '@/data/types';
+import { useT } from '@/i18n';
 
 /**
  * Diagrama corpului (față + spate) cu grupele lucrate evidențiate.
  * Roșu plin = grupă principală, hașurat deschis = secundară.
  */
 export function MuscleDiagram(props: { principale: MuscleGroup[]; secundare?: MuscleGroup[]; marime?: number }) {
+  const { t } = useT();
   const h = props.marime ?? 190;
   const on = (g: MuscleGroup) => props.principale.includes(g);
   const sec = (g: MuscleGroup) => props.secundare?.includes(g) ?? false;
@@ -12,7 +14,13 @@ export function MuscleDiagram(props: { principale: MuscleGroup[]; secundare?: Mu
   const contur = 'var(--fg, #171310)';
 
   return (
-    <svg height={h} viewBox="0 0 220 260" role="img" aria-label="Grupele musculare lucrate" style={{ maxWidth: '100%' }}>
+    <svg
+      height={h}
+      viewBox="0 0 220 260"
+      role="img"
+      aria-label={t('biblioteca.diagrama.aria')}
+      style={{ maxWidth: '100%' }}
+    >
       <g stroke={contur} strokeWidth="2" strokeLinejoin="round">
         {/* ── FAȚĂ ── */}
         <g transform="translate(10,6)">
@@ -38,7 +46,7 @@ export function MuscleDiagram(props: { principale: MuscleGroup[]; secundare?: Mu
           <rect x="28" y="140" width="13" height="38" rx="6" fill="var(--panou, #FFF8E0)" />
           <rect x="49" y="140" width="13" height="38" rx="6" fill="var(--panou, #FFF8E0)" />
           <text x="45" y="200" textAnchor="middle" fontSize="11" fontWeight="800" fill={contur} stroke="none">
-            FAȚĂ
+            {t('biblioteca.diagrama.fata')}
           </text>
         </g>
         {/* ── SPATE ── */}
@@ -65,7 +73,7 @@ export function MuscleDiagram(props: { principale: MuscleGroup[]; secundare?: Mu
           <rect x="28" y="140" width="13" height="38" rx="6" fill={f('gambe')} />
           <rect x="49" y="140" width="13" height="38" rx="6" fill={f('gambe')} />
           <text x="45" y="200" textAnchor="middle" fontSize="11" fontWeight="800" fill={contur} stroke="none">
-            SPATE
+            {t('biblioteca.diagrama.spate')}
           </text>
         </g>
         {/* inimă pentru cardio */}

@@ -26,8 +26,8 @@ export function ExercisePage() {
   if (!ex) {
     return (
       <div className="pagina">
-        <p>Exercițiul nu există.</p>
-        <Link to="/biblioteca">← Înapoi la bibliotecă</Link>
+        <p>{tr('exercitiu.inexistent')}</p>
+        <Link to="/biblioteca">{tr('exercitiu.inapoiLung')}</Link>
       </div>
     );
   }
@@ -38,7 +38,7 @@ export function ExercisePage() {
   return (
     <div className="pagina">
       <Link to="/biblioteca" className="mic" style={{ fontWeight: 700 }}>
-        ← Biblioteca
+        {tr('exercitiu.inapoi')}
       </Link>
       <div className="coperta" style={{ marginTop: 8 }}>
         <div className="supratitlu">{ex.echipamentNume}</div>
@@ -58,7 +58,7 @@ export function ExercisePage() {
         <MuscleDiagram principale={ex.muschi} secundare={ex.muschiSecundari} marime={175} />
       </div>
 
-      <SectionTitle supratitlu="pas cu pas">Execuția corectă</SectionTitle>
+      <SectionTitle supratitlu={tr('exercitiu.forma.supratitlu')}>{tr('exercitiu.forma.titlu')}</SectionTitle>
       <Sticker>
         <ol style={{ margin: 0, paddingLeft: 20 }}>
           {ex.forma.map((f, i) => (
@@ -69,7 +69,9 @@ export function ExercisePage() {
         </ol>
       </Sticker>
 
-      <SectionTitle supratitlu="aparatul">Cum îl folosești</SectionTitle>
+      <SectionTitle supratitlu={tr('exercitiu.utilizare.supratitlu')}>
+        {tr('exercitiu.utilizare.titlu')}
+      </SectionTitle>
       <Sticker>
         <ul style={{ margin: 0, paddingLeft: 20 }}>
           {ex.utilizare.map((f, i) => (
@@ -80,7 +82,9 @@ export function ExercisePage() {
         </ul>
       </Sticker>
 
-      <SectionTitle supratitlu="atenție">Greșeli frecvente</SectionTitle>
+      <SectionTitle supratitlu={tr('exercitiu.greseli.supratitlu')}>
+        {tr('exercitiu.greseli.titlu')}
+      </SectionTitle>
       <FlexuSpune poza="avertizeaza">
         <ul style={{ margin: 0, paddingLeft: 18 }}>
           {ex.greseli.map((g, i) => (
@@ -91,7 +95,9 @@ export function ExercisePage() {
         </ul>
       </FlexuSpune>
 
-      <SectionTitle supratitlu="de la Flexu">Ponturi</SectionTitle>
+      <SectionTitle supratitlu={tr('exercitiu.ponturi.supratitlu')}>
+        {tr('exercitiu.ponturi.titlu')}
+      </SectionTitle>
       <Sticker accent>
         <ul style={{ margin: 0, paddingLeft: 20 }}>
           {ex.ponturi.map((p, i) => (
@@ -104,7 +110,9 @@ export function ExercisePage() {
 
       {variante.length > 0 && (
         <>
-          <SectionTitle supratitlu="mai ușor, mai greu, altfel">Variante înrudite</SectionTitle>
+          <SectionTitle supratitlu={tr('exercitiu.variante.supratitlu')}>
+            {tr('exercitiu.variante.titlu')}
+          </SectionTitle>
           {variante.map((v) => (
             <Link key={v.id} to={`/biblioteca/${v.id}`} style={{ textDecoration: 'none' }}>
               <Sticker>
@@ -123,7 +131,9 @@ export function ExercisePage() {
 
       {recorduri && (
         <>
-          <SectionTitle supratitlu="ale tale">Recorduri personale</SectionTitle>
+          <SectionTitle supratitlu={tr('exercitiu.recorduri.supratitlu')}>
+            {tr('exercitiu.recorduri.titlu')}
+          </SectionTitle>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {(Object.keys(recorduri) as PrType[])
               .filter((t) => recorduri[t])
@@ -136,9 +146,7 @@ export function ExercisePage() {
                 />
               ))}
           </div>
-          <p className="mic estompat">
-            {istoric!.length} seturi înregistrate la acest exercițiu, în total.
-          </p>
+          <p className="mic estompat">{tr('exercitiu.seturiTotal', { n: istoric!.length })}</p>
         </>
       )}
     </div>

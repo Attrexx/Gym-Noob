@@ -6,12 +6,12 @@ import { sfatulZilei } from '@/data/catalog/tips';
 import { useT } from '@/i18n';
 
 export function GuidePage() {
-  useT(); // abonament la limbă — titlurile articolelor vin din pachet
+  const { t } = useT(); // abonament la limbă — titlurile articolelor vin din pachet
   return (
     <div className="pagina">
       <div className="coperta">
-        <div className="supratitlu">școala de sală</div>
-        <h1>Ghidul Noobului</h1>
+        <div className="supratitlu">{t('ghid.supratitlu')}</div>
+        <h1>{t('ghid.titlu')}</h1>
       </div>
       <FlexuSpune poza="explica">{sfatulZilei()}</FlexuSpune>
       {articole().map((a) => (

@@ -35,28 +35,27 @@ export function LibraryPage() {
   return (
     <div className="pagina">
       <div className="coperta">
-        <div className="supratitlu">biblioteca de mișcări</div>
-        <h1>Exerciții</h1>
+        <div className="supratitlu">{t('biblioteca.supratitlu')}</div>
+        <h1>{t('biblioteca.titlu')}</h1>
         <p className="mic estompat" style={{ margin: 0 }}>
-          {t('comun.exercitii', { n: toate.length })} cu sfaturi de formă, utilizare a aparatelor și
-          demonstrații.
+          {t('biblioteca.descriere', { ce: t('comun.exercitii', { n: toate.length }) })}
         </p>
       </div>
 
       <input
         type="search"
-        placeholder="🔍 Caută exercițiu sau aparat…"
+        placeholder={t('biblioteca.cauta.placeholder')}
         value={cauta}
         onChange={(e) => setCauta(e.target.value)}
-        aria-label="Caută exercițiu"
+        aria-label={t('biblioteca.cauta.aria')}
         style={{ marginBottom: 10 }}
       />
 
       <div className="supratitlu" style={{ fontSize: '0.7rem', marginBottom: 4 }}>
-        categorie
+        {t('biblioteca.filtru.categorie')}
       </div>
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8 }}>
-        <Chip activ={categorie === 'toate'} onClick={() => setCategorie('toate')} nume="Toate" />
+        <Chip activ={categorie === 'toate'} onClick={() => setCategorie('toate')} nume={t('comun.toate')} />
         {categorii().map((c) => (
           <Chip
             key={c.id}
@@ -73,10 +72,10 @@ export function LibraryPage() {
       )}
 
       <div className="supratitlu" style={{ fontSize: '0.7rem', marginBottom: 4 }}>
-        grupă musculară
+        {t('biblioteca.filtru.grupa')}
       </div>
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 8 }}>
-        <Chip activ={grupa === 'toate'} onClick={() => setGrupa('toate')} nume="Toate" />
+        <Chip activ={grupa === 'toate'} onClick={() => setGrupa('toate')} nume={t('comun.toate')} />
         {grupeMuschi().map((g) => (
           <Chip key={g.id} activ={grupa === g.id} onClick={() => setGrupa(g.id)} nume={g.nume} />
         ))}
@@ -101,9 +100,7 @@ export function LibraryPage() {
           </Sticker>
         </Link>
       ))}
-      {lista.length === 0 && (
-        <p className="estompat centrat">Nimic găsit. Încearcă alt termen, altă grupă sau altă categorie.</p>
-      )}
+      {lista.length === 0 && <p className="estompat centrat">{t('biblioteca.gol')}</p>}
     </div>
   );
 }

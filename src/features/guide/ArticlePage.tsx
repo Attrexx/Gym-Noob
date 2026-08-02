@@ -4,14 +4,14 @@ import { Sticker } from '@/design/components';
 import { useT } from '@/i18n';
 
 export function ArticlePage() {
-  useT(); // abonament la limbă — conținutul vine din pachet
+  const { t } = useT(); // abonament la limbă — conținutul vine din pachet
   const { id } = useParams();
   const art = id ? getArticol(id) : undefined;
   if (!art) {
     return (
       <div className="pagina">
-        <p>Articolul nu există.</p>
-        <Link to="/ghid">← Ghid</Link>
+        <p>{t('articol.inexistent')}</p>
+        <Link to="/ghid">{t('articol.inapoiScurt')}</Link>
       </div>
     );
   }
@@ -31,10 +31,10 @@ export function ArticlePage() {
   return (
     <div className="pagina">
       <Link to="/ghid" className="mic" style={{ fontWeight: 700 }}>
-        ← Ghidul Noobului
+        {t('articol.inapoi')}
       </Link>
       <div className="coperta" style={{ marginTop: 8 }}>
-        <div className="supratitlu">lecție de la Flexu</div>
+        <div className="supratitlu">{t('articol.supratitlu')}</div>
         <h1 style={{ fontSize: '1.4rem' }}>
           {art.emoji} {art.titlu}
         </h1>

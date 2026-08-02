@@ -5,6 +5,7 @@
  * Fiecare exercițiu din catalog are un `anim` care se mapează pe una
  * dintre scenele de mai jos.
  */
+import { useT } from '@/i18n';
 
 const MAPARE: Record<string, string> = {
   mers: 'cardio', alergare: 'cardio', trepte: 'cardio', coarda: 'cardio', catarator: 'cardio',
@@ -23,6 +24,7 @@ const MAPARE: Record<string, string> = {
 };
 
 export function ExerciseAnim(props: { anim?: string; marime?: number }) {
+  const { t } = useT();
   const scena = MAPARE[props.anim ?? ''] ?? 'impins';
   const s = props.marime ?? 160;
   return (
@@ -31,7 +33,7 @@ export function ExerciseAnim(props: { anim?: string; marime?: number }) {
       height={s}
       viewBox="0 0 120 120"
       role="img"
-      aria-label="Demonstrație animată a mișcării"
+      aria-label={t('biblioteca.anim.aria')}
       style={{ background: 'var(--crem, #fff8e0)', border: '3px solid var(--contur)', borderRadius: 10 }}
     >
       <g stroke="var(--fg, #171310)" strokeWidth="5" strokeLinecap="round" fill="none">

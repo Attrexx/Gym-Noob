@@ -2,7 +2,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useNavigate } from 'react-router-dom';
 import { db } from '@/data/db';
 import { BigButton, ProgressBar, SectionTitle, StatTile, Sticker } from '@/design/components';
-import { data, nr } from '@/i18n/format';
+import { data } from '@/i18n/format';
+import { useT } from '@/i18n';
 import { FlexuSpune } from '@/design/Flexu';
 import { useProfile } from '@/state/profileStore';
 import { bugetZilnic, saptamaniPanaLaTinta, varstaDinData } from '@/domain/goals';
@@ -11,6 +12,7 @@ import { setGreutateCurenta, useSession } from '@/state/sessionStore';
 import { weeklyStreak, trainingDays } from '@/domain/achievements';
 
 export function HomePage() {
+  const { t, fmt } = useT();
   const { profil } = useProfile();
   const nav = useNavigate();
   const statusSesiune = useSession((s) => s.status);
@@ -51,69 +53,109 @@ export function HomePage() {
     <div className="pagina">
       <div className="coperta">
         <div className="supratitlu">{data(new Date(), 'zilnic')}</div>
-        <h1>Salut, {profil.nume}!</h1>
-        {streak > 0 && <span className="eticheta-mica">🔥 {streak} săpt. consecutive</span>}
+        <h1>{t('acasa.salut', { nume: profil.nume })}</h1>
+        {streak > 0 && <span className="eticheta-mica">🔥 {t('acasa.streak', { n: streak })}</span>}
       </div>
 
       {statusSesiune !== 'inactiva' ? (
         <BigButton varianta="accent" mare onClick={() => nav('/sala')}>
-          ● Continuă sesiunea
+          ● {t('acasa.continua')}
         </BigButton>
       ) : (
         <BigButton varianta="accent" mare onClick={() => nav('/sala')}>
-          {antrenamentAzi ? 'Încă o sesiune azi? 😎' : 'Începe antrenamentul'}
+          {t(antrenamentAzi ? 'acasa.incaOSesiune' : 'acasa.incepe')}
         </BigButton>
       )}
 
-      <SectionTitle supratitlu="calorii" actiune={<Link to="/greutate" className="mic">detalii →</Link>}>
-        Bugetul zilei
+      <SectionTitle
+        supratitlu={t('acasa.buget.supratitlu')}
+        actiune={
+          <Link to="/greutate" className="mic">
+            {t('comun.detalii')}
+          </Link>
+        }
+      >
+        {t('acasa.buget.titlu')}
       </SectionTitle>
       <Sticker>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-          <StatTile valoare={buget.tdee} eticheta="consumi" sub="kcal/zi estimat" />
-          <StatTile valoare={arseAzi > 0 ? `+${Math.round(arseAzi)}` : '0'} eticheta="arse la sală" sub="azi" />
-          <StatTile valoare={buget.aportMaximAzi} eticheta="poți mânca" sub="kcal azi" accent />
+          <StatTile valoare={buget.tdee} eticheta={t('acasa.buget.consumi')} sub={t('acasa.buget.consumiSub')} />
+          <StatTile
+            valoare={arseAzi > 0 ? `+${Math.round(arseAzi)}` : '0'}
+            eticheta={t('acasa.buget.arse')}
+            sub={t('acasa.buget.arseSub')}
+          />
+          <StatTile
+            valoare={buget.aportMaximAzi}
+            eticheta={t('acasa.buget.potiManca')}
+            sub={t('acasa.buget.potiMancaSub')}
+            accent
+          />
         </div>
         <p className="mic estompat" style={{ margin: '10px 0 0' }}>
           {date.goal
-            ? `Ținta: ${nr(date.goal.greutateTinta)} kg în ritm de ${nr(date.goal.ritmKgSaptamana)} kg/săpt. (deficit ${buget.deficit} kcal/zi).${
-                saptamani ? ` Mai ai ~${saptamani} săptămâni.` : ' Obiectiv atins! 🎉'
-              }`
-            : 'Nu ai un obiectiv activ — setează unul din pagina Greutate.'}
+            ? `${t('acasa.tinta.text', {
+                tinta: date.goal.greutateTinta,
+                ritm: date.goal.ritmKgSaptamana,
+                deficit: buget.deficit,
+              })} ${saptamani ? t('acasa.tinta.maiAi', { n: saptamani }) : t('acasa.tinta.atins')}`
+            : t('acasa.tinta.gol')}
         </p>
       </Sticker>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <StatTile valoare={`${nr(greutate)} kg`} eticheta="greutatea curentă" sub={ultima ? data(ultima.data) : ''} />
         <StatTile
-          valoare={date.goal ? `${nr(Math.max(0, greutate - date.goal.greutateTinta))} kg` : '—'}
-          eticheta="până la țintă"
-          sub={date.goal ? `țintă ${nr(date.goal.greutateTinta)} kg` : ''}
+          valoare={`${fmt.nr(greutate)} kg`}
+          eticheta={t('acasa.greutateCurenta')}
+          sub={ultima ? data(ultima.data) : ''}
+        />
+        <StatTile
+          valoare={date.goal ? `${fmt.nr(Math.max(0, greutate - date.goal.greutateTinta))} kg` : '—'}
+          eticheta={t('acasa.panaLaTinta')}
+          sub={date.goal ? t('acasa.tintaKg', { kg: date.goal.greutateTinta }) : ''}
         />
       </div>
 
-      <SectionTitle supratitlu="Flexu zice">Sfatul zilei</SectionTitle>
+      <SectionTitle supratitlu={t('acasa.sfat.supratitlu')}>{t('acasa.sfat.titlu')}</SectionTitle>
       <FlexuSpune poza="explica">{sfatulZilei()}</FlexuSpune>
 
-      <SectionTitle supratitlu="progres" actiune={<Link to="/statistici" className="mic">toate →</Link>}>
-        Săptămâna asta
+      <SectionTitle
+        supratitlu={t('acasa.progres.supratitlu')}
+        actiune={
+          <Link to="/statistici" className="mic">
+            {t('comun.toateLink')}
+          </Link>
+        }
+      >
+        {t('acasa.progres.titlu')}
       </SectionTitle>
       <SaptamanaCurenta zile={trainingDays(date.toateSesiunile)} />
     </div>
   );
 }
 
+/** Cheile inițialelor, de luni la duminică — ordinea e a săptămânii europene. */
+const ZILE = [
+  'acasa.zi.luni',
+  'acasa.zi.marti',
+  'acasa.zi.miercuri',
+  'acasa.zi.joi',
+  'acasa.zi.vineri',
+  'acasa.zi.sambata',
+  'acasa.zi.duminica',
+] as const;
+
 function SaptamanaCurenta(props: { zile: string[] }) {
+  const { t } = useT();
   const azi = new Date();
   const luni = new Date(azi);
   luni.setDate(azi.getDate() - ((azi.getDay() + 6) % 7));
-  const nume = ['L', 'Ma', 'Mi', 'J', 'V', 'S', 'D'];
   const set = new Set(props.zile);
-  const zile = nume.map((n, i) => {
+  const zile = ZILE.map((cheieZi, i) => {
     const d = new Date(luni);
     d.setDate(luni.getDate() + i);
     const cheie = d.toISOString().slice(0, 10);
-    return { n, facut: set.has(cheie), azi: cheie === new Date().toISOString().slice(0, 10) };
+    return { n: t(cheieZi), facut: set.has(cheie), azi: cheie === new Date().toISOString().slice(0, 10) };
   });
   const facute = zile.filter((z) => z.facut).length;
   return (
@@ -140,7 +182,10 @@ function SaptamanaCurenta(props: { zile: string[] }) {
           </div>
         ))}
       </div>
-      <ProgressBar procent={(facute / 3) * 100} eticheta={`${facute} din 3 antrenamente recomandate`} />
+      <ProgressBar
+        procent={(facute / 3) * 100}
+        eticheta={t('acasa.recomandate', { facute, total: 3 })}
+      />
     </Sticker>
   );
 }

@@ -8,17 +8,18 @@ import { data } from '@/i18n/format';
 import { descriereRealizare, numeRealizare } from '@/i18n/descrieri';
 import { useT } from '@/i18n';
 
-const CATEGORII: Record<string, string> = {
-  inceput: 'Începuturi',
-  consecventa: 'Consecvență',
-  volum: 'Volum și calorii',
-  greutate: 'Greutate corporală',
-  hidratare: 'Hidratare',
-  recorduri: 'Recorduri',
-};
+/** Categoriile, în ordinea în care se afișează; textul vine din mesaje. */
+const CATEGORII = [
+  ['inceput', 'realizari.cat.inceput'],
+  ['consecventa', 'realizari.cat.consecventa'],
+  ['volum', 'realizari.cat.volum'],
+  ['greutate', 'realizari.cat.greutate'],
+  ['hidratare', 'realizari.cat.hidratare'],
+  ['recorduri', 'realizari.cat.recorduri'],
+] as const;
 
 export function AchievementsPage() {
-  useT(); // abonament la limbă — numele insignelor vin din mesaje
+  const { t } = useT(); // abonament la limbă — numele insignelor vin din mesaje
   const { profil } = useProfile();
   const deblocate = useLiveQuery(async () => {
     if (!profil?.id) return new Map<string, string>();
@@ -32,25 +33,21 @@ export function AchievementsPage() {
   return (
     <div className="pagina">
       <div className="coperta">
-        <div className="supratitlu">colecția de medalii</div>
-        <h1>Realizări</h1>
+        <div className="supratitlu">{t('realizari.supratitlu')}</div>
+        <h1>{t('realizari.titlu')}</h1>
         <p className="mic estompat" style={{ margin: 0 }}>
-          {nr} din {ACHIEVEMENTS.length} deblocate
+          {t('realizari.progres', { nr, total: ACHIEVEMENTS.length })}
         </p>
       </div>
 
-      {nr === 0 && (
-        <FlexuSpune poza="explica">
-          Prima insignă te așteaptă la prima sesiune terminată. Nu e departe — hai la sală! 💪
-        </FlexuSpune>
-      )}
+      {nr === 0 && <FlexuSpune poza="explica">{t('realizari.gol')}</FlexuSpune>}
 
-      {Object.entries(CATEGORII).map(([cat, nume]) => {
+      {CATEGORII.map(([cat, cheieNume]) => {
         const din = ACHIEVEMENTS.filter((a) => a.categorie === cat);
         if (!din.length) return null;
         return (
           <div key={cat}>
-            <h2 style={{ marginTop: 20 }}>{nume}</h2>
+            <h2 style={{ marginTop: 20 }}>{t(cheieNume)}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {din.map((a) => {
                 const cand = deblocate.get(a.id);
