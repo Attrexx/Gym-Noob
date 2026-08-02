@@ -260,6 +260,102 @@ export const ro = {
     other: '{n} de seturi înregistrate la acest exercițiu, în total.',
   },
 
+  // ── planurile mele + programele aplicației (o pagină, două rafturi) ─
+  'planuri.supratitlu': 'planuri și programe',
+  'planuri.titlu': 'Programe',
+  'planuri.descriere':
+    'Ale tale sunt cele pe care le-ai creat, importat sau salvate după o sesiune. Ale aplicației sunt {ce}, gata de copiat.',
+  'planuri.tab.mele': '📋 Ale mele',
+  'planuri.tab.aplicatie': '📖 Ale aplicației',
+  'planuri.nou': '+ Plan nou',
+  'planuri.deLaFlexu': 'de la Flexu',
+  'planuri.copie': '{nume} (copie)',
+  'planuri.incepe': '▶ Începe',
+  'planuri.editeaza': 'Editează',
+  'planuri.copiaza': 'Copiază',
+  'planuri.gol':
+    'Niciun plan salvat încă. Fă unul, ia-l pe-al aplicației din tabul de alături, sau pornește o sesiune în <0>mod liber</0> și salveaz-o la final. Poți începe și din <1>biblioteca de exerciții</1>.',
+
+  'programe.intro':
+    'Cel mai bun program e cel pe care <0>chiar îl faci</0>, săptămână de săptămână. Nu-l alege pe cel mai complicat — alege-l pe cel care îți intră în program și rămâi la el trei luni.',
+
+  // ── pagina unui program celebru ─────────────────────────────────────
+  'program.inexistent': 'Programul nu există.',
+  'program.inapoi': 'Înapoi la programe',
+  'program.supratitlu': 'program · {nivel}',
+  'program.durataPe': '{durata} pe antrenament',
+  'program.saptamana': 'Săptămâna arată așa',
+  'program.progresie': 'Cum crești greutățile',
+  'program.note': 'De reținut',
+  'program.adauga': {
+    one: '+ Adaugă antrenamentul la mine',
+    few: '+ Adaugă cele {n} antrenamente la mine',
+    other: '+ Adaugă cele {n} de antrenamente la mine',
+  },
+  'program.reimprospateaza': {
+    one: '↻ Reîmprospătează antrenamentul',
+    few: '↻ Reîmprospătează cele {n} antrenamente',
+    other: '↻ Reîmprospătează cele {n} de antrenamente',
+  },
+  'program.gata': 'Gata! ',
+  'program.gasesti':
+    'Le găsești în <0>Planuri</0>. Le poți edita fără să strici programul original.',
+  'program.avertisment':
+    'Greutățile din șabloane sunt doar un punct de plecare pentru cineva care începe. La prima sesiune reglează-le: ultimele 1-2 repetări trebuie să fie grele, dar curate.',
+
+  // ── rezumatul unui set dintr-un plan („3 × 8 @ 40 kg · pauză 2:30") ─
+  'plan.set.linie': '{seturi} × {cantitate}{greutate} · pauză {pauza}',
+  'plan.set.amrap': 'maxim (AMRAP)',
+
+  // ── editorul de planuri ─────────────────────────────────────────────
+  'editor.supratitlu.nou': 'plan nou',
+  'editor.supratitlu.editare': 'editare',
+  'editor.titlu.nou': 'Antrenament nou',
+  'editor.nume.eticheta': 'Numele antrenamentului',
+  'editor.nume.placeholder': 'ex. Ziua de împins',
+  'editor.descriere.eticheta': 'Descriere (opțional)',
+  'editor.descriere.placeholder': 'scopul planului…',
+  'editor.item.seturi': { one: '{n} set', few: '{n} seturi', other: '{n} de seturi' },
+  'editor.item.pauza': 'pauză {sec}s',
+  'editor.item.tempo': 'tempo',
+  'editor.regleaza': 'Reglează',
+  'editor.mutaSus': 'Mută mai sus',
+  'editor.mutaJos': 'Mută mai jos',
+  'editor.stergeExercitiu': 'Șterge exercițiul',
+  'editor.adaugaExercitiu': '+ Adaugă exercițiu',
+  'editor.salveaza': '💾 Salvează antrenamentul',
+  'editor.sterge': 'Șterge',
+  'editor.stergeConfirmare': 'Ștergi definitiv acest antrenament?',
+  'editor.adaugaInPlan': '+ Adaugă în plan',
+  'editor.gata': 'Gata',
+
+  // ── foaia de alegere a exercițiului ─────────────────────────────────
+  'alege.titlu': 'Alege exercițiul',
+  'alege.actiune': '▶ Începe exercițiul',
+  'alege.altExercitiu': '← Alt exercițiu',
+  'alege.flexuPropune': 'Flexu propune',
+  'alege.cauta.placeholder': 'Caută exercițiul…',
+  'alege.gol': 'Nimic găsit. Încearcă alt termen sau altă categorie.',
+
+  // ── parametrii unui exercițiu (steppere) ────────────────────────────
+  'parametri.seturi': 'Seturi',
+  'parametri.repetari': 'Repetări',
+  'parametri.amrap': 'Repetări: maxim (AMRAP)',
+  'parametri.puneNumar': 'Pune un număr',
+  'parametri.faAmrap': 'Fă-l „cât poți" (AMRAP)',
+  'parametri.greutate': 'Greutate',
+  'parametri.durata': 'Durată (minute)',
+  'parametri.viteza': 'Viteză de pornire',
+  'parametri.inclinatie': 'Înclinație de pornire',
+  'parametri.pauza': 'Pauză între seturi',
+  'parametri.tempo.eticheta': 'Cadență (tempo) — opțional',
+  'parametri.tempo.fara': 'fără',
+  'parametri.tempo.normal': '2-0-1 (normal)',
+  'parametri.tempo.controlat': '3-1-2 (controlat)',
+  'parametri.tempo.lent': '4-2-1 (lent, intens)',
+  'parametri.notita.eticheta': 'Notiță (apare în sală) — opțional',
+  'parametri.notita.placeholder': 'ex. 75% din maxim · 8 pe fiecare picior',
+
   // ── ghidul și articolele ────────────────────────────────────────────
   'ghid.supratitlu': 'școala de sală',
   'ghid.titlu': 'Ghidul Noobului',

@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
 import { BigButton, Chip, Sticker } from '@/design/components';
-import { useT } from '@/i18n';
+import { T, useT } from '@/i18n';
 import { getExercise } from '@/data/catalog/exercises';
 import { descriereSablon, numeSablon } from '@/data/catalog/text/rezolva';
 import { getProgram, programe } from '@/data/catalog/programs';
@@ -37,21 +37,20 @@ export function TemplatesPage(props: { tabInitial?: 'mele' | 'aplicatie' }) {
   return (
     <div className="pagina">
       <div className="coperta">
-        <div className="supratitlu">planuri și programe</div>
-        <h1>Programe</h1>
+        <div className="supratitlu">{t('planuri.supratitlu')}</div>
+        <h1>{t('planuri.titlu')}</h1>
         <p className="mic estompat" style={{ margin: 0 }}>
-          Ale tale sunt cele pe care le-ai creat, importat sau salvate după o sesiune. Ale aplicației sunt{' '}
-          {t('comun.programeCelebre', { n: programe().length })}, gata de copiat.
+          {t('planuri.descriere', { ce: t('comun.programeCelebre', { n: programe().length }) })}
         </p>
       </div>
 
       <div style={{ display: 'flex', gap: 6, padding: '4px 0 12px' }}>
-        <Chip id="tab-mele" activ={tab === 'mele'} onClick={() => setTab('mele')} nume="📋 Ale mele" />
+        <Chip id="tab-mele" activ={tab === 'mele'} onClick={() => setTab('mele')} nume={t('planuri.tab.mele')} />
         <Chip
           id="tab-aplicatie"
           activ={tab === 'aplicatie'}
           onClick={() => setTab('aplicatie')}
-          nume="📖 Ale aplicației"
+          nume={t('planuri.tab.aplicatie')}
         />
       </div>
 
@@ -76,7 +75,7 @@ function PlanurileMele() {
     // tăiem proveniența, ca să nu se mai schimbe sub el
     await saveTemplate({
       ...rest,
-      nume: `${numeSablon(sablon)} (copie)`,
+      nume: t('planuri.copie', { nume: numeSablon(sablon) }),
       descriere: descriereSablon(sablon),
       textEditat: true,
       predefinit: false,
@@ -88,7 +87,7 @@ function PlanurileMele() {
   return (
     <>
       <BigButton varianta="accent" mare onClick={() => nav('/antrenamente/nou')}>
-        + Plan nou
+        {t('planuri.nou')}
       </BigButton>
 
       <div style={{ height: 14 }} />
@@ -101,7 +100,7 @@ function PlanurileMele() {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
               <div style={{ flex: 1 }}>
                 <b style={{ fontSize: '1.05rem' }}>{numeSablon(sablon)}</b>{' '}
-                {sablon.predefinit && <span className="eticheta-mica">de la Flexu</span>}
+                {sablon.predefinit && <span className="eticheta-mica">{t('planuri.deLaFlexu')}</span>}
                 {numeleProgramului(sablon) && <span className="eticheta-mica">{numeleProgramului(sablon)}</span>}
                 <div className="mic estompat" style={{ marginTop: 2 }}>
                   {t('comun.exercitii', { n: sablon.items.length })} · ~{minute} min ·{' '}
@@ -124,11 +123,11 @@ function PlanurileMele() {
                 onClick={() => nav('/sala', { state: { templateId: sablon.id } })}
                 disabled={statusSesiune !== 'inactiva'}
               >
-                ▶ Începe
+                {t('planuri.incepe')}
               </BigButton>
-              <BigButton onClick={() => nav(`/antrenamente/${sablon.id}`)}>Editează</BigButton>
+              <BigButton onClick={() => nav(`/antrenamente/${sablon.id}`)}>{t('planuri.editeaza')}</BigButton>
               <BigButton varianta="contur" onClick={() => void dubleaza(sablon)}>
-                Copiază
+                {t('planuri.copiaza')}
               </BigButton>
             </div>
           </Sticker>
@@ -136,9 +135,7 @@ function PlanurileMele() {
       })}
       {sabloane && sabloane.length === 0 && (
         <p className="estompat centrat">
-          Niciun plan salvat încă. Fă unul, ia-l pe-al aplicației din tabul de alături, sau pornește o sesiune în{' '}
-          <b>mod liber</b> și salveaz-o la final. Poți începe și din{' '}
-          <Link to="/biblioteca">biblioteca de exerciții</Link>.
+          <T k="planuri.gol" c={[<b key="b" />, <Link key="l" to="/biblioteca" />]} />
         </p>
       )}
     </>

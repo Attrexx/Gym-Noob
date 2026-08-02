@@ -4,6 +4,7 @@ import { areCategorie, categorii, exercitii, getExercise, numeGrupa } from '@/da
 import type { ExerciseCategory, TemplateItem } from '@/data/types';
 import type { Suggestion } from '@/domain/suggestions';
 import { descrieMotiv } from '@/i18n/descrieri';
+import { useT } from '@/i18n';
 
 /**
  * Alegerea unui exercițiu + reglarea lui, într-un singur loc.
@@ -32,6 +33,7 @@ export function AlegeExercitiu(props: {
   /** al doilea buton, ex. „pornesc gol" din ecranul de start */
   extra?: { text: string; onClick: () => void };
 }) {
+  const { t } = useT();
   const [cauta, setCauta] = useState('');
   const [categorie, setCategorie] = useState<ExerciseCategory | 'toate'>('toate');
   const [ales, setAles] = useState<TemplateItem | null>(null);
@@ -74,11 +76,11 @@ export function AlegeExercitiu(props: {
         <ParametriExercitiu item={ales} onChange={setAles} />
         <div style={{ height: 14 }} />
         <BigButton varianta="accent" mare onClick={confirma}>
-          {props.actiune ?? '▶ Începe exercițiul'}
+          {props.actiune ?? t('alege.actiune')}
         </BigButton>
         <div style={{ height: 8 }} />
         <BigButton varianta="contur" onClick={() => setAles(null)}>
-          ← Alt exercițiu
+          {t('alege.altExercitiu')}
         </BigButton>
       </Modal>
     );
@@ -86,10 +88,10 @@ export function AlegeExercitiu(props: {
 
   // pasul 1: căutarea
   return (
-    <Modal deschis onInchide={inchide} titlu="Alege exercițiul">
+    <Modal deschis onInchide={inchide} titlu={t('alege.titlu')}>
       {props.sugestii && props.sugestii.length > 0 && (
         <>
-          <div className="supratitlu-mic">Flexu propune</div>
+          <div className="supratitlu-mic">{t('alege.flexuPropune')}</div>
           {props.sugestii.map((sg) => (
             <Sticker key={sg.exercise.id} onClick={() => setAles(itemNou(sg.exercise.id))} style={{ padding: 10 }}>
               <b>{sg.exercise.nume}</b>
@@ -103,13 +105,13 @@ export function AlegeExercitiu(props: {
       <input
         id="alege-cauta"
         type="search"
-        placeholder="Caută exercițiul…"
+        placeholder={t('alege.cauta.placeholder')}
         value={cauta}
         onChange={(e) => setCauta(e.target.value)}
         style={{ marginBottom: 8 }}
       />
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8 }}>
-        <Chip activ={categorie === 'toate'} onClick={() => setCategorie('toate')} nume="Toate" />
+        <Chip activ={categorie === 'toate'} onClick={() => setCategorie('toate')} nume={t('comun.toate')} />
         {categorii().map((c) => (
           <Chip key={c.id} activ={categorie === c.id} onClick={() => setCategorie(c.id)} nume={`${c.emoji} ${c.nume}`} />
         ))}
@@ -138,7 +140,7 @@ export function AlegeExercitiu(props: {
             </div>
           </button>
         ))}
-        {lista.length === 0 && <p className="estompat centrat">Nimic găsit. Încearcă alt termen sau altă categorie.</p>}
+        {lista.length === 0 && <p className="estompat centrat">{t('alege.gol')}</p>}
       </div>
 
       {props.extra && (
@@ -164,36 +166,43 @@ export function ParametriExercitiu(props: {
   /** tempo și notița n-au sens în foaia rapidă din sală */
   detaliat?: boolean;
 }) {
+  const { t } = useT();
   const { item, onChange } = props;
   const ex = getExercise(item.exerciseId)!;
   return (
     <div style={{ display: 'grid', gap: 14 }}>
-      <Stepper eticheta="Seturi" valoare={item.seturi} min={1} max={10} onChange={(v) => onChange({ ...item, seturi: v })} />
+      <Stepper
+        eticheta={t('parametri.seturi')}
+        valoare={item.seturi}
+        min={1}
+        max={10}
+        onChange={(v) => onChange({ ...item, seturi: v })}
+      />
       {ex.masura === 'repetari' ? (
         <>
           {item.repetari === undefined ? (
             <div className="rand" style={{ alignItems: 'center' }}>
-              <b>Repetări: maxim (AMRAP)</b>
+              <b>{t('parametri.amrap')}</b>
               <BigButton varianta="contur" onClick={() => onChange({ ...item, repetari: 10 })}>
-                Pune un număr
+                {t('parametri.puneNumar')}
               </BigButton>
             </div>
           ) : (
             <>
               <Stepper
-                eticheta="Repetări"
+                eticheta={t('parametri.repetari')}
                 valoare={item.repetari}
                 min={1}
                 max={50}
                 onChange={(v) => onChange({ ...item, repetari: v })}
               />
               <BigButton varianta="contur" onClick={() => onChange({ ...item, repetari: undefined })}>
-                Fă-l „cât poți" (AMRAP)
+                {t('parametri.faAmrap')}
               </BigButton>
             </>
           )}
           <Stepper
-            eticheta="Greutate"
+            eticheta={t('parametri.greutate')}
             valoare={item.greutate ?? 0}
             pas={2.5}
             min={0}
@@ -205,7 +214,7 @@ export function ParametriExercitiu(props: {
       ) : (
         <>
           <Stepper
-            eticheta="Durată (minute)"
+            eticheta={t('parametri.durata')}
             valoare={Math.round((item.durataSec ?? 300) / 60)}
             min={1}
             max={90}
@@ -215,7 +224,7 @@ export function ParametriExercitiu(props: {
           {ex.echipament === 'banda_alergare' && (
             <>
               <Stepper
-                eticheta="Viteză de pornire"
+                eticheta={t('parametri.viteza')}
                 valoare={item.viteza ?? 5}
                 pas={0.5}
                 min={0.5}
@@ -224,7 +233,7 @@ export function ParametriExercitiu(props: {
                 onChange={(v) => onChange({ ...item, viteza: v })}
               />
               <Stepper
-                eticheta="Înclinație de pornire"
+                eticheta={t('parametri.inclinatie')}
                 valoare={item.inclinatie ?? 0}
                 pas={1}
                 min={0}
@@ -237,7 +246,7 @@ export function ParametriExercitiu(props: {
         </>
       )}
       <Stepper
-        eticheta="Pauză între seturi"
+        eticheta={t('parametri.pauza')}
         valoare={item.pauzaSec}
         pas={15}
         min={0}
@@ -248,25 +257,25 @@ export function ParametriExercitiu(props: {
       {props.detaliat && (
         <>
           <div>
-            <label htmlFor="tempo-sel">Cadență (tempo) — opțional</label>
+            <label htmlFor="tempo-sel">{t('parametri.tempo.eticheta')}</label>
             <select
               id="tempo-sel"
               value={item.tempo ?? ''}
               onChange={(e) => onChange({ ...item, tempo: e.target.value || undefined })}
             >
-              <option value="">fără</option>
-              <option value="2-0-1">2-0-1 (normal)</option>
-              <option value="3-1-2">3-1-2 (controlat)</option>
-              <option value="4-2-1">4-2-1 (lent, intens)</option>
+              <option value="">{t('parametri.tempo.fara')}</option>
+              <option value="2-0-1">{t('parametri.tempo.normal')}</option>
+              <option value="3-1-2">{t('parametri.tempo.controlat')}</option>
+              <option value="4-2-1">{t('parametri.tempo.lent')}</option>
             </select>
           </div>
           <div>
-            <label htmlFor="item-notite">Notiță (apare în sală) — opțional</label>
+            <label htmlFor="item-notite">{t('parametri.notita.eticheta')}</label>
             <input
               id="item-notite"
               value={item.notite ?? ''}
               onChange={(e) => onChange({ ...item, notite: e.target.value || undefined })}
-              placeholder="ex. 75% din maxim · 8 pe fiecare picior"
+              placeholder={t('parametri.notita.placeholder')}
             />
           </div>
         </>

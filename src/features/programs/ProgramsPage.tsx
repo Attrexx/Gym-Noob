@@ -5,7 +5,7 @@ import { numaraExercitii, numeObiectiv, obiective, programe } from '@/data/catal
 import type { ProgramGoal } from '@/data/types';
 import { Chip, Sticker } from '@/design/components';
 import { FlexuSpune } from '@/design/Flexu';
-import { useT } from '@/i18n';
+import { T, useT } from '@/i18n';
 
 /**
  * Programele care vin cu aplicația — un tab din pagina Programe.
@@ -24,12 +24,11 @@ export function ProgrameAplicatie() {
   return (
     <>
       <FlexuSpune poza="explica">
-        Cel mai bun program e cel pe care <b>chiar îl faci</b>, săptămână de săptămână. Nu-l alege pe cel mai
-        complicat — alege-l pe cel care îți intră în program și rămâi la el trei luni.
+        <T k="programe.intro" />
       </FlexuSpune>
 
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', padding: '10px 0 8px' }}>
-        <Chip activ={obiectiv === 'toate'} onClick={() => setObiectiv('toate')} nume="Toate" />
+        <Chip activ={obiectiv === 'toate'} onClick={() => setObiectiv('toate')} nume={t('comun.toate')} />
         {obiective().map((o) => (
           <Chip
             key={o.id}

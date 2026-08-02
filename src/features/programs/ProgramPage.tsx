@@ -8,10 +8,12 @@ import { etichetaProgram, importaProgram } from '@/data/repo';
 import type { ProgramWorkout, TemplateItem } from '@/data/types';
 import { BigButton, Sticker } from '@/design/components';
 import { nr } from '@/i18n/format';
+import { T, t as tr, useT } from '@/i18n';
 import { FlexuSpune } from '@/design/Flexu';
 import { useProfile } from '@/state/profileStore';
 
 export function ProgramPage() {
+  const { t } = useT();
   const { id } = useParams();
   const nav = useNavigate();
   const { profil } = useProfile();
@@ -32,8 +34,8 @@ export function ProgramPage() {
   if (!program) {
     return (
       <div className="pagina">
-        <p className="estompat centrat">Programul nu există.</p>
-        <BigButton onClick={() => nav('/programe')}>Înapoi la programe</BigButton>
+        <p className="estompat centrat">{t('program.inexistent')}</p>
+        <BigButton onClick={() => nav('/programe')}>{t('program.inapoi')}</BigButton>
       </div>
     );
   }
@@ -49,7 +51,9 @@ export function ProgramPage() {
   return (
     <div className="pagina">
       <div className="coperta">
-        <div className="supratitlu">program · {numeDificultate(program.nivel).toLowerCase()}</div>
+        <div className="supratitlu">
+          {t('program.supratitlu', { nivel: numeDificultate(program.nivel).toLowerCase() })}
+        </div>
         <h1 style={{ fontSize: '1.45rem' }}>{program.nume}</h1>
         <p className="mic" style={{ margin: '4px 0 0' }}>
           {program.subtitlu}
@@ -69,25 +73,25 @@ export function ProgramPage() {
           <div>
             🗓 <b>{program.frecventa}</b>
           </div>
-          <div>⏱ {program.durata} pe antrenament</div>
+          <div>⏱ {t('program.durataPe', { durata: program.durata })}</div>
           <div>📜 {program.origine}</div>
         </div>
       </Sticker>
 
-      <Lista titlu="Săptămâna arată așa" randuri={program.saptamana} />
-      <Lista titlu="Cum crești greutățile" randuri={program.progresie} />
-      {program.note && <Lista titlu="De reținut" randuri={program.note} />}
+      <Lista titlu={t('program.saptamana')} randuri={program.saptamana} />
+      <Lista titlu={t('program.progresie')} randuri={program.progresie} />
+      {program.note && <Lista titlu={t('program.note')} randuri={program.note} />}
 
       <div style={{ height: 6 }} />
       <BigButton varianta="accent" mare onClick={() => void adauga()} disabled={!profil?.id}>
-        {importat || (adaugate ?? 0) > 0
-          ? `↻ Reîmprospătează cele ${program.antrenamente.length} antrenamente`
-          : `+ Adaugă cele ${program.antrenamente.length} antrenamente la mine`}
+        {t(importat || (adaugate ?? 0) > 0 ? 'program.reimprospateaza' : 'program.adauga', {
+          n: program.antrenamente.length,
+        })}
       </BigButton>
       {(importat || (adaugate ?? 0) > 0) && (
         <p className="mic estompat centrat" style={{ margin: '8px 0 0' }}>
-          {importat ? 'Gata! ' : ''}Le găsești în{' '}
-          <Link to="/antrenamente">Planuri</Link>. Le poți edita fără să strici programul original.
+          {importat ? t('program.gata') : ''}
+          <T k="program.gasesti" c={[<Link key="l" to="/antrenamente" />]} />
         </p>
       )}
 
@@ -107,10 +111,7 @@ export function ProgramPage() {
         </div>
       ))}
 
-      <FlexuSpune poza="avertizeaza">
-        Greutățile din șabloane sunt doar un punct de plecare pentru cineva care începe. La prima sesiune
-        reglează-le: ultimele 1-2 repetări trebuie să fie grele, dar curate.
-      </FlexuSpune>
+      <FlexuSpune poza="avertizeaza">{t('program.avertisment')}</FlexuSpune>
     </div>
   );
 }
@@ -168,16 +169,24 @@ function Antrenament(props: { w: ProgramWorkout }) {
   );
 }
 
-/** „3 × 8 @ 40 kg · pauză 2:30" — formatul din cărțile de antrenament. */
+/**
+ * „3 × 8 @ 40 kg · pauză 2:30" — formatul din cărțile de antrenament.
+ *
+ * Nu e componentă, deci folosește `t` sincron din runtime, nu hook-ul. Simbolurile
+ * (×, @, kg, min, s) rămân în cod: sunt aceleași în orice limbă.
+ */
 export function descriereSet(it: TemplateItem): string {
   const ex = getExercise(it.exerciseId);
   const cantitate =
     ex?.masura === 'timp'
       ? `${Math.round((it.durataSec ?? 0) / 60)} min`
       : it.repetari
-        ? `${it.repetari} rep.`
-        : 'maxim (AMRAP)';
+        ? tr('descriere.repetari', { n: it.repetari })
+        : tr('plan.set.amrap');
   const greutate = it.greutate ? ` @ ${nr(it.greutate)} kg` : '';
-  const pauza = it.pauzaSec >= 60 ? `${Math.floor(it.pauzaSec / 60)}:${String(it.pauzaSec % 60).padStart(2, '0')}` : `${it.pauzaSec}s`;
-  return `${it.seturi} × ${cantitate}${greutate} · pauză ${pauza}`;
+  const pauza =
+    it.pauzaSec >= 60
+      ? `${Math.floor(it.pauzaSec / 60)}:${String(it.pauzaSec % 60).padStart(2, '0')}`
+      : `${it.pauzaSec}s`;
+  return tr('plan.set.linie', { seturi: it.seturi, cantitate, greutate, pauza });
 }

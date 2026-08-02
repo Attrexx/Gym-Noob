@@ -4,6 +4,7 @@ import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
 import { BigButton, Modal, Sticker } from '@/design/components';
 import { nr } from '@/i18n/format';
+import { useT } from '@/i18n';
 import { descriereSablon, numeSablon } from '@/data/catalog/text/rezolva';
 import { getExercise, numeGrupa } from '@/data/catalog/exercises';
 import { deleteTemplate, saveTemplate } from '@/data/repo';
@@ -11,6 +12,7 @@ import type { Template, TemplateItem } from '@/data/types';
 import { AlegeExercitiu, ParametriExercitiu } from './AlegeExercitiu';
 
 export function TemplateEditorPage() {
+  const { t } = useT();
   const { id } = useParams();
   const nav = useNavigate();
   const { profil } = useProfile();
@@ -71,7 +73,7 @@ export function TemplateEditorPage() {
   };
 
   const sterge = async () => {
-    if (templateId && confirm('Ștergi definitiv acest antrenament?')) {
+    if (templateId && confirm(t('editor.stergeConfirmare'))) {
       await deleteTemplate(templateId);
       nav('/antrenamente');
     }
@@ -88,14 +90,24 @@ export function TemplateEditorPage() {
   return (
     <div className="pagina">
       <div className="coperta">
-        <div className="supratitlu">{nou ? 'plan nou' : 'editare'}</div>
-        <h1 style={{ fontSize: '1.5rem' }}>{nou ? 'Antrenament nou' : nume || '…'}</h1>
+        <div className="supratitlu">{t(nou ? 'editor.supratitlu.nou' : 'editor.supratitlu.editare')}</div>
+        <h1 style={{ fontSize: '1.5rem' }}>{nou ? t('editor.titlu.nou') : nume || '…'}</h1>
       </div>
 
-      <label htmlFor="t-nume">Numele antrenamentului</label>
-      <input id="t-nume" value={nume} onChange={(e) => setNume(e.target.value)} placeholder="ex. Ziua de împins" />
-      <label htmlFor="t-desc">Descriere (opțional)</label>
-      <input id="t-desc" value={descriere} onChange={(e) => setDescriere(e.target.value)} placeholder="scopul planului…" />
+      <label htmlFor="t-nume">{t('editor.nume.eticheta')}</label>
+      <input
+        id="t-nume"
+        value={nume}
+        onChange={(e) => setNume(e.target.value)}
+        placeholder={t('editor.nume.placeholder')}
+      />
+      <label htmlFor="t-desc">{t('editor.descriere.eticheta')}</label>
+      <input
+        id="t-desc"
+        value={descriere}
+        onChange={(e) => setDescriere(e.target.value)}
+        placeholder={t('editor.descriere.placeholder')}
+      />
 
       <div style={{ height: 14 }} />
       {items.map((it, idx) => {
@@ -108,14 +120,14 @@ export function TemplateEditorPage() {
               <span className="mic estompat">{numeGrupa(ex.muschi[0])}</span>
             </div>
             <div className="mic" style={{ margin: '4px 0 8px' }}>
-              {it.seturi} {it.seturi === 1 ? 'set' : 'seturi'} ×{' '}
+              {t('editor.item.seturi', { n: it.seturi })} ×{' '}
               {ex.masura === 'timp'
                 ? `${Math.round((it.durataSec ?? 0) / 60)} min`
                 : it.repetari
-                  ? `${it.repetari} rep.`
-                  : 'maxim (AMRAP)'}
-              {it.greutate ? ` @ ${nr(it.greutate)} kg` : ''} · pauză {it.pauzaSec}s
-              {it.tempo ? ` · tempo ${it.tempo}` : ''}
+                  ? t('descriere.repetari', { n: it.repetari })
+                  : t('plan.set.amrap')}
+              {it.greutate ? ` @ ${nr(it.greutate)} kg` : ''} · {t('editor.item.pauza', { sec: it.pauzaSec })}
+              {it.tempo ? ` · ${t('editor.item.tempo')} ${it.tempo}` : ''}
               {it.notite && (
                 <div className="estompat" style={{ marginTop: 2 }}>
                   ↳ {it.notite}
@@ -123,14 +135,18 @@ export function TemplateEditorPage() {
               )}
             </div>
             <div className="rand">
-              <BigButton onClick={() => setEditIdx(idx)}>Reglează</BigButton>
-              <BigButton varianta="contur" onClick={() => muta(idx, -1)} ariaLabel="Mută mai sus">
+              <BigButton onClick={() => setEditIdx(idx)}>{t('editor.regleaza')}</BigButton>
+              <BigButton varianta="contur" onClick={() => muta(idx, -1)} ariaLabel={t('editor.mutaSus')}>
                 ↑
               </BigButton>
-              <BigButton varianta="contur" onClick={() => muta(idx, 1)} ariaLabel="Mută mai jos">
+              <BigButton varianta="contur" onClick={() => muta(idx, 1)} ariaLabel={t('editor.mutaJos')}>
                 ↓
               </BigButton>
-              <BigButton varianta="contur" onClick={() => setItems(items.filter((_, i) => i !== idx))} ariaLabel="Șterge exercițiul">
+              <BigButton
+                varianta="contur"
+                onClick={() => setItems(items.filter((_, i) => i !== idx))}
+                ariaLabel={t('editor.stergeExercitiu')}
+              >
                 🗑
               </BigButton>
             </div>
@@ -139,17 +155,17 @@ export function TemplateEditorPage() {
       })}
 
       <BigButton mare onClick={() => setAlegeExercitiu(true)}>
-        + Adaugă exercițiu
+        {t('editor.adaugaExercitiu')}
       </BigButton>
       <div style={{ height: 10 }} />
       <BigButton varianta="accent" mare onClick={() => void salveaza()} disabled={!nume.trim() || items.length === 0}>
-        💾 Salvează antrenamentul
+        {t('editor.salveaza')}
       </BigButton>
       {!nou && templateId && (
         <>
           <div style={{ height: 10 }} />
           <BigButton varianta="pericol" onClick={() => void sterge()}>
-            Șterge
+            {t('editor.sterge')}
           </BigButton>
         </>
       )}
@@ -157,7 +173,7 @@ export function TemplateEditorPage() {
       <AlegeExercitiu
         deschis={alegeExercitiu}
         onInchide={() => setAlegeExercitiu(false)}
-        actiune="+ Adaugă în plan"
+        actiune={t('editor.adaugaInPlan')}
         onAlege={(it) => {
           setItems([...items, it]);
           setAlegeExercitiu(false);
@@ -176,13 +192,14 @@ export function TemplateEditorPage() {
 }
 
 function ItemEditor(props: { item: TemplateItem; onChange: (it: TemplateItem) => void; onInchide: () => void }) {
+  const { t } = useT();
   const ex = getExercise(props.item.exerciseId)!;
   return (
     <Modal deschis onInchide={props.onInchide} titlu={ex.nume}>
       <ParametriExercitiu item={props.item} onChange={props.onChange} detaliat />
       <div style={{ height: 14 }} />
       <BigButton varianta="accent" onClick={props.onInchide}>
-        Gata
+        {t('editor.gata')}
       </BigButton>
     </Modal>
   );

@@ -25,14 +25,9 @@ const RADACINI = ['src/features', 'src/app', 'src/design'];
 /** Fișiere care încă nu au fost trecute prin i18n. Trebuie să ajungă listă goală. */
 const RAMASE: string[] = [
   'src/features/analytics/AnalyticsPage.tsx',
-  'src/features/builder/AlegeExercitiu.tsx',
-  'src/features/builder/TemplateEditorPage.tsx',
-  'src/features/builder/TemplatesPage.tsx',
   'src/features/onboarding/LoginCont.tsx',
   'src/features/onboarding/OnboardingPage.tsx',
   'src/features/onboarding/ProfilesPage.tsx',
-  'src/features/programs/ProgramPage.tsx',
-  'src/features/programs/ProgramsPage.tsx',
   'src/features/session/Screensaver.tsx',
   'src/features/session/SessionPage.tsx',
   'src/features/session/SumarHud.tsx',
