@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BigButton, ProgressBar, Sticker, StatTile } from '@/design/components';
 import { data, nr } from '@/i18n/format';
-import { useT } from '@/i18n';
+import { T, useT } from '@/i18n';
 import { FlexuBula, FlexuSpune } from '@/design/Flexu';
 import { Sigla } from '@/design/Sigla';
 import type { ActivityLevel, Sex } from '@/data/types';
@@ -60,7 +60,7 @@ export function OnboardingPage() {
     setSalvez(true);
     const profileId = await createProfile(
       {
-        nume: nume.trim() || 'Noob',
+        nume: nume.trim() || t('onboarding.noob'),
         sex,
         dataNasterii,
         inaltime,
@@ -88,43 +88,56 @@ export function OnboardingPage() {
     <div className="pagina" style={{ paddingBottom: 24 }}>
       {pas > 0 && (
         <div style={{ marginBottom: 14 }}>
-          <ProgressBar procent={(pas / (PASI - 1)) * 100} eticheta={`Pasul ${pas} din ${PASI - 1}`} />
+          <ProgressBar
+            procent={(pas / (PASI - 1)) * 100}
+            eticheta={t('onboarding.pasul', { pas, total: PASI - 1 })}
+          />
         </div>
       )}
 
       {pas === 0 && (
         <div className="centrat pop">
           <div className="coperta" style={{ padding: '26px 18px', marginTop: 24 }}>
-            <div className="supratitlu">Ghidul complet al începătorului absolut</div>
+            <div className="supratitlu">{t('onboarding.intro.supratitlu')}</div>
             <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0 14px' }}>
               <Sigla latime={340} />
             </div>
             <p className="estompat mic">
-              <b>Eu sunt Flexu</b> — am fost cel mai noob noob din sală, așa că știu exact prin ce treci.
-              Antrenamente, jurnal de greutăți, calorii și încurajări: totul în română, totul pe telefonul tău.
-              Cont opțional, doar dacă vrei datele pe mai multe dispozitive.
+              <T k="onboarding.intro.text" />
             </p>
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 16px' }}>
-            <FlexuBula text="Nu trebuie să fii perfect. Trebuie doar să începi!" latime={360} />
+            <FlexuBula text={t('onboarding.intro.bula')} latime={360} />
           </div>
           <BigButton varianta="accent" mare onClick={() => setPas(1)}>
-            Să începem! 💪
+            {t('onboarding.intro.start')}
           </BigButton>
           <p className="mic estompat" style={{ marginTop: 12 }}>
-            Ai mai folosit aplicația pe alt profil?{' '}
-            <a href="#/profiluri" style={{ fontWeight: 700 }}>
-              Alege profilul
-            </a>
+            <T
+              k="onboarding.intro.altProfil"
+              c={[<a key="a" href="#/profiluri" style={{ fontWeight: 700 }} />]}
+            />
           </p>
           <p className="mic estompat" style={{ marginTop: 4 }}>
-            Ai deja cont de sincronizare?{' '}
-            <button
-              onClick={() => setArataLogin(true)}
-              style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }}
-            >
-              Intră și adu-ți datele
-            </button>
+            <T
+              k="onboarding.intro.amCont"
+              c={[
+                <button
+                  key="b"
+                  onClick={() => setArataLogin(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: 'inherit',
+                    fontWeight: 700,
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    font: 'inherit',
+                  }}
+                />,
+              ]}
+            />
           </p>
         </div>
       )}
@@ -132,25 +145,30 @@ export function OnboardingPage() {
       {pas === 1 && (
         <div className="pop">
           <div className="coperta">
-            <div className="supratitlu">pasul 1 din 4 · fă cunoștință</div>
-            <h1 style={{ fontSize: '1.6rem', margin: 0 }}>Cine ești?</h1>
+            <div className="supratitlu">{t('onboarding.pas1.supratitlu')}</div>
+            <h1 style={{ fontSize: '1.6rem', margin: 0 }}>{t('onboarding.pas1.titlu')}</h1>
           </div>
-          <FlexuSpune poza="explica">Datele astea rămân doar pe telefonul tău — le folosesc pentru calorii și recomandări.</FlexuSpune>
+          <FlexuSpune poza="explica">{t('onboarding.pas1.flexu')}</FlexuSpune>
           <Sticker>
-            <label htmlFor="ob-nume">Cum îți spunem?</label>
-            <input id="ob-nume" value={nume} onChange={(e) => setNume(e.target.value)} placeholder="Numele tău" />
-            <label>Sex (pentru formulele de calorii)</label>
+            <label htmlFor="ob-nume">{t('onboarding.pas1.nume')}</label>
+            <input
+              id="ob-nume"
+              value={nume}
+              onChange={(e) => setNume(e.target.value)}
+              placeholder={t('onboarding.pas1.numePlaceholder')}
+            />
+            <label>{t('onboarding.pas1.sex')}</label>
             <div className="rand">
               <BigButton varianta={sex === 'M' ? 'accent' : 'contur'} onClick={() => setSex('M')}>
-                Masculin
+                {t('onboarding.pas1.masculin')}
               </BigButton>
               <BigButton varianta={sex === 'F' ? 'accent' : 'contur'} onClick={() => setSex('F')}>
-                Feminin
+                {t('onboarding.pas1.feminin')}
               </BigButton>
             </div>
-            <label htmlFor="ob-data">Data nașterii</label>
+            <label htmlFor="ob-data">{t('onboarding.pas1.dataNasterii')}</label>
             <input id="ob-data" type="date" value={dataNasterii} onChange={(e) => setDataNasterii(e.target.value)} />
-            <label htmlFor="ob-inaltime">Înălțime (cm)</label>
+            <label htmlFor="ob-inaltime">{t('comun.inaltime')}</label>
             <input
               id="ob-inaltime"
               type="number"
@@ -161,9 +179,9 @@ export function OnboardingPage() {
             />
           </Sticker>
           <div className="rand">
-            <BigButton onClick={() => setPas(0)}>Înapoi</BigButton>
+            <BigButton onClick={() => setPas(0)}>{t('comun.inapoi')}</BigButton>
             <BigButton varianta="accent" onClick={() => setPas(2)} disabled={!inaltime || !dataNasterii}>
-              Mai departe
+              {t('comun.maiDeparte')}
             </BigButton>
           </div>
         </div>
@@ -172,15 +190,12 @@ export function OnboardingPage() {
       {pas === 2 && (
         <div className="pop">
           <div className="coperta">
-            <div className="supratitlu">pasul 2 din 4 · punctul de plecare</div>
-            <h1 style={{ fontSize: '1.6rem', margin: 0 }}>Corpul de start</h1>
+            <div className="supratitlu">{t('onboarding.pas2.supratitlu')}</div>
+            <h1 style={{ fontSize: '1.6rem', margin: 0 }}>{t('onboarding.pas2.titlu')}</h1>
           </div>
-          <FlexuSpune poza="explica">
-            Măsurătorile cu banda (opționale) îmi permit să estimez procentul de grăsime — un indicator mult mai
-            util decât cântarul singur.
-          </FlexuSpune>
+          <FlexuSpune poza="explica">{t('onboarding.pas2.flexu')}</FlexuSpune>
           <Sticker>
-            <label htmlFor="ob-greutate">Greutatea actuală (kg)</label>
+            <label htmlFor="ob-greutate">{t('onboarding.pas2.greutate')}</label>
             <input
               id="ob-greutate"
               type="number"
@@ -190,7 +205,7 @@ export function OnboardingPage() {
               value={greutate}
               onChange={(e) => setGreutate(Number(e.target.value))}
             />
-            <label htmlFor="ob-activitate">Cât de activ ești în afara sălii?</label>
+            <label htmlFor="ob-activitate">{t('onboarding.pas2.activitate')}</label>
             <select id="ob-activitate" value={activitate} onChange={(e) => setActivitate(e.target.value as ActivityLevel)}>
               {NIVELURI.map((nivel) => (
                 <option key={nivel} value={nivel}>
@@ -200,30 +215,48 @@ export function OnboardingPage() {
             </select>
             <div className="rand" style={{ marginTop: 8 }}>
               <div>
-                <label htmlFor="ob-talie">Talie (cm)</label>
-                <input id="ob-talie" type="number" placeholder="opțional" value={talie} onChange={(e) => setTalie(e.target.value ? Number(e.target.value) : '')} />
+                <label htmlFor="ob-talie">{t('comun.talie')}</label>
+                <input
+                  id="ob-talie"
+                  type="number"
+                  placeholder={t('comun.optional')}
+                  value={talie}
+                  onChange={(e) => setTalie(e.target.value ? Number(e.target.value) : '')}
+                />
               </div>
               <div>
-                <label htmlFor="ob-gat">Gât (cm)</label>
-                <input id="ob-gat" type="number" placeholder="opțional" value={gat} onChange={(e) => setGat(e.target.value ? Number(e.target.value) : '')} />
+                <label htmlFor="ob-gat">{t('comun.gat')}</label>
+                <input
+                  id="ob-gat"
+                  type="number"
+                  placeholder={t('comun.optional')}
+                  value={gat}
+                  onChange={(e) => setGat(e.target.value ? Number(e.target.value) : '')}
+                />
               </div>
               {sex === 'F' && (
                 <div>
-                  <label htmlFor="ob-sold">Șold (cm)</label>
-                  <input id="ob-sold" type="number" placeholder="opțional" value={sold} onChange={(e) => setSold(e.target.value ? Number(e.target.value) : '')} />
+                  <label htmlFor="ob-sold">{t('comun.sold')}</label>
+                  <input
+                    id="ob-sold"
+                    type="number"
+                    placeholder={t('comun.optional')}
+                    value={sold}
+                    onChange={(e) => setSold(e.target.value ? Number(e.target.value) : '')}
+                  />
                 </div>
               )}
             </div>
             {calcule.grasime !== null && (
               <p className="mic" style={{ marginTop: 8 }}>
-                Grăsime corporală estimată (formula US Navy): <b>{nr(calcule.grasime)}%</b>
+                <T k="onboarding.pas2.grasime" p={{ procent: calcule.grasime }} />
               </p>
             )}
           </Sticker>
           <div className="rand">
-            <BigButton onClick={() => setPas(1)}>Înapoi</BigButton>
+            <BigButton onClick={() => setPas(1)}>{t('comun.inapoi')}</BigButton>
             <BigButton varianta="accent" onClick={() => setPas(3)} disabled={!greutate}>
-              Mai departe
+              {t('comun.maiDeparte')}
             </BigButton>
           </div>
         </div>
@@ -232,35 +265,41 @@ export function OnboardingPage() {
       {pas === 3 && (
         <div className="pop">
           <div className="coperta">
-            <div className="supratitlu">pasul 3 din 4 · destinația</div>
-            <h1 style={{ fontSize: '1.6rem', margin: 0 }}>Obiectivul</h1>
+            <div className="supratitlu">{t('onboarding.pas3.supratitlu')}</div>
+            <h1 style={{ fontSize: '1.6rem', margin: 0 }}>{t('onboarding.pas3.titlu')}</h1>
           </div>
           <FlexuSpune poza="ganditor">
-            Recomand un ritm de <b>0,5 kg pe săptămână</b> — suficient de rapid să se vadă, suficient de blând să
-            păstrezi mușchii și să nu suferi de foame.
+            <T k="onboarding.pas3.flexu" />
           </FlexuSpune>
           <Sticker>
-            <label htmlFor="ob-tinta">Greutatea țintă (kg)</label>
+            <label htmlFor="ob-tinta">{t('comun.greutateTinta')}</label>
             <input id="ob-tinta" type="number" min={40} max={250} step={0.5} value={tinta} onChange={(e) => setTinta(Number(e.target.value))} />
-            <label htmlFor="ob-ritm">Ritm de slăbire: {nr(ritm)} kg / săptămână</label>
+            <label htmlFor="ob-ritm">{t('onboarding.pas3.ritm', { ritm })}</label>
             <input id="ob-ritm" type="range" min={0.25} max={1} step={0.25} value={ritm} onChange={(e) => setRitm(Number(e.target.value))} />
             <div className="rand mic estompat" style={{ justifyContent: 'space-between' }}>
-              <span>relaxat</span>
-              <span style={{ textAlign: 'right' }}>hotărât</span>
+              <span>{t('onboarding.pas3.relaxat')}</span>
+              <span style={{ textAlign: 'right' }}>{t('onboarding.pas3.hotarat')}</span>
             </div>
             {calcule.saptamani !== null ? (
               <p style={{ marginTop: 10 }}>
-                🗓️ La ritmul ales, ajungi la <b>{nr(tinta)} kg</b> în aproximativ <b>{calcule.saptamani} săptămâni</b>{' '}
-                ({dataEta(calcule.saptamani)}).
+                <T
+                  k="onboarding.pas3.eta"
+                  p={{
+                    tinta,
+                    saptamani: t('comun.saptamani', { n: calcule.saptamani }),
+                    cand: dataEta(calcule.saptamani),
+                  }}
+                  c={[<b key="b0" />, <b key="b1" />]}
+                />
               </p>
             ) : (
-              <p style={{ marginTop: 10 }}>Ținta e egală sau peste greutatea actuală — setează o țintă mai mică pentru slăbit.</p>
+              <p style={{ marginTop: 10 }}>{t('onboarding.pas3.tintaPreaMare')}</p>
             )}
           </Sticker>
           <div className="rand">
-            <BigButton onClick={() => setPas(2)}>Înapoi</BigButton>
+            <BigButton onClick={() => setPas(2)}>{t('comun.inapoi')}</BigButton>
             <BigButton varianta="accent" onClick={() => setPas(4)}>
-              Mai departe
+              {t('comun.maiDeparte')}
             </BigButton>
           </div>
         </div>
@@ -269,24 +308,40 @@ export function OnboardingPage() {
       {pas === 4 && (
         <div className="pop">
           <div className="coperta">
-            <div className="supratitlu">pasul 4 din 4 · gata de treabă</div>
-            <h1 style={{ fontSize: '1.6rem', margin: 0 }}>Planul tău</h1>
+            <div className="supratitlu">{t('onboarding.pas4.supratitlu')}</div>
+            <h1 style={{ fontSize: '1.6rem', margin: 0 }}>{t('onboarding.pas4.titlu')}</h1>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-            <StatTile valoare={nr(calcule.imc)} eticheta="IMC" sub={bmiCategorie(calcule.imc)} />
-            <StatTile valoare={`${calcule.b}`} eticheta="BMR (kcal)" sub="arse doar existând" />
-            <StatTile valoare={`${calcule.t}`} eticheta="TDEE (kcal)" sub="consum zilnic total" />
-            <StatTile valoare={`${calcule.buget.aportMaximBaza}`} eticheta="Buget zilnic" sub="kcal, în zi fără sală" accent />
+            <StatTile
+              valoare={nr(calcule.imc)}
+              eticheta={t('onboarding.pas4.imc')}
+              sub={t(`domeniu.imc.${bmiCategorie(calcule.imc)}`)}
+            />
+            <StatTile
+              valoare={`${calcule.b}`}
+              eticheta={t('onboarding.pas4.bmr')}
+              sub={t('onboarding.pas4.bmrSub')}
+            />
+            <StatTile
+              valoare={`${calcule.t}`}
+              eticheta={t('onboarding.pas4.tdee')}
+              sub={t('onboarding.pas4.tdeeSub')}
+            />
+            <StatTile
+              valoare={`${calcule.buget.aportMaximBaza}`}
+              eticheta={t('onboarding.pas4.buget')}
+              sub={t('onboarding.pas4.bugetSub')}
+              accent
+            />
           </div>
           <FlexuSpune poza="sarbatoreste">
-            <b>{nume.trim() || 'Noob'}, planul e gata!</b> Ți-am pregătit și 4 antrenamente de start, croite pentru
-            început de drum. În zilele cu sală, bugetul de calorii crește automat cu ce arzi. Ne vedem la aparate!
+            <T k="onboarding.pas4.flexu" p={{ nume: nume.trim() || t('onboarding.noob') }} />
           </FlexuSpune>
           <BigButton varianta="accent" mare onClick={() => void finalizeaza()} disabled={salvez}>
-            {salvez ? 'Pregătesc totul…' : 'Creează profilul 🚀'}
+            {t(salvez ? 'onboarding.pas4.pregatesc' : 'onboarding.pas4.creeaza')}
           </BigButton>
           <div style={{ marginTop: 10 }}>
-            <BigButton onClick={() => setPas(3)}>Înapoi</BigButton>
+            <BigButton onClick={() => setPas(3)}>{t('comun.inapoi')}</BigButton>
           </div>
         </div>
       )}

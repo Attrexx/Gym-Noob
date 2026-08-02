@@ -3,6 +3,7 @@ import { BigButton, SectionTitle, Sticker } from '@/design/components';
 import { bleDisponibil, bleSilentiosDisponibil } from '@/services/ble';
 import { raportText, scaneazaAparat, type RaportAparat } from '@/services/bleMachine';
 import type { Settings } from '@/data/types';
+import { T, useT } from '@/i18n';
 
 /**
  * „Ceas și aparate" — comutatoarele de căutare automată plus scanerul.
@@ -16,6 +17,7 @@ export function AparateSection(props: {
   setari: Settings;
   onChange: (c: Partial<Settings>) => void;
 }) {
+  const { t } = useT();
   const { setari } = props;
   const [raport, setRaport] = useState<RaportAparat | null>(null);
   const [scanez, setScanez] = useState(false);
@@ -26,11 +28,10 @@ export function AparateSection(props: {
   if (!bleDisponibil) {
     return (
       <>
-        <SectionTitle supratitlu="senzori">Ceas și aparate</SectionTitle>
+        <SectionTitle supratitlu={t('aparate.supratitlu')}>{t('aparate.titlu')}</SectionTitle>
         <Sticker>
           <p className="mic" style={{ margin: 0 }}>
-            Browserul acesta nu are Web Bluetooth, așa că nu pot citi nici pulsul de la ceas, nici datele de pe
-            aparate. Pe iPhone nu există deloc — pe Android, folosește Chrome. Restul aplicației merge normal.
+            {t('aparate.faraBle')}
           </p>
         </Sticker>
       </>
@@ -60,57 +61,55 @@ export function AparateSection(props: {
       await navigator.clipboard.writeText(raportText(raport));
       setCopiat(true);
     } catch {
-      setEroare('Nu am putut copia. Selectează textul de mai jos manual.');
+      setEroare(t('aparate.scaner.eroareCopiere'));
     }
   };
 
   return (
     <>
-      <SectionTitle supratitlu="senzori">Ceas și aparate</SectionTitle>
+      <SectionTitle supratitlu={t('aparate.supratitlu')}>{t('aparate.titlu')}</SectionTitle>
       <Sticker>
         <Comutator
-          eticheta="♥ Caută ceasul automat la începutul sesiunii"
+          eticheta={t('aparate.pulsAuto')}
           activ={setari.pulsAuto !== false}
           onChange={(v) => props.onChange({ pulsAuto: v })}
         />
         <Comutator
-          eticheta="🔌 Caută aparatul de cardio automat"
+          eticheta={t('aparate.aparatAuto')}
           activ={setari.aparatAuto !== false}
           onChange={(v) => props.onChange({ aparatAuto: v })}
         />
         {(setari.pulsUltimulDispozitiv || setari.aparatUltimulDispozitiv) && (
           <p className="mic estompat" style={{ margin: '8px 0 0' }}>
-            Ținute minte: {[setari.pulsUltimulDispozitiv, setari.aparatUltimulDispozitiv].filter(Boolean).join(' · ')}
+            {t('aparate.tinuteMinte', {
+              lista: [setari.pulsUltimulDispozitiv, setari.aparatUltimulDispozitiv].filter(Boolean).join(' · '),
+            })}
           </p>
         )}
         <p className="mic estompat" style={{ margin: '8px 0 0' }}>
-          {bleSilentiosDisponibil()
-            ? 'Browserul tău îmi permite să mă reconectez singur — nu mai trebuie să apeși nimic.'
-            : 'Browserul cere o atingere ca să aleagă dispozitivul, așa că îți pun un buton mare în antetul sesiunii. Odată conectat, dacă pierd semnalul mă reconectez singur.'}
+          {t(bleSilentiosDisponibil() ? 'aparate.silentios' : 'aparate.cuAtingere')}
         </p>
       </Sticker>
 
       <Sticker>
-        <b>🔍 Scanează un aparat</b>
+        <b>{t('aparate.scaner.titlu')}</b>
         <p className="mic" style={{ margin: '4px 0 10px' }}>
-          Dacă un aparat nu se conectează, pornește-i Bluetooth-ul și scanează-l de aici. Îți spun exact ce
-          servicii expune, iar de acolo știm dacă putem citi datele lui.
+          {t('aparate.scaner.explicatie')}
         </p>
         <BigButton varianta="accent" disabled={scanez} onClick={() => void scaneaza()}>
-          {scanez ? 'Scanez…' : '🔍 Scanează'}
+          {t(scanez ? 'aparate.scaner.scanez' : 'aparate.scaner.scaneaza')}
         </BigButton>
 
         <div style={{ marginTop: 10 }}>
-          <label htmlFor="uuid-extra">UUID-uri suplimentare (opțional)</label>
+          <label htmlFor="uuid-extra">{t('aparate.scaner.uuid')}</label>
           <input
             id="uuid-extra"
             value={uuidExtra}
             onChange={(e) => setUuidExtra(e.target.value)}
-            placeholder="ex. 0000fff0-0000-1000-8000-00805f9b34fb"
+            placeholder={t('aparate.scaner.uuidPlaceholder')}
           />
           <p className="mic estompat" style={{ margin: '6px 0 0' }}>
-            Important de știut: browserul îmi arată <b>doar serviciile pe care le cer dinainte</b>. Un serviciu
-            proprietar necunoscut nu apare până nu-i știm UUID-ul — de aceea există câmpul ăsta.
+            <T k="aparate.scaner.uuidExplicatie" />
           </p>
         </div>
 
@@ -125,7 +124,7 @@ export function AparateSection(props: {
             <div className="rand" style={{ alignItems: 'center' }}>
               <b>{raport.nume}</b>
               <BigButton varianta="contur" onClick={() => void copiaza()}>
-                {copiat ? '✅ Copiat' : '📋 Copiază raportul'}
+                {t(copiat ? 'aparate.scaner.copiat' : 'aparate.scaner.copiaza')}
               </BigButton>
             </div>
             <pre
@@ -144,7 +143,7 @@ export function AparateSection(props: {
               {raportText(raport)}
             </pre>
             <p className="mic estompat" style={{ margin: '6px 0 0' }}>
-              Cauți <b>0x1826</b> (Fitness Machine) — dacă apare, aparatul vorbește standardul și îl putem citi.
+              <T k="aparate.scaner.cauti" />
             </p>
           </div>
         )}

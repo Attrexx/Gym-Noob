@@ -6,9 +6,11 @@ import { deconecteaza, legaCont, reAutentifica, rezolvaConflict, runSync, sterge
 import { mesajEroare } from '@/data/sync/api';
 import { downloadBackup, exportBackup } from '@/data/backup';
 import { dataOra } from '@/i18n/format';
+import { T, useT } from '@/i18n';
 
 /** „Cont și sincronizare" din Setări — toate stările contului, cu Flexu de serviciu. */
 export function ContSection() {
+  const { t } = useT();
   const cont = useCont();
   const [email, setEmail] = useState('');
   const [parola, setParola] = useState('');
@@ -21,7 +23,7 @@ export function ContSection() {
     if (lucrez) return;
     setEroareForm('');
     if (parola.length < 8) {
-      setEroareForm('Parola trebuie să aibă minim 8 caractere.');
+      setEroareForm(t('cont.parolaScurta'));
       return;
     }
     setLucrez(true);
@@ -52,7 +54,7 @@ export function ContSection() {
 
   const formular = (
     <>
-      <label htmlFor="cont-email">Email</label>
+      <label htmlFor="cont-email">{t('cont.email')}</label>
       <input
         id="cont-email"
         type="email"
@@ -60,16 +62,16 @@ export function ContSection() {
         value={cont.sesiuneExpirata ? cont.email ?? email : email}
         disabled={cont.sesiuneExpirata}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="tu@exemplu.ro"
+        placeholder={t('cont.emailPlaceholder')}
       />
-      <label htmlFor="cont-parola">Parolă</label>
+      <label htmlFor="cont-parola">{t('cont.parola')}</label>
       <input
         id="cont-parola"
         type="password"
         autoComplete="current-password"
         value={parola}
         onChange={(e) => setParola(e.target.value)}
-        placeholder="minim 8 caractere"
+        placeholder={t('cont.parolaPlaceholder')}
       />
       {eroareForm && (
         <p className="mic" style={{ color: 'var(--rosu)', fontWeight: 700, marginTop: 8 }}>
@@ -79,21 +81,21 @@ export function ContSection() {
       <div className="rand" style={{ marginTop: 12 }}>
         {cont.sesiuneExpirata ? (
           <BigButton varianta="accent" onClick={() => void trimite('login')} disabled={lucrez}>
-            {lucrez ? 'Intru…' : 'Intră din nou'}
+            {t(lucrez ? 'cont.intru' : 'cont.intraDinNou')}
           </BigButton>
         ) : (
           <>
             <BigButton varianta="accent" onClick={() => void trimite('inregistrare')} disabled={lucrez}>
-              {lucrez ? 'O clipă…' : 'Creează cont'}
+              {t(lucrez ? 'cont.oClipa' : 'cont.creeaza')}
             </BigButton>
             <BigButton varianta="contur" onClick={() => void trimite('login')} disabled={lucrez}>
-              Am deja cont
+              {t('cont.amDejaCont')}
             </BigButton>
           </>
         )}
       </div>
       <p className="mic estompat" style={{ marginTop: 8 }}>
-        Nu uita parola — deocamdată n-avem resetare prin email (serios, n-o uita).
+        {t('cont.nuUitaParola')}
       </p>
     </>
   );
@@ -102,51 +104,48 @@ export function ContSection() {
 
   return (
     <>
-      <SectionTitle supratitlu="pe mai multe dispozitive">Cont și sincronizare</SectionTitle>
+      <SectionTitle supratitlu={t('cont.supratitlu')}>{t('cont.titlu')}</SectionTitle>
       <Sticker>
         {cont.stare === 'nelegat' && (
           <>
-            <FlexuSpune poza="explica">
-              Vrei datele pe două telefoane? Fă-ți un cont și car eu ghiozdanul cu date între ele. Fără cont, totul
-              rămâne doar aici — ca până acum.
-            </FlexuSpune>
+            <FlexuSpune poza="explica">{t('cont.nelegat')}</FlexuSpune>
             {formular}
           </>
         )}
 
-        {cont.stare === 'sincronizez' && (
-          <FlexuSpune poza="obosit">Car ganterele cu date… o secundă.</FlexuSpune>
-        )}
+        {cont.stare === 'sincronizez' && <FlexuSpune poza="obosit">{t('cont.sincronizez')}</FlexuSpune>}
 
         {cont.stare === 'legat' && (
           <>
-            <p style={{ margin: '4px 0', fontWeight: 800 }}>✅ Sincronizat</p>
+            <p style={{ margin: '4px 0', fontWeight: 800 }}>{t('cont.sincronizat')}</p>
             <p className="mic" style={{ margin: '4px 0' }}>
-              Cont: <b>{cont.email}</b>
+              <T k="cont.contEste" p={{ email: cont.email ?? '' }} />
               <br />
-              Ultima sincronizare: {cand(cont.lastSyncLa)}
+              {t('cont.ultimaSincronizare', { cand: cand(cont.lastSyncLa) })}
               {cont.quota && (
                 <>
                   <br />
-                  Spațiu folosit: {(cont.quota.usedBytes / 1024 / 1024).toFixed(2)} MB din{' '}
-                  {Math.round(cont.quota.quotaBytes / 1024 / 1024)} MB
+                  {t('cont.spatiu', {
+                    folosit: (cont.quota.usedBytes / 1024 / 1024).toFixed(2),
+                    total: Math.round(cont.quota.quotaBytes / 1024 / 1024),
+                  })}
                 </>
               )}
             </p>
             <div className="rand" style={{ marginTop: 10 }}>
               <BigButton varianta="accent" onClick={() => void runSync('manual')}>
-                🔄 Sincronizează acum
+                {t('cont.sincronizeazaAcum')}
               </BigButton>
               <BigButton varianta="contur" onClick={() => void deconecteaza()}>
-                Deconectează
+                {t('cont.deconecteaza')}
               </BigButton>
             </div>
             <p className="mic estompat" style={{ margin: '8px 0 0' }}>
-              „Deconectează" doar dezleagă contul — datele rămân pe telefon.
+              {t('cont.deconecteazaExplicatie')}
             </p>
             <div style={{ marginTop: 10 }}>
               <BigButton varianta="pericol" onClick={() => setModalStergere(true)}>
-                Șterge contul din cloud
+                {t('cont.stergeCloud')}
               </BigButton>
             </div>
           </>
@@ -154,7 +153,7 @@ export function ContSection() {
 
         {cont.stare === 'eroare' && cont.sesiuneExpirata && (
           <>
-            <FlexuSpune poza="avertizeaza">Sesiunea a expirat — intră din nou și continuăm de unde am rămas.</FlexuSpune>
+            <FlexuSpune poza="avertizeaza">{t('cont.sesiuneExpirata')}</FlexuSpune>
             {formular}
           </>
         )}
@@ -162,53 +161,50 @@ export function ContSection() {
         {cont.stare === 'eroare' && !cont.sesiuneExpirata && (
           <>
             <FlexuSpune poza={cont.cotaPlina ? 'avertizeaza' : 'ganditor'}>
-              {cont.cotaPlina
-                ? 'Contul e plin (25 MB de gains!). Sincronizarea ia o pauză — scrie-i lui Attrexx.'
-                : cont.lastError ?? 'Nu ajung la server acum. Nicio grijă — totul e salvat aici și trimit eu când prind semnal.'}
+              {cont.cotaPlina ? t('cont.cotaPlina') : (cont.lastError ?? t('cont.eroareGenerica'))}
             </FlexuSpune>
             <BigButton varianta="accent" onClick={() => void runSync('reincercare')}>
-              🔄 Mai încearcă
+              {t('cont.maiIncearca')}
             </BigButton>
           </>
         )}
 
-        {cont.stare === 'conflict' && (
-          <FlexuSpune poza="avertizeaza">Contul are alt set de date — alege în fereastra de mai jos.</FlexuSpune>
-        )}
+        {cont.stare === 'conflict' && <FlexuSpune poza="avertizeaza">{t('cont.conflictScurt')}</FlexuSpune>}
       </Sticker>
 
       {/* dialogul de conflict (fork): contul are deja alte date */}
-      <Modal deschis={cont.stare === 'conflict'} onInchide={() => void rezolvaConflict('renunt')} titlu="Ho! Două seturi de date">
+      <Modal
+        deschis={cont.stare === 'conflict'}
+        onInchide={() => void rezolvaConflict('renunt')}
+        titlu={t('cont.conflict.titlu')}
+      >
         <FlexuSpune poza="avertizeaza">
-          Contul <b>{cont.email}</b> are deja un set de date, și telefonul ăsta are altul. Ca la sală: nu punem două
-          discuri pe același cârlig. Pe care îl păstrăm?
+          <T k="cont.conflict.explicatie" p={{ email: cont.email ?? '' }} />
         </FlexuSpune>
         <div style={{ display: 'grid', gap: 8 }}>
           <BigButton varianta="accent" onClick={() => void rezolvaConflict('cloud')}>
-            ☁️ Folosesc varianta din cloud
+            {t('cont.conflict.cloud')}
           </BigButton>
           <p className="mic estompat" style={{ margin: 0 }}>
-            Profilul din cloud devine activ. Profilul local NU se șterge — rămâne în lista de profiluri, nelegat.
+            {t('cont.conflict.cloudExplicatie')}
           </p>
-          <BigButton onClick={() => void rezolvaConflict('local')}>📱 Trimit varianta locală</BigButton>
+          <BigButton onClick={() => void rezolvaConflict('local')}>{t('cont.conflict.local')}</BigButton>
           <p className="mic estompat" style={{ margin: 0 }}>
-            Datele din cloud se înlocuiesc cu ce e pe telefonul ăsta.
+            {t('cont.conflict.localExplicatie')}
           </p>
           <BigButton varianta="contur" onClick={() => void exportBackup().then(downloadBackup)}>
-            ⬇ Descarcă întâi un backup
+            {t('cont.conflict.backup')}
           </BigButton>
           <BigButton varianta="contur" onClick={() => void rezolvaConflict('renunt')}>
-            Renunț
+            {t('cont.conflict.renunt')}
           </BigButton>
         </div>
       </Modal>
 
       {/* ștergerea contului — cere parola (confirmarea naturală) */}
-      <Modal deschis={modalStergere} onInchide={() => setModalStergere(false)} titlu="Ștergi contul din cloud?">
-        <FlexuSpune poza="avertizeaza">
-          Se șterg contul și TOATE datele din cloud. Datele de pe telefon rămân neatinse. Confirmă cu parola.
-        </FlexuSpune>
-        <label htmlFor="cont-parola-stergere">Parola contului</label>
+      <Modal deschis={modalStergere} onInchide={() => setModalStergere(false)} titlu={t('cont.stergere.titlu')}>
+        <FlexuSpune poza="avertizeaza">{t('cont.stergere.explicatie')}</FlexuSpune>
+        <label htmlFor="cont-parola-stergere">{t('cont.stergere.parola')}</label>
         <input
           id="cont-parola-stergere"
           type="password"
@@ -223,10 +219,10 @@ export function ContSection() {
         )}
         <div className="rand" style={{ marginTop: 12 }}>
           <BigButton varianta="pericol" onClick={() => void sterge()} disabled={lucrez || parolaStergere.length < 8}>
-            {lucrez ? 'Șterg…' : 'Da, șterge tot din cloud'}
+            {t(lucrez ? 'cont.stergere.sterg' : 'cont.stergere.confirma')}
           </BigButton>
           <BigButton varianta="contur" onClick={() => setModalStergere(false)}>
-            Anulează
+            {t('comun.anuleaza')}
           </BigButton>
         </div>
       </Modal>

@@ -19,6 +19,7 @@ import { db } from '@/data/db';
 import { useProfile } from '@/state/profileStore';
 import { SectionTitle, StatTile, Sticker } from '@/design/components';
 import { data, nr } from '@/i18n/format';
+import { useT } from '@/i18n';
 import { getExercise, numeGrupa } from '@/data/catalog/exercises';
 import { epley1Rm } from '@/domain/oneRm';
 import { weekKey } from '@/domain/achievements';
@@ -28,6 +29,7 @@ import { fmtDurata } from '../session/useTick';
 type Interval = 7 | 30 | 90 | 9999;
 
 export function AnalyticsPage() {
+  const { t } = useT();
   const { profil } = useProfile();
   const [interval, setInterval_] = useState<Interval>(30);
   const [exSelectat, setExSelectat] = useState('');
@@ -67,8 +69,8 @@ export function AnalyticsPage() {
 
   // timpul petrecut la sală: total de pe ceasul de perete vs. timp de lucru
   const timpuri = filtrat.sesiuni.map((s) => impartireTimp(s));
-  const timpActiv = timpuri.reduce((a, t) => a + t.activSec, 0);
-  const timpLaSala = timpuri.reduce((a, t) => a + t.totalSec, 0);
+  const timpActiv = timpuri.reduce((a, x) => a + x.activSec, 0);
+  const timpLaSala = timpuri.reduce((a, x) => a + x.totalSec, 0);
   const timpPauza = timpLaSala - timpActiv;
 
   // greutate + medie mobilă 7 zile
@@ -110,7 +112,7 @@ export function AnalyticsPage() {
   const ultimeleSesiuni = [...filtrat.sesiuni]
     .sort((a, b) => b.inceput.localeCompare(a.inceput))
     .slice(0, 8)
-    .map((s) => ({ s, t: impartireTimp(s), seturi: filtrat.seturi.filter((l) => l.sessionId === s.id).length }));
+    .map((s) => ({ s, timp: impartireTimp(s), seturi: filtrat.seturi.filter((l) => l.sessionId === s.id).length }));
 
   // progresie exercițiu selectat (1RM estimat pe sesiune)
   const exercitiiFolosite = [...new Set(date.seturi.map((l) => l.exerciseId))]
@@ -166,8 +168,8 @@ export function AnalyticsPage() {
   return (
     <div className="pagina">
       <div className="coperta">
-        <div className="supratitlu">cifrele nu mint</div>
-        <h1>Statistici</h1>
+        <div className="supratitlu">{t('statistici.supratitlu')}</div>
+        <h1>{t('statistici.titlu')}</h1>
       </div>
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
@@ -185,30 +187,44 @@ export function AnalyticsPage() {
               color: interval === i ? 'var(--accent-fg)' : 'var(--panou-fg)',
             }}
           >
-            {i === 9999 ? 'Tot' : `${i} zile`}
+            {i === 9999 ? t('statistici.tot') : t('statistici.zile', { n: i })}
           </button>
         ))}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <StatTile valoare={filtrat.sesiuni.length} eticheta="sesiuni" />
+        <StatTile valoare={filtrat.sesiuni.length} eticheta={t('statistici.sesiuni')} />
         <StatTile
           valoare={fmtDurata(timpLaSala)}
-          eticheta="timp la sală"
-          sub={timpLaSala > 0 ? `${Math.round((timpActiv / timpLaSala) * 100)}% lucrat` : undefined}
+          eticheta={t('statistici.timpLaSala')}
+          sub={
+            timpLaSala > 0
+              ? t('statistici.lucrat', { procent: Math.round((timpActiv / timpLaSala) * 100) })
+              : undefined
+          }
         />
-        <StatTile valoare={fmtDurata(timpActiv)} eticheta="timp activ" sub={`pauze ${fmtDurata(timpPauza)}`} />
-        <StatTile valoare={kcalTotal} eticheta="kcal arse" accent />
-        <StatTile valoare={`${(volumTotal / 1000).toFixed(1)} t`} eticheta="volum ridicat" sub={`${volumTotal} kg`} />
-        <StatTile valoare={filtrat.seturi.length} eticheta="seturi" />
-        <StatTile valoare={`${(apaTotal / 1000).toFixed(1)} l`} eticheta="apă la sală" />
+        <StatTile
+          valoare={fmtDurata(timpActiv)}
+          eticheta={t('statistici.timpActiv')}
+          sub={t('statistici.pauze', { timp: fmtDurata(timpPauza) })}
+        />
+        <StatTile valoare={kcalTotal} eticheta={t('statistici.kcalArse')} accent />
+        <StatTile
+          valoare={`${(volumTotal / 1000).toFixed(1)} t`}
+          eticheta={t('statistici.volum')}
+          sub={`${volumTotal} kg`}
+        />
+        <StatTile valoare={filtrat.seturi.length} eticheta={t('statistici.seturi')} />
+        <StatTile valoare={`${(apaTotal / 1000).toFixed(1)} l`} eticheta={t('statistici.apa')} />
       </div>
 
       {ultimeleSesiuni.length > 0 && (
         <>
-          <SectionTitle supratitlu="jurnal">Ultimele sesiuni</SectionTitle>
+          <SectionTitle supratitlu={t('statistici.jurnal.supratitlu')}>
+            {t('statistici.jurnal.titlu')}
+          </SectionTitle>
           <Sticker>
-            {ultimeleSesiuni.map(({ s, t, seturi }) => (
+            {ultimeleSesiuni.map(({ s, timp, seturi }) => (
               <div
                 key={s.id}
                 style={{
@@ -225,13 +241,16 @@ export function AnalyticsPage() {
                     {fmtOra(s.inceput)} → {fmtOra(s.sfarsit)}
                   </span>
                   <div className="mic estompat">
-                    {s.templateNume ?? 'sesiune liberă'} · {seturi} seturi
+                    {s.templateNume ?? t('statistici.sesiuneLibera')} · {t('comun.seturi', { n: seturi })}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <b>{fmtDurata(t.totalSec)}</b>
+                  <b>{fmtDurata(timp.totalSec)}</b>
                   <div className="mic estompat">
-                    activ {fmtDurata(t.activSec)} · pauză {fmtDurata(t.pauzaSec)}
+                    {t('statistici.activPauza', {
+                      activ: fmtDurata(timp.activSec),
+                      pauza: fmtDurata(timp.pauzaSec),
+                    })}
                   </div>
                   <div className="mic estompat">{Math.round(s.kcal ?? 0)} kcal</div>
                 </div>
@@ -243,7 +262,9 @@ export function AnalyticsPage() {
 
       {greutateData.length > 1 && (
         <>
-          <SectionTitle supratitlu="trend">Greutatea corporală</SectionTitle>
+          <SectionTitle supratitlu={t('statistici.greutate.supratitlu')}>
+            {t('statistici.greutate.titlu')}
+          </SectionTitle>
           <Sticker>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={greutateData}>
@@ -251,12 +272,26 @@ export function AnalyticsPage() {
                 <XAxis dataKey="zi" tick={tickStyle} />
                 <YAxis domain={['dataMin - 1', 'dataMax + 1']} tick={tickStyle} width={38} />
                 <Tooltip />
-                <Line type="monotone" dataKey="kg" stroke="var(--estompat)" dot={{ r: 2 }} strokeWidth={1.5} name="măsurat" />
-                <Line type="monotone" dataKey="medie" stroke="var(--rosu)" strokeWidth={3} dot={false} name="medie 7 zile" />
+                <Line
+                  type="monotone"
+                  dataKey="kg"
+                  stroke="var(--estompat)"
+                  dot={{ r: 2 }}
+                  strokeWidth={1.5}
+                  name={t('statistici.greutate.masurat')}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="medie"
+                  stroke="var(--rosu)"
+                  strokeWidth={3}
+                  dot={false}
+                  name={t('statistici.greutate.medie')}
+                />
               </LineChart>
             </ResponsiveContainer>
             <p className="mic estompat" style={{ margin: 0 }}>
-              Linia groasă = media pe 7 zile. Pe ea o crezi, nu cântarul de dimineață.
+              {t('statistici.greutate.nota')}
             </p>
           </Sticker>
         </>
@@ -264,7 +299,9 @@ export function AnalyticsPage() {
 
       {volumData.length > 0 && (
         <>
-          <SectionTitle supratitlu="muncă depusă">Volum pe săptămână</SectionTitle>
+          <SectionTitle supratitlu={t('statistici.volum.supratitlu')}>
+            {t('statistici.volum.titlu')}
+          </SectionTitle>
           <Sticker>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={volumData}>
@@ -272,7 +309,7 @@ export function AnalyticsPage() {
                 <XAxis dataKey="sapt" tick={tickStyle} />
                 <YAxis tick={tickStyle} width={44} />
                 <Tooltip />
-                <Bar dataKey="volum" fill="var(--rosu)" name="kg ridicate" />
+                <Bar dataKey="volum" fill="var(--rosu)" name={t('statistici.volum.serie')} />
               </BarChart>
             </ResponsiveContainer>
           </Sticker>
@@ -281,7 +318,9 @@ export function AnalyticsPage() {
 
       {radarData.length >= 3 && (
         <>
-          <SectionTitle supratitlu="echilibru">Seturi pe grupă musculară</SectionTitle>
+          <SectionTitle supratitlu={t('statistici.echilibru.supratitlu')}>
+            {t('statistici.echilibru.titlu')}
+          </SectionTitle>
           <Sticker>
             <ResponsiveContainer width="100%" height={240}>
               <RadarChart data={radarData}>
@@ -292,7 +331,7 @@ export function AnalyticsPage() {
               </RadarChart>
             </ResponsiveContainer>
             <p className="mic estompat" style={{ margin: 0 }}>
-              Forma rotundă = antrenament echilibrat. Vârfurile singuratice = grupe favorizate.
+              {t('statistici.echilibru.nota')}
             </p>
           </Sticker>
         </>
@@ -300,7 +339,9 @@ export function AnalyticsPage() {
 
       {exercitiiFolosite.length > 0 && (
         <>
-          <SectionTitle supratitlu="progresie">Forța estimată (1RM)</SectionTitle>
+          <SectionTitle supratitlu={t('statistici.forta.supratitlu')}>
+            {t('statistici.forta.titlu')}
+          </SectionTitle>
           <Sticker>
             <select value={exId} onChange={(e) => setExSelectat(e.target.value)} style={{ marginBottom: 10 }}>
               {exercitiiFolosite.map((e) => (
@@ -316,11 +357,17 @@ export function AnalyticsPage() {
                   <XAxis dataKey="zi" tick={tickStyle} />
                   <YAxis tick={tickStyle} width={38} domain={['dataMin - 2', 'dataMax + 2']} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="rm" stroke="var(--rosu)" strokeWidth={3} name="1RM estimat (kg)" />
+                  <Line
+                    type="monotone"
+                    dataKey="rm"
+                    stroke="var(--rosu)"
+                    strokeWidth={3}
+                    name={t('statistici.forta.serie')}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <p className="mic estompat">Înregistrează măcar două sesiuni cu acest exercițiu pentru grafic.</p>
+              <p className="mic estompat">{t('statistici.forta.gol')}</p>
             )}
           </Sticker>
         </>
@@ -328,7 +375,9 @@ export function AnalyticsPage() {
 
       {kcalData.length > 0 && (
         <>
-          <SectionTitle supratitlu="pe sesiune">Calorii, apă și timp</SectionTitle>
+          <SectionTitle supratitlu={t('statistici.sesiune.supratitlu')}>
+            {t('statistici.sesiune.titlu')}
+          </SectionTitle>
           <Sticker>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={kcalData}>
@@ -337,31 +386,38 @@ export function AnalyticsPage() {
                 <YAxis tick={tickStyle} width={38} />
                 <Tooltip />
                 <Bar dataKey="kcal" fill="var(--rosu)" name="kcal" />
-                <Bar dataKey="apa" fill="#1565C0" name="apă (ml)" />
-                <Bar dataKey="minute" fill="var(--verde)" name="minute la sală" />
+                <Bar dataKey="apa" fill="#1565C0" name={t('statistici.sesiune.apa')} />
+                <Bar dataKey="minute" fill="var(--verde)" name={t('statistici.sesiune.minute')} />
               </BarChart>
             </ResponsiveContainer>
           </Sticker>
         </>
       )}
 
-      <SectionTitle supratitlu="consecvență">Calendarul antrenamentelor</SectionTitle>
+      <SectionTitle supratitlu={t('statistici.calendar.supratitlu')}>
+        {t('statistici.calendar.titlu')}
+      </SectionTitle>
       <Sticker>
         <Heatmap zile={zileAntrenament} />
       </Sticker>
 
-      <SectionTitle supratitlu="datele tale">Export</SectionTitle>
+      <SectionTitle supratitlu={t('statistici.export.supratitlu')}>{t('statistici.export.titlu')}</SectionTitle>
       <Sticker>
-        <p className="mic">Descarcă jurnalul complet al seturilor pentru Excel sau orice altă analiză.</p>
+        <p className="mic">{t('statistici.export.explicatie')}</p>
         <button
           onClick={exportaCsv}
           style={{ border: '3px solid var(--contur)', borderRadius: 10, padding: '10px 16px', fontWeight: 800, background: 'var(--panou)', color: 'var(--panou-fg)' }}
         >
-          ⬇ Export CSV ({date.seturi.length} seturi)
+          {t('statistici.export.buton', { ce: t('comun.seturi', { n: date.seturi.length }) })}
         </button>
       </Sticker>
       <p className="mic estompat">
-        Total istoric: {date.sesiuni.length} sesiuni · {nr(Math.round(date.seturi.reduce((a, l) => a + (l.greutate ?? 0) * (l.repetari ?? 0), 0) / 1000))} tone ridicate.
+        {t('statistici.total', {
+          sesiuni: t('comun.sesiuni', { n: date.sesiuni.length }),
+          tone: nr(
+            Math.round(date.seturi.reduce((a, l) => a + (l.greutate ?? 0) * (l.repetari ?? 0), 0) / 1000),
+          ),
+        })}
       </p>
     </div>
   );

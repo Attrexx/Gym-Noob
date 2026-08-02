@@ -3,6 +3,7 @@ import { BigButton, Sticker } from '@/design/components';
 import { parseFreefitCsv, type ParsedWeight } from '@/domain/freefit';
 import { useProfile } from '@/state/profileStore';
 import { importBodyMetrics } from '@/data/repo';
+import { T, useT } from '@/i18n';
 
 /**
  * Import de istoric de greutate din Freefit (sau alte aplicații de
@@ -10,6 +11,7 @@ import { importBodyMetrics } from '@/data/repo';
  * aplicația lor → fișierul se citește aici, local.
  */
 export function FreefitImport(props: { onGata: () => void }) {
+  const { t } = useT();
   const { profil } = useProfile();
   const fileRef = useRef<HTMLInputElement>(null);
   const [previzualizare, setPrevizualizare] = useState<ParsedWeight[] | null>(null);
@@ -21,7 +23,7 @@ export function FreefitImport(props: { onGata: () => void }) {
     const text = await f.text();
     const rows = parseFreefitCsv(text);
     if (rows.length === 0) {
-      setEroare('Nu am găsit coloane de dată + greutate în fișier. Verifică exportul (trebuie să fie CSV).');
+      setEroare(t('freefit.eroareColoane'));
       return;
     }
     setPrevizualizare(rows);
@@ -33,15 +35,18 @@ export function FreefitImport(props: { onGata: () => void }) {
   };
 
   if (gata !== null) {
+    const dubluri = previzualizare ? previzualizare.length - gata : 0;
     return (
       <div className="centrat">
         <p>
-          ✅ Import reușit: <b>{gata}</b> cântăriri noi adăugate
-          {previzualizare && gata < previzualizare.length ? ` (${previzualizare.length - gata} erau deja înregistrate)` : ''}
-          .
+          {dubluri > 0 ? (
+            <T k="freefit.succesCuDubluri" p={{ n: gata, dubluri }} />
+          ) : (
+            <T k="freefit.succes" p={{ n: gata }} />
+          )}
         </p>
         <BigButton varianta="accent" onClick={props.onGata}>
-          Super!
+          {t('freefit.super')}
         </BigButton>
       </div>
     );
@@ -51,11 +56,11 @@ export function FreefitImport(props: { onGata: () => void }) {
     <div>
       {!previzualizare && (
         <>
-          <p className="mic">Cum scoți datele din Freefit:</p>
+          <p className="mic">{t('freefit.cum')}</p>
           <ol className="mic" style={{ paddingLeft: 18, marginTop: 0 }}>
-            <li>Deschide Freefit → profil / setări → caută „Export date" sau „Istoric măsurători".</li>
-            <li>Alege formatul CSV (sau Excel salvat ca CSV) și trimite-ți fișierul (email, Drive etc.).</li>
-            <li>Alege fișierul aici — totul se procesează local, nimic nu pleacă de pe telefon.</li>
+            <li>{t('freefit.pas1')}</li>
+            <li>{t('freefit.pas2')}</li>
+            <li>{t('freefit.pas3')}</li>
           </ol>
           <input
             ref={fileRef}
@@ -67,8 +72,7 @@ export function FreefitImport(props: { onGata: () => void }) {
             }}
           />
           <p className="mic estompat" style={{ marginTop: 8 }}>
-            Merge cu orice CSV care are o coloană de dată și una de greutate (kg) — inclusiv exporturi din alte
-            aplicații de cântar.
+            {t('freefit.oriceCsv')}
           </p>
         </>
       )}
@@ -76,8 +80,14 @@ export function FreefitImport(props: { onGata: () => void }) {
       {previzualizare && (
         <>
           <p>
-            Am găsit <b>{previzualizare.length}</b> cântăriri, între {previzualizare[0].data.slice(0, 10)} și{' '}
-            {previzualizare[previzualizare.length - 1].data.slice(0, 10)}.
+            <T
+              k="freefit.amGasit"
+              p={{
+                n: previzualizare.length,
+                prima: previzualizare[0].data.slice(0, 10),
+                ultima: previzualizare[previzualizare.length - 1].data.slice(0, 10),
+              }}
+            />
           </p>
           <Sticker style={{ maxHeight: 180, overflowY: 'auto' }}>
             {previzualizare.slice(-10).map((p) => (
@@ -86,14 +96,16 @@ export function FreefitImport(props: { onGata: () => void }) {
                 <b>{p.greutate} kg</b>
               </div>
             ))}
-            {previzualizare.length > 10 && <p className="mic estompat">…și încă {previzualizare.length - 10}</p>}
+            {previzualizare.length > 10 && (
+              <p className="mic estompat">{t('freefit.siIncaN', { n: previzualizare.length - 10 })}</p>
+            )}
           </Sticker>
           <div className="rand">
             <BigButton varianta="accent" onClick={() => void importa()}>
-              Importă
+              {t('freefit.importa')}
             </BigButton>
             <BigButton varianta="contur" onClick={() => setPrevizualizare(null)}>
-              Alt fișier
+              {t('freefit.altFisier')}
             </BigButton>
           </div>
         </>

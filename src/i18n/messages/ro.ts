@@ -57,6 +57,25 @@ export const ro = {
   'comun.toate': 'Toate',
   'comun.toateLink': 'toate →',
   'comun.detalii': 'detalii →',
+  'comun.inapoi': 'Înapoi',
+  'comun.maiDeparte': 'Mai departe',
+  'comun.salveaza': 'Salvează',
+  'comun.anuleaza': 'Anulează',
+  'comun.optional': 'opțional',
+  'comun.optScurt': 'opț.',
+  // câmpuri care apar identic în onboarding, setări și pagina de greutate
+  'comun.inaltime': 'Înălțime (cm)',
+  'comun.talie': 'Talie (cm)',
+  'comun.gat': 'Gât (cm)',
+  'comun.sold': 'Șold (cm)',
+  'comun.greutateTinta': 'Greutatea țintă (kg)',
+  'comun.saptamani': {
+    one: '{n} săptămână',
+    few: '{n} săptămâni',
+    other: '{n} de săptămâni',
+  },
+  'comun.seturi': { one: '{n} set', few: '{n} seturi', other: '{n} de seturi' },
+  'comun.sesiuni': { one: '{n} sesiune', few: '{n} sesiuni', other: '{n} de sesiuni' },
 
   // ── textele alternative ale desenelor (cititoarele de ecran) ────────
   'flexu.alt.salut': 'Flexu face cu mâna',
@@ -376,7 +395,302 @@ export const ro = {
   'realizari.cat.hidratare': 'Hidratare',
   'realizari.cat.recorduri': 'Recorduri',
 
+  // ── onboarding ──────────────────────────────────────────────────────
+  'onboarding.pasul': 'Pasul {pas} din {total}',
+  'onboarding.noob': 'Noob',
+  'onboarding.intro.supratitlu': 'Ghidul complet al începătorului absolut',
+  // „totul în română" e o afirmație despre limbă: fiecare limbă își spune a ei
+  'onboarding.intro.text':
+    '<0>Eu sunt Flexu</0> — am fost cel mai noob noob din sală, așa că știu exact prin ce treci. Antrenamente, jurnal de greutăți, calorii și încurajări: totul în română, totul pe telefonul tău. Cont opțional, doar dacă vrei datele pe mai multe dispozitive.',
+  'onboarding.intro.bula': 'Nu trebuie să fii perfect. Trebuie doar să începi!',
+  'onboarding.intro.start': 'Să începem! 💪',
+  'onboarding.intro.altProfil': 'Ai mai folosit aplicația pe alt profil? <0>Alege profilul</0>',
+  'onboarding.intro.amCont': 'Ai deja cont de sincronizare? <0>Intră și adu-ți datele</0>',
+
+  'onboarding.pas1.supratitlu': 'pasul 1 din 4 · fă cunoștință',
+  'onboarding.pas1.titlu': 'Cine ești?',
+  'onboarding.pas1.flexu':
+    'Datele astea rămân doar pe telefonul tău — le folosesc pentru calorii și recomandări.',
+  'onboarding.pas1.nume': 'Cum îți spunem?',
+  'onboarding.pas1.numePlaceholder': 'Numele tău',
+  'onboarding.pas1.sex': 'Sex (pentru formulele de calorii)',
+  'onboarding.pas1.masculin': 'Masculin',
+  'onboarding.pas1.feminin': 'Feminin',
+  'onboarding.pas1.dataNasterii': 'Data nașterii',
+
+  'onboarding.pas2.supratitlu': 'pasul 2 din 4 · punctul de plecare',
+  'onboarding.pas2.titlu': 'Corpul de start',
+  'onboarding.pas2.flexu':
+    'Măsurătorile cu banda (opționale) îmi permit să estimez procentul de grăsime — un indicator mult mai util decât cântarul singur.',
+  'onboarding.pas2.greutate': 'Greutatea actuală (kg)',
+  'onboarding.pas2.activitate': 'Cât de activ ești în afara sălii?',
+  'onboarding.pas2.grasime': 'Grăsime corporală estimată (formula US Navy): <0>{procent}%</0>',
+
+  'onboarding.pas3.supratitlu': 'pasul 3 din 4 · destinația',
+  'onboarding.pas3.titlu': 'Obiectivul',
+  // cifra din text are separatorul zecimal al limbii — în engleză „0.5 kg"
+  'onboarding.pas3.flexu':
+    'Recomand un ritm de <0>0,5 kg pe săptămână</0> — suficient de rapid să se vadă, suficient de blând să păstrezi mușchii și să nu suferi de foame.',
+  'onboarding.pas3.ritm': 'Ritm de slăbire: {ritm} kg / săptămână',
+  'onboarding.pas3.relaxat': 'relaxat',
+  'onboarding.pas3.hotarat': 'hotărât',
+  'onboarding.pas3.eta':
+    '🗓️ La ritmul ales, ajungi la <0>{tinta} kg</0> în aproximativ <1>{saptamani}</1> ({cand}).',
+  'onboarding.pas3.tintaPreaMare':
+    'Ținta e egală sau peste greutatea actuală — setează o țintă mai mică pentru slăbit.',
+
+  'onboarding.pas4.supratitlu': 'pasul 4 din 4 · gata de treabă',
+  'onboarding.pas4.titlu': 'Planul tău',
+  'onboarding.pas4.imc': 'IMC',
+  'onboarding.pas4.bmr': 'BMR (kcal)',
+  'onboarding.pas4.bmrSub': 'arse doar existând',
+  'onboarding.pas4.tdee': 'TDEE (kcal)',
+  'onboarding.pas4.tdeeSub': 'consum zilnic total',
+  'onboarding.pas4.buget': 'Buget zilnic',
+  'onboarding.pas4.bugetSub': 'kcal, în zi fără sală',
+  'onboarding.pas4.flexu':
+    '<0>{nume}, planul e gata!</0> Ți-am pregătit și 4 antrenamente de start, croite pentru început de drum. În zilele cu sală, bugetul de calorii crește automat cu ce arzi. Ne vedem la aparate!',
+  'onboarding.pas4.pregatesc': 'Pregătesc totul…',
+  'onboarding.pas4.creeaza': 'Creează profilul 🚀',
+
+  // ── login pe un dispozitiv nou ──────────────────────────────────────
+  'login.supratitlu': 'bine ai revenit',
+  'login.titlu': 'Adu-ți datele',
+  'login.flexu':
+    'Ai deja cont? Intră și îți aduc tot ghiozdanul: profil, antrenamente, istoric, realizări. Ca și cum n-ai fi schimbat telefonul.',
+  'login.parolaPlaceholder': 'parola ta',
+  'login.contGol':
+    'Contul există, dar încă n-are date. Fă onboarding-ul normal, apoi leagă contul din Setări.',
+  'login.aduc': 'Aduc datele…',
+  'login.intra': 'Intră în cont',
+
+  // ── lista de profiluri ──────────────────────────────────────────────
+  'profiluri.titlu': 'Profiluri',
+  'profiluri.activ': 'activ',
+  'profiluri.creat': 'creat {cand}',
+  'profiluri.gol': 'Niciun profil încă.',
+  'profiluri.nou': '+ Profil nou',
+
+  // ── greutate & obiectiv ─────────────────────────────────────────────
+  'greutate.supratitlu': 'cântarul, îmblânzit',
+  'greutate.titlu': 'Greutate & obiectiv',
+  'greutate.acum': 'acum',
+  'greutate.slabite': 'slăbite',
+  'greutate.deLaMaxim': 'de la maximul de {kg} kg',
+  'greutate.imc': 'IMC',
+  'greutate.grasime': 'grăsime est.',
+  'greutate.grasimeGol': 'adaugă măsurători',
+  'greutate.grasimeFormula': 'formula US Navy',
+  'greutate.cantarireNoua': '+ Cântărire nouă',
+  'greutate.obiectiv.supratitlu': 'ținta',
+  'greutate.obiectiv.titlu': 'Obiectivul activ',
+  // două propoziții întregi, nu una cu coada schimbată
+  'greutate.obiectiv.cuRest':
+    '🎯 <0>{tinta} kg</0> în ritm de <1>{ritm} kg/săpt.</1> — încă <2>{rest} kg</2>, aproximativ <3>{saptamani}</3>.',
+  'greutate.obiectiv.atins':
+    '🎯 <0>{tinta} kg</0> în ritm de <1>{ritm} kg/săpt.</1> — obiectiv atins! 🎉 Setează unul nou.',
+  'greutate.obiectiv.schimba': 'Schimbă obiectivul',
+  'greutate.obiectiv.gol': 'Niciun obiectiv activ.',
+  'greutate.obiectiv.seteaza': 'Setează un obiectiv',
+  'greutate.flexu.progres':
+    'De la <0>{maxim} kg</0> la <1>{acum} kg</1> — se mișcă treaba! Ține ritmul, nu graba.',
+  'greutate.flexu.sfat':
+    'Cântărește-te la aceeași oră (ideal dimineața) și urmărește media pe 7 zile din Statistici, nu fiecare zi în parte.',
+  'greutate.istoric.supratitlu': 'istoric',
+  'greutate.istoric.titlu': 'Cântăriri',
+  'greutate.sursa.freefit': 'import Freefit',
+  'greutate.sursa.manual': 'manual',
+  'greutate.import.supratitlu': 'date externe',
+  'greutate.import.titlu': 'Import din Freefit',
+  'greutate.import.explicatie':
+    'Folosești un cântar Bluetooth cu aplicația Freefit? Istoricul de greutate poate fi adus aici dintr-un fișier CSV exportat.',
+  'greutate.import.buton': '📥 Importă istoric',
+  'greutate.import.modal': 'Import Freefit',
+  'greutate.adauga.titlu': 'Cântărire nouă',
+  'greutate.adauga.kg': 'Greutate (kg)',
+  'greutate.adauga.kgPlaceholder': 'ex. 92,4',
+  'greutate.editObiectiv.titlu': 'Obiectivul de greutate',
+  'greutate.editObiectiv.ritm': 'Ritm: {ritm} kg / săptămână',
+  'greutate.editObiectiv.estimare': 'Estimare: ~{saptamani} până la țintă.',
+  'greutate.editObiectiv.salveaza': 'Salvează obiectivul',
+
+  // ── importul din Freefit ────────────────────────────────────────────
+  'freefit.eroareColoane':
+    'Nu am găsit coloane de dată + greutate în fișier. Verifică exportul (trebuie să fie CSV).',
+  'freefit.succes': '✅ Import reușit: <0>{n}</0> cântăriri noi adăugate.',
+  'freefit.succesCuDubluri':
+    '✅ Import reușit: <0>{n}</0> cântăriri noi adăugate ({dubluri} erau deja înregistrate).',
+  'freefit.super': 'Super!',
+  'freefit.cum': 'Cum scoți datele din Freefit:',
+  'freefit.pas1': 'Deschide Freefit → profil / setări → caută „Export date" sau „Istoric măsurători".',
+  'freefit.pas2': 'Alege formatul CSV (sau Excel salvat ca CSV) și trimite-ți fișierul (email, Drive etc.).',
+  'freefit.pas3': 'Alege fișierul aici — totul se procesează local, nimic nu pleacă de pe telefon.',
+  'freefit.oriceCsv':
+    'Merge cu orice CSV care are o coloană de dată și una de greutate (kg) — inclusiv exporturi din alte aplicații de cântar.',
+  'freefit.amGasit': 'Am găsit <0>{n}</0> cântăriri, între {prima} și {ultima}.',
+  'freefit.siIncaN': '…și încă {n}',
+  'freefit.importa': 'Importă',
+  'freefit.altFisier': 'Alt fișier',
+
+  // ── statistici ──────────────────────────────────────────────────────
+  'statistici.supratitlu': 'cifrele nu mint',
+  'statistici.titlu': 'Statistici',
+  'statistici.tot': 'Tot',
+  'statistici.zile': '{n} zile',
+  'statistici.sesiuni': 'sesiuni',
+  'statistici.timpLaSala': 'timp la sală',
+  'statistici.lucrat': '{procent}% lucrat',
+  'statistici.timpActiv': 'timp activ',
+  'statistici.pauze': 'pauze {timp}',
+  'statistici.kcalArse': 'kcal arse',
+  'statistici.volum': 'volum ridicat',
+  'statistici.seturi': 'seturi',
+  'statistici.apa': 'apă la sală',
+  'statistici.jurnal.supratitlu': 'jurnal',
+  'statistici.jurnal.titlu': 'Ultimele sesiuni',
+  'statistici.sesiuneLibera': 'sesiune liberă',
+  'statistici.activPauza': 'activ {activ} · pauză {pauza}',
+  'statistici.greutate.supratitlu': 'trend',
+  'statistici.greutate.titlu': 'Greutatea corporală',
+  'statistici.greutate.masurat': 'măsurat',
+  'statistici.greutate.medie': 'medie 7 zile',
+  'statistici.greutate.nota':
+    'Linia groasă = media pe 7 zile. Pe ea o crezi, nu cântarul de dimineață.',
+  'statistici.volum.supratitlu': 'muncă depusă',
+  'statistici.volum.titlu': 'Volum pe săptămână',
+  'statistici.volum.serie': 'kg ridicate',
+  'statistici.echilibru.supratitlu': 'echilibru',
+  'statistici.echilibru.titlu': 'Seturi pe grupă musculară',
+  'statistici.echilibru.nota':
+    'Forma rotundă = antrenament echilibrat. Vârfurile singuratice = grupe favorizate.',
+  'statistici.forta.supratitlu': 'progresie',
+  'statistici.forta.titlu': 'Forța estimată (1RM)',
+  'statistici.forta.serie': '1RM estimat (kg)',
+  'statistici.forta.gol': 'Înregistrează măcar două sesiuni cu acest exercițiu pentru grafic.',
+  'statistici.sesiune.supratitlu': 'pe sesiune',
+  'statistici.sesiune.titlu': 'Calorii, apă și timp',
+  'statistici.sesiune.apa': 'apă (ml)',
+  'statistici.sesiune.minute': 'minute la sală',
+  'statistici.calendar.supratitlu': 'consecvență',
+  'statistici.calendar.titlu': 'Calendarul antrenamentelor',
+  'statistici.export.supratitlu': 'datele tale',
+  'statistici.export.titlu': 'Export',
+  'statistici.export.explicatie':
+    'Descarcă jurnalul complet al seturilor pentru Excel sau orice altă analiză.',
+  'statistici.export.buton': '⬇ Export CSV ({ce})',
+  'statistici.total': 'Total istoric: {sesiuni} · {tone} tone ridicate.',
+
+  // ── cont și sincronizare ────────────────────────────────────────────
+  'cont.supratitlu': 'pe mai multe dispozitive',
+  'cont.titlu': 'Cont și sincronizare',
+  'cont.email': 'Email',
+  'cont.emailPlaceholder': 'tu@exemplu.ro',
+  'cont.parola': 'Parolă',
+  'cont.parolaPlaceholder': 'minim 8 caractere',
+  'cont.parolaScurta': 'Parola trebuie să aibă minim 8 caractere.',
+  'cont.intru': 'Intru…',
+  'cont.intraDinNou': 'Intră din nou',
+  'cont.oClipa': 'O clipă…',
+  'cont.creeaza': 'Creează cont',
+  'cont.amDejaCont': 'Am deja cont',
+  'cont.nuUitaParola': 'Nu uita parola — deocamdată n-avem resetare prin email (serios, n-o uita).',
+  'cont.nelegat':
+    'Vrei datele pe două telefoane? Fă-ți un cont și car eu ghiozdanul cu date între ele. Fără cont, totul rămâne doar aici — ca până acum.',
+  'cont.sincronizez': 'Car ganterele cu date… o secundă.',
+  'cont.sincronizat': '✅ Sincronizat',
+  'cont.contEste': 'Cont: <0>{email}</0>',
+  'cont.ultimaSincronizare': 'Ultima sincronizare: {cand}',
+  'cont.spatiu': 'Spațiu folosit: {folosit} MB din {total} MB',
+  'cont.sincronizeazaAcum': '🔄 Sincronizează acum',
+  'cont.deconecteaza': 'Deconectează',
+  'cont.deconecteazaExplicatie': '„Deconectează" doar dezleagă contul — datele rămân pe telefon.',
+  'cont.stergeCloud': 'Șterge contul din cloud',
+  'cont.sesiuneExpirata': 'Sesiunea a expirat — intră din nou și continuăm de unde am rămas.',
+  'cont.cotaPlina': 'Contul e plin (25 MB de gains!). Sincronizarea ia o pauză — scrie-i lui Attrexx.',
+  'cont.eroareGenerica':
+    'Nu ajung la server acum. Nicio grijă — totul e salvat aici și trimit eu când prind semnal.',
+  'cont.maiIncearca': '🔄 Mai încearcă',
+  'cont.conflictScurt': 'Contul are alt set de date — alege în fereastra de mai jos.',
+  'cont.conflict.titlu': 'Ho! Două seturi de date',
+  'cont.conflict.explicatie':
+    'Contul <0>{email}</0> are deja un set de date, și telefonul ăsta are altul. Ca la sală: nu punem două discuri pe același cârlig. Pe care îl păstrăm?',
+  'cont.conflict.cloud': '☁️ Folosesc varianta din cloud',
+  'cont.conflict.cloudExplicatie':
+    'Profilul din cloud devine activ. Profilul local NU se șterge — rămâne în lista de profiluri, nelegat.',
+  'cont.conflict.local': '📱 Trimit varianta locală',
+  'cont.conflict.localExplicatie': 'Datele din cloud se înlocuiesc cu ce e pe telefonul ăsta.',
+  'cont.conflict.backup': '⬇ Descarcă întâi un backup',
+  'cont.conflict.renunt': 'Renunț',
+  'cont.stergere.titlu': 'Ștergi contul din cloud?',
+  'cont.stergere.explicatie':
+    'Se șterg contul și TOATE datele din cloud. Datele de pe telefon rămân neatinse. Confirmă cu parola.',
+  'cont.stergere.parola': 'Parola contului',
+  'cont.stergere.sterg': 'Șterg…',
+  'cont.stergere.confirma': 'Da, șterge tot din cloud',
+
+  // ── ceas și aparate (BLE) ───────────────────────────────────────────
+  'aparate.supratitlu': 'senzori',
+  'aparate.titlu': 'Ceas și aparate',
+  'aparate.faraBle':
+    'Browserul acesta nu are Web Bluetooth, așa că nu pot citi nici pulsul de la ceas, nici datele de pe aparate. Pe iPhone nu există deloc — pe Android, folosește Chrome. Restul aplicației merge normal.',
+  'aparate.pulsAuto': '♥ Caută ceasul automat la începutul sesiunii',
+  'aparate.aparatAuto': '🔌 Caută aparatul de cardio automat',
+  'aparate.tinuteMinte': 'Ținute minte: {lista}',
+  'aparate.silentios':
+    'Browserul tău îmi permite să mă reconectez singur — nu mai trebuie să apeși nimic.',
+  'aparate.cuAtingere':
+    'Browserul cere o atingere ca să aleagă dispozitivul, așa că îți pun un buton mare în antetul sesiunii. Odată conectat, dacă pierd semnalul mă reconectez singur.',
+  'aparate.scaner.titlu': '🔍 Scanează un aparat',
+  'aparate.scaner.explicatie':
+    'Dacă un aparat nu se conectează, pornește-i Bluetooth-ul și scanează-l de aici. Îți spun exact ce servicii expune, iar de acolo știm dacă putem citi datele lui.',
+  'aparate.scaner.scanez': 'Scanez…',
+  'aparate.scaner.scaneaza': '🔍 Scanează',
+  'aparate.scaner.uuid': 'UUID-uri suplimentare (opțional)',
+  'aparate.scaner.uuidPlaceholder': 'ex. 0000fff0-0000-1000-8000-00805f9b34fb',
+  'aparate.scaner.uuidExplicatie':
+    'Important de știut: browserul îmi arată <0>doar serviciile pe care le cer dinainte</0>. Un serviciu proprietar necunoscut nu apare până nu-i știm UUID-ul — de aceea există câmpul ăsta.',
+  'aparate.scaner.copiat': '✅ Copiat',
+  'aparate.scaner.copiaza': '📋 Copiază raportul',
+  'aparate.scaner.eroareCopiere': 'Nu am putut copia. Selectează textul de mai jos manual.',
+  'aparate.scaner.cauti':
+    'Cauți <0>0x1826</0> (Fitness Machine) — dacă apare, aparatul vorbește standardul și îl putem citi.',
+
   // ── setări ──────────────────────────────────────────────────────────
+  'setari.supratitlu': 'reglaje fine',
+  'setari.titlu': 'Setări',
+  'setari.tema.supratitlu': 'aspect',
+  'setari.tema.titlu': 'Temă',
+  'setari.tema.zi': '☀️ Zi',
+  'setari.tema.noapte': '🌙 Noapte',
+  'setari.tema.auto': '🌗 Auto',
+  'setari.tema.explicatie':
+    '„Noapte" = sală întunecată cu accente galbene — pentru antrenamentele târzii.',
+  'setari.sunete.supratitlu': 'în sesiune',
+  'setari.sunete.titlu': 'Sunete și indicații',
+  'setari.sunete.bipuri': '🔔 Sunete (bipuri, cronometre)',
+  'setari.sunete.vocale': '🗣️ Indicații vocale în căști',
+  'setari.sunete.vibratii': '📳 Vibrații',
+  'setari.sunete.sugestii': '💡 Sugestii automate de exerciții',
+  'setari.sunete.economizor': '🌘 Economizor de ecran în sesiune',
+  'setari.sunete.economizorExplicatie':
+    'Economizorul: după 45 de secunde fără atingeri, ecranul devine negru cu cronometrul estompat — ca pe un ceas. Se trezește la atingere sau la mișcarea telefonului. Ecranul nu se stinge niciodată în sesiune.',
+  'setari.profil.supratitlu': 'despre tine',
+  'setari.profil.titlu': 'Profil',
+  'setari.profil.nume': 'Nume',
+  'setari.profil.activitate': 'Nivel de activitate zilnică',
+  'setari.profil.schimba': '👥 Schimbă profilul',
+  'setari.backup.supratitlu': 'datele tale',
+  'setari.backup.titlu': 'Backup',
+  'setari.backup.explicatie':
+    'Totul stă doar pe acest dispozitiv. Fă periodic un backup — mai ales înainte să schimbi telefonul.',
+  'setari.backup.exporta': '⬇ Exportă tot',
+  'setari.backup.restaureaza': '⬆ Restaurează',
+  'setari.backup.confirmare':
+    'Importul ÎNLOCUIEȘTE toate datele actuale ale aplicației cu cele din fișier. Continui?',
+  'setari.backup.succes': '✅ Datele au fost restaurate.',
+  // versiunea vine din cod, nu din traducere
+  'setari.versiune':
+    'Gym Noob · v{versiune} · făcută cu 💪 — datele stau la tine, sincronizarea e opțională',
   'setari.limba.supratitlu': 'în ce limbă',
   'setari.limba.titlu': 'Limba',
   'setari.limba.auto': 'Automat',

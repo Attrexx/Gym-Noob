@@ -23,14 +23,14 @@ export function SettingsPage() {
   const set = (c: Partial<Settings>) => void actualizeazaSetari(c);
 
   const importa = async (f: File) => {
-    if (!confirm('Importul ÎNLOCUIEȘTE toate datele actuale ale aplicației cu cele din fișier. Continui?')) return;
+    if (!confirm(t('setari.backup.confirmare'))) return;
     try {
       await importBackup(await f.text());
       await incarca();
       // restaurarea e autoritară și pentru cloud (sau dezleagă contul — vezi engine)
       const { dupaRestaurareBackup } = await import('@/data/sync/engine');
       const nota = await dupaRestaurareBackup();
-      setMesajImport(`✅ Datele au fost restaurate.${nota ? ` ${nota}` : ''}`);
+      setMesajImport(`${t('setari.backup.succes')}${nota ? ` ${nota}` : ''}`);
     } catch (e) {
       setMesajImport(`❌ ${(e as Error).message}`);
     }
@@ -39,8 +39,8 @@ export function SettingsPage() {
   return (
     <div className="pagina">
       <div className="coperta">
-        <div className="supratitlu">reglaje fine</div>
-        <h1>Setări</h1>
+        <div className="supratitlu">{t('setari.supratitlu')}</div>
+        <h1>{t('setari.titlu')}</h1>
       </div>
 
       {/* Limba stă prima: e cel mai global reglaj, și primul lucru de care are
@@ -69,7 +69,7 @@ export function SettingsPage() {
         </>
       )}
 
-      <SectionTitle supratitlu="aspect">Temă</SectionTitle>
+      <SectionTitle supratitlu={t('setari.tema.supratitlu')}>{t('setari.tema.titlu')}</SectionTitle>
       <Sticker>
         <div className="rand">
           {(['zi', 'noapte', 'auto'] as const).map((tema) => (
@@ -78,44 +78,55 @@ export function SettingsPage() {
               varianta={setari.tema === tema ? 'accent' : 'contur'}
               onClick={() => set({ tema })}
             >
-              {tema === 'zi' ? '☀️ Zi' : tema === 'noapte' ? '🌙 Noapte' : '🌗 Auto'}
+              {t(`setari.tema.${tema}`)}
             </BigButton>
           ))}
         </div>
         <p className="mic estompat" style={{ margin: '8px 0 0' }}>
-          „Noapte" = sală întunecată cu accente galbene — pentru antrenamentele târzii.
+          {t('setari.tema.explicatie')}
         </p>
       </Sticker>
 
-      <SectionTitle supratitlu="în sesiune">Sunete și indicații</SectionTitle>
+      <SectionTitle supratitlu={t('setari.sunete.supratitlu')}>{t('setari.sunete.titlu')}</SectionTitle>
       <Sticker>
-        <Comutator eticheta="🔔 Sunete (bipuri, cronometre)" activ={setari.sunete} onChange={(v) => set({ sunete: v })} />
         <Comutator
-          eticheta="🗣️ Indicații vocale în căști"
+          eticheta={t('setari.sunete.bipuri')}
+          activ={setari.sunete}
+          onChange={(v) => set({ sunete: v })}
+        />
+        <Comutator
+          eticheta={t('setari.sunete.vocale')}
           activ={setari.vocale}
           onChange={(v) => {
             set({ vocale: v });
             if (v) spune(t('setari.vocale.confirmare'));
           }}
         />
-        <Comutator eticheta="📳 Vibrații" activ={setari.vibratii} onChange={(v) => set({ vibratii: v })} />
-        <Comutator eticheta="💡 Sugestii automate de exerciții" activ={setari.sugestiiAutomate} onChange={(v) => set({ sugestiiAutomate: v })} />
         <Comutator
-          eticheta="🌘 Economizor de ecran în sesiune"
+          eticheta={t('setari.sunete.vibratii')}
+          activ={setari.vibratii}
+          onChange={(v) => set({ vibratii: v })}
+        />
+        <Comutator
+          eticheta={t('setari.sunete.sugestii')}
+          activ={setari.sugestiiAutomate}
+          onChange={(v) => set({ sugestiiAutomate: v })}
+        />
+        <Comutator
+          eticheta={t('setari.sunete.economizor')}
           activ={setari.economizor !== false}
           onChange={(v) => set({ economizor: v })}
         />
         <p className="mic estompat" style={{ margin: '8px 0 0' }}>
-          Economizorul: după 45 de secunde fără atingeri, ecranul devine negru cu cronometrul estompat — ca pe un
-          ceas. Se trezește la atingere sau la mișcarea telefonului. Ecranul nu se stinge niciodată în sesiune.
+          {t('setari.sunete.economizorExplicatie')}
         </p>
       </Sticker>
 
       <AparateSection setari={setari} onChange={set} />
 
-      <SectionTitle supratitlu="despre tine">Profil</SectionTitle>
+      <SectionTitle supratitlu={t('setari.profil.supratitlu')}>{t('setari.profil.titlu')}</SectionTitle>
       <Sticker>
-        <label htmlFor="s-nume">Nume</label>
+        <label htmlFor="s-nume">{t('setari.profil.nume')}</label>
         <input
           id="s-nume"
           defaultValue={profil.nume}
@@ -124,7 +135,7 @@ export function SettingsPage() {
             if (v && v !== profil.nume) void updateProfile(profil.id!, { nume: v }).then(reincarcaProfil);
           }}
         />
-        <label htmlFor="s-inaltime">Înălțime (cm)</label>
+        <label htmlFor="s-inaltime">{t('comun.inaltime')}</label>
         <input
           id="s-inaltime"
           type="number"
@@ -134,7 +145,7 @@ export function SettingsPage() {
             if (v >= 120 && v <= 230 && v !== profil.inaltime) void updateProfile(profil.id!, { inaltime: v }).then(reincarcaProfil);
           }}
         />
-        <label htmlFor="s-activitate">Nivel de activitate zilnică</label>
+        <label htmlFor="s-activitate">{t('setari.profil.activitate')}</label>
         <select
           id="s-activitate"
           value={profil.activitate}
@@ -147,22 +158,20 @@ export function SettingsPage() {
           ))}
         </select>
         <div style={{ marginTop: 12 }}>
-          <BigButton onClick={() => nav('/profiluri')}>👥 Schimbă profilul</BigButton>
+          <BigButton onClick={() => nav('/profiluri')}>{t('setari.profil.schimba')}</BigButton>
         </div>
       </Sticker>
 
       <ContSection />
 
-      <SectionTitle supratitlu="datele tale">Backup</SectionTitle>
+      <SectionTitle supratitlu={t('setari.backup.supratitlu')}>{t('setari.backup.titlu')}</SectionTitle>
       <Sticker>
-        <p className="mic">
-          Totul stă doar pe acest dispozitiv. Fă periodic un backup — mai ales înainte să schimbi telefonul.
-        </p>
+        <p className="mic">{t('setari.backup.explicatie')}</p>
         <div className="rand">
           <BigButton varianta="accent" onClick={() => void exportBackup().then(downloadBackup)}>
-            ⬇ Exportă tot
+            {t('setari.backup.exporta')}
           </BigButton>
-          <BigButton onClick={() => fileRef.current?.click()}>⬆ Restaurează</BigButton>
+          <BigButton onClick={() => fileRef.current?.click()}>{t('setari.backup.restaureaza')}</BigButton>
         </div>
         <input
           ref={fileRef}
@@ -178,7 +187,7 @@ export function SettingsPage() {
       </Sticker>
 
       <p className="mic estompat centrat" style={{ marginTop: 20 }}>
-        Gym Noob · v1.1 · făcută cu 💪 — datele stau la tine, sincronizarea e opțională
+        {t('setari.versiune', { versiune: '1.1' })}
       </p>
     </div>
   );
